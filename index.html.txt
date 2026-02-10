@@ -58,7 +58,6 @@
     </main>
 
     <script>
-        // FULL DATA MAPPED FROM YOUR UPLOADED FILE
         const galleryData = [
             { name: "Photo 1", url: "https://open.spotify.com/embed/track/1wqqyytFD8HoKWg06T1GCo?utm_source=generator" },
             { name: "Photo 2", url: "https://open.spotify.com/embed/track/73m0ROzv1B86iNvuo8rh8z?utm_source=generator" },
