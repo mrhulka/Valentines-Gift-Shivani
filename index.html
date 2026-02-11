@@ -6,12 +6,11 @@
     <title>Our Symphony | Valentine 2026</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600&family=Playfair+Display:ital,wght@0,600;1,600&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600&family=Playfair+Display:ital,wght@0,600;1,600&family=Dancing+Script:wght@700&display=swap');
         
         :root {
-            --spotify-green: #1DB954;
-            --player-bg: #121212;
             --valentine-yellow: #fdd835; 
+            --valentine-red: #ff4d4d;
         }
 
         html, body {
@@ -30,8 +29,9 @@
         }
 
         .font-serif { font-family: 'Playfair Display', serif; }
+        .font-curvy { font-family: 'Dancing Script', cursive; }
 
-        /* Popups and Layers */
+        /* Landing Layer */
         .layer {
             position: fixed;
             inset: 0;
@@ -40,30 +40,57 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            transition: opacity 0.5s ease;
-        }
-
-        /* Spotify Login Layer (Yellow Background) */
-        #spotify-login-layer {
+            transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
             background-color: var(--valentine-yellow);
             color: #000;
-            z-index: 200;
+            visibility: visible;
+            opacity: 1;
         }
 
-        /* Main Landing Layer (Yellow Background) */
-        #landing-layer {
-            background-color: var(--valentine-yellow);
-            color: #000;
-            z-index: 150;
+        .layer.hidden-state {
+            opacity: 0;
+            visibility: hidden;
+            transform: scale(1.1);
         }
 
+        /* Heart Button */
         .heart-trigger { 
-            background: #000; 
+            background: var(--valentine-red); 
             color: #fff; 
-            box-shadow: 0 15px 30px rgba(0,0,0,0.2); 
+            box-shadow: 0 10px 40px rgba(255, 77, 77, 0.5); 
+            transition: transform 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            border: none;
+            outline: none;
+            -webkit-tap-highlight-color: transparent;
+            animation: heartPulse 2s infinite;
+        }
+        
+        @keyframes heartPulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
         }
 
-        /* Player UI */
+        /* Main Player Shell */
+        #player-container {
+            position: absolute;
+            inset: 0;
+            background: #000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.8s ease;
+            z-index: 10;
+        }
+
+        #player-container.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
         #reel-viewport {
             height: 100%;
             width: 100%;
@@ -79,20 +106,28 @@
             position: relative;
             display: flex;
             flex-direction: column;
+            justify-content: center;
             padding-top: env(safe-area-inset-top);
             padding-bottom: env(safe-area-inset-bottom);
         }
 
+        /* 1:1 Photo Container */
         .album-art-container {
             aspect-ratio: 1 / 1;
             width: 85vw;
-            max-width: 360px;
+            max-width: 380px;
             position: relative;
             border-radius: 20px;
             overflow: hidden;
-            box-shadow: 0 30px 60px -12px rgba(0, 0, 0, 0.8);
+            box-shadow: 0 40px 80px -15px rgba(0, 0, 0, 0.9);
             margin: 0 auto;
-            background: #1a1a1a;
+            background: #111;
+        }
+
+        .album-art-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
         }
 
         .blur-bg {
@@ -100,221 +135,140 @@
             inset: -50px;
             background-size: cover;
             background-position: center;
-            filter: blur(70px) brightness(0.3);
+            filter: blur(60px) brightness(0.25);
             z-index: -1;
-            transform: scale(1.2);
-            transition: opacity 1s ease;
+            transform: scale(1.3);
+            transition: opacity 1.2s ease;
         }
 
-        .nav-btn {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border-radius: 50%;
-            width: 58px;
-            height: 58px;
+        /* Visualizer */
+        .bars-container {
             display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.2s ease;
-            pointer-events: auto;
-            border: 1px solid rgba(255,255,255,0.08);
+            align-items: flex-end;
+            gap: 3px;
+            height: 18px;
         }
-
-        .nav-btn:active { transform: scale(0.9); }
-
-        .loader {
-            width: 28px;
-            height: 28px;
-            border: 3px solid rgba(255,255,255,0.1);
-            border-bottom-color: #fff;
-            border-radius: 50%;
-            animation: rotation 1s linear infinite;
+        .bar {
+            width: 3px;
+            background: #fff;
+            border-radius: 10px;
+            animation: bounce 0.6s ease-in-out infinite alternate;
         }
-        @keyframes rotation { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        @keyframes bounce { 0% { height: 4px; } 100% { height: 18px; } }
 
-        .yellow-theme { background: var(--valentine-yellow); color: #000; }
+        .yellow-theme { background-color: var(--valentine-yellow); color: #000; }
     </style>
 </head>
 <body>
 
-    <!-- Spotify Login Popup -->
-    <div id="spotify-login-layer" class="layer text-center p-8">
-        <div class="max-w-xs">
-            <div class="mb-6">
-                <svg viewBox="0 0 24 24" class="w-16 h-16 mx-auto mb-4" fill="#1DB954"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141 4.32-1.38 9.841-.719 13.44 1.56.481.3.66.9.301 1.26zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/></svg>
-                <h2 class="text-2xl font-bold mb-2">Step 1: Connect Music</h2>
-                <p class="text-sm opacity-80 leading-relaxed">Please log in to Spotify in this browser first to enable full song playback.</p>
-            </div>
-            
-            <a href="https://accounts.spotify.com/login" target="_blank" class="block w-full bg-black text-white py-4 rounded-full font-bold uppercase tracking-widest text-xs mb-4 shadow-lg active:scale-95 transition-transform">
-                Open Spotify Login
-            </a>
-            
-            <button onclick="dismissLogin()" class="block w-full bg-white/20 border border-black/10 text-black py-3 rounded-full font-bold text-xs">
-                I'm Logged In &rarr;
+    <!-- Landing Page -->
+    <div id="landing-layer" class="layer text-center p-8">
+        <div class="w-full max-w-[340px]">
+            <h1 class="text-6xl font-curvy mb-4 leading-tight">For My<br>Forever<br>Valentine</h1>
+            <p class="text-[10px] tracking-[0.5em] uppercase mb-16 font-bold opacity-60">tap the heart to enter</p>
+            <button onclick="startExperience()" class="heart-trigger w-32 h-32 rounded-full mx-auto">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-16 h-16 fill-current" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
             </button>
         </div>
     </div>
 
-    <!-- Homepage -->
-    <div id="landing-layer" class="layer text-center p-10 hidden opacity-0">
-        <div class="relative z-10 w-full max-sm:max-w-[300px]">
-            <h1 class="text-5xl md:text-6xl font-serif italic mb-6 leading-tight">For My Forever Valentine</h1>
-            <p class="text-[10px] tracking-[0.5em] uppercase mb-16 font-bold">Tap the heart to begin our story</p>
-            <button onclick="startExperience()" class="heart-trigger w-24 h-24 rounded-full flex items-center justify-center active:scale-90 transition-transform mx-auto">
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-10 h-10 fill-current" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
-            </button>
-        </div>
-    </div>
-
-    <!-- Player Container -->
-    <div id="player-container" class="relative h-screen w-screen hidden overflow-hidden bg-black">
+    <!-- Main Player Container -->
+    <div id="player-container">
         <div id="reel-viewport"></div>
 
-        <div class="fixed top-0 left-0 right-0 p-8 flex justify-between items-center z-50 pointer-events-none pt-[calc(20px+env(safe-area-inset-top))]">
-            <div class="text-[10px] tracking-[0.4em] uppercase text-white/30 font-bold">Soundtrack of Us</div>
-            <div id="counter" class="text-[10px] tracking-[0.2em] text-white/90 bg-white/10 px-4 py-1.5 rounded-full backdrop-blur-xl border border-white/10">1 / 51</div>
-        </div>
-
-        <div class="fixed bottom-0 left-0 right-0 flex justify-center gap-10 z-50 pointer-events-none pb-[calc(40px+env(safe-area-inset-bottom))]">
-            <button onclick="scrollReel(-1)" class="nav-btn">
-                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m18 15-6-6-6 6"/></svg>
-            </button>
-            <button onclick="scrollReel(1)" class="nav-btn">
-                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
-            </button>
+        <!-- Floating UI -->
+        <div class="fixed top-0 left-0 right-0 p-6 flex justify-between items-center z-50 pointer-events-none pt-[calc(24px+env(safe-area-inset-top))]">
+            <div class="flex items-center gap-3">
+                <div class="bars-container" id="visualizer">
+                    <div class="bar" style="animation-delay: 0s"></div>
+                    <div class="bar" style="animation-delay: 0.2s"></div>
+                    <div class="bar" style="animation-delay: 0.4s"></div>
+                </div>
+                <div class="text-[9px] tracking-[0.4em] uppercase text-white/50 font-bold">Our Symphony</div>
+            </div>
+            <div id="counter" class="text-[10px] tracking-[0.1em] text-white/90 bg-white/10 px-4 py-2 rounded-full backdrop-blur-3xl border border-white/10">1 / 6</div>
         </div>
     </div>
 
-    <script>
-        function dismissLogin() {
-            const loginLayer = document.getElementById('spotify-login-layer');
-            const landingLayer = document.getElementById('landing-layer');
-            loginLayer.style.opacity = '0';
-            setTimeout(() => {
-                loginLayer.classList.add('hidden');
-                landingLayer.classList.remove('hidden');
-                setTimeout(() => landingLayer.style.opacity = '1', 50);
-            }, 500);
-        }
+    <audio id="main-audio" preload="auto"></audio>
 
-        // Exhaustive mapping of all 50 photos to their corresponding track IDs from your sheet
+    <script>
         const galleryData = [
-            { name: "Photo 1", id: "1wqqyytFD8HoKWg06T1GCo" },
-            { name: "Photo 2", id: "73m0ROzv1B86iNvuo8rh8z" },
-            { name: "Photo 3", id: "58xpZwxUpgrnJMTEmvkZMP" },
-            { name: "Photo 4", id: "5zK7gzWMZlT4TUf2iN2Wjw" },
-            { name: "Photo 5", id: "5RZbS87YI2wd87SWuO0YAX" },
-            { name: "Photo 6", id: "3XTHsBseNmEUVVHETYyWY8" },
-            { name: "Photo 7", id: "3eSm4iAkLsn3BeggfiQOH9" },
-            { name: "Photo 8", id: "7uNnlVit5qDvfOje0pqICF" },
-            { name: "Photo 9", id: "5mhuZ0inchJ2JimeGZInfB" },
-            { name: "Photo 10", id: "63O4z4rOnyzY62vWjI6275" },
-            { name: "Photo 11", id: "4jS4qC7hX5441u2P09O9k8" },
-            { name: "Photo 12", id: "3sv34YWhVo15mL7SPrAUKf" },
-            { name: "Photo 13", id: "0Y4f2WjKx7qG7y0P0n9xGv" },
-            { name: "Photo 14", id: "1p80pxDujUnbu9v583psD7" },
-            { name: "Photo 15", id: "37f8SpxK3XMC67W272mX1I" },
-            { name: "Photo 16", id: "2SST07z817v6eS3SpsD4iI" },
-            { name: "Photo 17", id: "6UelLqGlWMvD99569u7G9e" },
-            { name: "Photo 18", id: "3yid5Wk7D9b7q76hM7n9x" },
-            { name: "Photo 19", id: "59HjNZgoziKgAwGOhrKRPJ" },
-            { name: "Photo 20", id: "7nHQjVpEncX7NEdA2G6kU1" },
-            { name: "Photo 21", id: "7KdYFnUeFLLaFeH8XwbQKk" },
-            { name: "Photo 22", id: "1uC8CoidgacQzx9f01n73h" },
-            { name: "Photo 23", id: "2kW6AMK99mnEO6X01r2E3T" },
-            { name: "Photo 24", id: "29ZOsiLkEf9vNyG51FEjtH" },
-            { name: "Photo 25", id: "3bbzeZcfsK0ac7rdN2s7WX" },
-            { name: "Photo 26", id: "5se0sLcaUymYKRUm0lCBgt" },
-            { name: "Photo 27", id: "59HjNZgoziKgAwGOhrKRPJ" },
-            { name: "Photo 28", id: "7nHQjVpEncX7NEdA2G6kU1" },
-            { name: "Photo 29", id: "7KdYFnUeFLLaFeH8XwbQKk" },
-            { name: "Photo 30", id: "3sv34YWhVo15mL7SPrAUKf" },
-            { name: "Photo 31", id: "1p80pxDujUnbu9v583psD7" },
-            { name: "Photo 32", id: "3XTHsBseNmEUVVHETYyWY8" },
-            { name: "Photo 33", id: "58xpZwxUpgrnJMTEmvkZMP" },
-            { name: "Photo 34", id: "73m0ROzv1B86iNvuo8rh8z" },
-            { name: "Photo 35", id: "1wqqyytFD8HoKWg06T1GCo" },
-            { name: "Photo 36", id: "5uCax9HTlsZ9I99vwrvYKW" },
-            { name: "Photo 37", id: "4kbj5MqbdyPST7j9vYv9Mt" },
-            { name: "Photo 38", id: "1wqqyytFD8HoKWg06T1GCo" },
-            { name: "Photo 39", id: "73m0ROzv1B86iNvuo8rh8z" },
-            { name: "Photo 40", id: "58xpZwxUpgrnJMTEmvkZMP" },
-            { name: "Photo 41", id: "5zK7gzWMZlT4TUf2iN2Wjw" },
-            { name: "Photo 42", id: "5RZbS87YI2wd87SWuO0YAX" },
-            { name: "Photo 43", id: "3XTHsBseNmEUVVHETYyWY8" },
-            { name: "Photo 44", id: "3eSm4iAkLsn3BeggfiQOH9" },
-            { name: "Photo 45", id: "7uNnlVit5qDvfOje0pqICF" },
-            { name: "Photo 46", id: "5mhuZ0inchJ2JimeGZInfB" },
-            { name: "Photo 47", id: "63O4z4rOnyzY62vWjI6275" },
-            { name: "Photo 48", id: "4jS4qC7hX5441u2P09O9k8" },
-            { name: "Photo 49", id: "3sv34YWhVo15mL7SPrAUKf" },
-            { name: "Photo 50", id: "0Y4f2WjKx7qG7y0P0n9xGv" }
+            { text: "Where it all began" },
+            { text: "Our favorite melody" },
+            { text: "In every heartbeat" },
+            { text: "The rhythm of us" },
+            { text: "Always in tune" }
         ];
 
         let currentIndex = 0;
-        const extensions = ['.jpg', '.JPG', '.jpeg', '.JPEG', '.png', '.PNG', '.heic', '.HEIC', '.webp', '.WEBP'];
+        const audioPlayer = document.getElementById('main-audio');
 
         function createSlides() {
             const viewport = document.getElementById('reel-viewport');
+            
+            // Photo Slides
             galleryData.forEach((item, index) => {
                 const slide = document.createElement('div');
                 slide.className = 'reel-slide';
                 slide.innerHTML = `
                     <div class="blur-bg" id="blur-${index}"></div>
-                    <div class="flex-1 flex flex-col items-center justify-center px-6 gap-8">
+                    <div class="flex-1 flex flex-col items-center justify-center">
                         <div class="album-art-container">
-                            <img id="photo-${index}" class="w-full h-full object-cover opacity-0 transition-opacity duration-700" alt="Memory">
-                            <div id="loader-${index}" class="absolute inset-0 flex items-center justify-center"><span class="loader"></span></div>
+                            <img id="photo-${index}" class="opacity-0 transition-opacity duration-1000" alt="Memory">
+                            <div id="loader-${index}" class="absolute inset-0 flex items-center justify-center">
+                                <div class="w-8 h-8 border-2 border-white/20 border-t-white rounded-full animate-spin"></div>
+                            </div>
                         </div>
-                        <div class="w-full max-w-[400px] z-10 px-2">
-                            <div id="spotify-slot-${index}" class="min-h-[80px] rounded-2xl overflow-hidden shadow-2xl bg-black/40 backdrop-blur-md border border-white/10"></div>
+                        <div class="mt-12 text-center px-10">
+                             <p class="text-white text-2xl font-curvy leading-relaxed">${item.text}</p>
                         </div>
                     </div>
                 `;
                 viewport.appendChild(slide);
             });
 
+            // End Slides (Page 7 & 8 from your flow)
             const endSlide = document.createElement('div');
             endSlide.className = 'reel-slide yellow-theme';
             endSlide.innerHTML = `
-                <div class="flex-1 flex flex-col items-center justify-center px-10 text-center">
-                    <h2 class="text-4xl font-serif italic mb-10 leading-tight">This is just the intro.</h2>
-                    <div class="space-y-6">
-                        <p class="text-xl font-semibold">A lot more memories to create,</p>
-                        <p class="text-xl font-semibold">A lot more songs to live,</p>
-                        <p class="text-xl font-semibold">And a lifetime more to love you.</p>
-                    </div>
+                <div class="flex-1 flex flex-col items-center justify-center px-12 text-center">
+                    <p class="text-3xl font-serif italic mb-2 tracking-tight">TO MANY MORE</p>
+                    <p class="text-4xl font-curvy mb-4">Memories</p>
+                    <p class="text-2xl font-serif italic mb-2 tracking-tight">TO LIVING MANY MORE</p>
+                    <h1 class="text-6xl font-curvy">Songs</h1>
                 </div>
             `;
             viewport.appendChild(endSlide);
+
+            const finalSlide = document.createElement('div');
+            finalSlide.className = 'reel-slide yellow-theme';
+            finalSlide.innerHTML = `
+                <div class="flex-1 flex flex-col items-center justify-center px-12 text-center">
+                    <h1 class="text-5xl font-curvy mb-6 leading-tight">Happy<br>Valentines<br>Day My Love</h1>
+                    <div class="mt-20 opacity-30 text-[10px] uppercase tracking-[0.5em] font-bold">Forever & Always</div>
+                </div>
+            `;
+            viewport.appendChild(finalSlide);
+            
             updateCounter();
         }
 
         function updateCounter() {
-            document.getElementById('counter').innerText = `${currentIndex + 1} / ${galleryData.length + 1}`;
+            const counter = document.getElementById('counter');
+            if(counter) counter.innerText = `${currentIndex + 1} / ${galleryData.length + 2}`;
         }
 
-        function updatePlayerState(index) {
-            // Remove ALL previous players
-            document.querySelectorAll('[id^="spotify-slot-"]').forEach(slot => slot.innerHTML = "");
+        function playTrack(index) {
+            if (index < 0 || index >= galleryData.length) {
+                audioPlayer.pause();
+                document.getElementById('visualizer').style.opacity = '0';
+                return;
+            }
 
-            if (index < 0 || index >= galleryData.length) return;
-
-            const slot = document.getElementById(`spotify-slot-${index}`);
-            const trackId = galleryData[index].id;
-            
-            // Force recreation of the iframe to trigger autoplay
-            slot.innerHTML = `
-                <iframe 
-                    style="border-radius:12px" 
-                    src="https://open.spotify.com/embed/track/${trackId}?utm_source=generator&autoplay=1" 
-                    width="100%" 
-                    height="80" 
-                    frameBorder="0" 
-                    allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture">
-                </iframe>`;
+            document.getElementById('visualizer').style.opacity = '1';
+            audioPlayer.src = `songs/${index + 1}.mp3`;
+            audioPlayer.play().catch(e => console.warn("Audio needs user interaction first"));
         }
 
         function loadSlideMedia(index) {
@@ -322,47 +276,63 @@
             const img = document.getElementById(`photo-${index}`);
             const loader = document.getElementById(`loader-${index}`);
             const blur = document.getElementById(`blur-${index}`);
-            if (!img.src || img.src.includes(window.location.hostname)) {
-                tryLoadImage(img, blur, loader, galleryData[index].name);
-            }
-        }
+            
+            if (img && (!img.src || img.src.includes(window.location.hostname))) {
+                const extensions = ['.jpg', '.JPG', '.jpeg', '.JPEG', '.png', '.webp'];
+                let extIdx = 0;
 
-        function tryLoadImage(img, blur, loader, name, extIdx = 0) {
-            if (extIdx >= extensions.length) {
-                img.src = "https://images.unsplash.com/photo-1518193582231-507981da40b2?auto=format&fit=crop&w=1000";
-                loader.classList.add('hidden');
-                img.style.opacity = '1';
-                return;
+                const tryLoad = () => {
+                    if (extIdx >= extensions.length) {
+                        img.src = "https://images.unsplash.com/photo-1518193582231-507981da40b2?auto=format&fit=crop&w=1000";
+                        if(loader) loader.classList.add('hidden');
+                        img.style.opacity = '1';
+                        return;
+                    }
+                    const src = `images/Photo ${index + 1}${extensions[extIdx]}`;
+                    const tester = new Image();
+                    tester.onload = () => {
+                        img.src = src;
+                        if(blur) blur.style.backgroundImage = `url('${src}')`;
+                        img.style.opacity = '1';
+                        if(loader) loader.classList.add('hidden');
+                    };
+                    tester.onerror = () => {
+                        extIdx++;
+                        tryLoad();
+                    };
+                    tester.src = src;
+                };
+                tryLoad();
             }
-            const src = `images/${name}${extensions[extIdx]}`;
-            const tester = new Image();
-            tester.onload = () => {
-                img.src = src;
-                blur.style.backgroundImage = `url('${src}')`;
-                img.style.opacity = '1';
-                loader.classList.add('hidden');
-            };
-            tester.onerror = () => tryLoadImage(img, blur, loader, name, extIdx + 1);
-            tester.src = src;
         }
 
         function startExperience() {
-            document.getElementById('landing-layer').style.opacity = '0';
+            audioPlayer.play().then(() => {
+                audioPlayer.pause();
+                doTransition();
+            }).catch(() => {
+                doTransition();
+            });
+        }
+
+        function doTransition() {
+            document.getElementById('landing-layer').classList.add('hidden-state');
+            document.getElementById('player-container').classList.add('active');
+            
             setTimeout(() => {
-                document.getElementById('landing-layer').classList.add('hidden');
-                document.getElementById('player-container').classList.remove('hidden');
                 loadSlideMedia(0);
-                updatePlayerState(0);
-            }, 800);
+                playTrack(0);
+            }, 300);
         }
 
         function scrollReel(dir) {
+            const totalSlides = galleryData.length + 2;
             const next = currentIndex + dir;
-            if (next >= 0 && next < galleryData.length + 1) {
+            if (next >= 0 && next < totalSlides) {
                 currentIndex = next;
                 document.getElementById('reel-viewport').style.transform = `translateY(-${currentIndex * 100}%)`;
                 updateCounter();
-                updatePlayerState(currentIndex);
+                playTrack(currentIndex);
                 loadSlideMedia(currentIndex);
                 loadSlideMedia(currentIndex + 1);
             }
@@ -372,7 +342,9 @@
         document.addEventListener('touchstart', e => { touchStartY = e.touches[0].clientY; }, {passive: true});
         document.addEventListener('touchend', e => {
             const delta = touchStartY - e.changedTouches[0].clientY;
-            if (Math.abs(delta) > 50) scrollReel(delta > 0 ? 1 : -1);
+            if (Math.abs(delta) > 50) {
+                scrollReel(delta > 0 ? 1 : -1);
+            }
         });
 
         window.onload = createSlides;
