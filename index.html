@@ -31,6 +31,39 @@
 
         .font-serif { font-family: 'Playfair Display', serif; }
 
+        /* Popups and Layers */
+        .layer {
+            position: fixed;
+            inset: 0;
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.5s ease;
+        }
+
+        /* Spotify Login Layer (Yellow Background) */
+        #spotify-login-layer {
+            background-color: var(--valentine-yellow);
+            color: #000;
+            z-index: 200; /* Highest priority */
+        }
+
+        /* Main Landing Layer (Yellow Background) */
+        #landing-layer {
+            background-color: var(--valentine-yellow);
+            color: #000;
+            z-index: 150;
+        }
+
+        .heart-trigger { 
+            background: #000; 
+            color: #fff; 
+            box-shadow: 0 15px 30px rgba(0,0,0,0.2); 
+        }
+
+        /* Player UI */
         #reel-viewport {
             height: 100%;
             width: 100%;
@@ -101,41 +134,41 @@
         @keyframes rotation { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 
         .yellow-theme { background: var(--valentine-yellow); color: #000; }
-        .yellow-theme p { color: rgba(0,0,0,0.6); }
-        .heart-trigger { background: #000; color: #fff; box-shadow: 0 15px 30px rgba(0,0,0,0.2); }
-        
-        .spotify-hint {
-            background: rgba(0,0,0,0.05);
-            border: 1px solid rgba(0,0,0,0.1);
-            border-radius: 12px;
-            padding: 12px;
-            margin-bottom: 24px;
-        }
     </style>
 </head>
 <body>
 
-    <!-- Landing Screen -->
-    <div id="landing-page" class="fixed inset-0 z-[100] yellow-theme flex flex-col items-center justify-center p-10 text-center transition-all duration-1000">
-        <div class="relative z-10 w-full max-sm:max-w-[300px]">
-            <h1 class="text-5xl md:text-6xl font-serif italic mb-4 leading-tight">For My Forever Valentine</h1>
-            
-            <div class="spotify-hint mb-8">
-                <p class="text-[11px] font-bold uppercase tracking-wider mb-2">Important for the full experience:</p>
-                <p class="text-xs mb-4 leading-relaxed">To hear the <b>full songs</b> (not just previews), make sure you are logged into Spotify in this browser.</p>
-                <a href="https://accounts.spotify.com/login" target="_blank" class="inline-block bg-[#1DB954] text-white text-[10px] font-bold uppercase tracking-widest px-4 py-2 rounded-full hover:scale-105 transition-transform">
-                    Login to Spotify
-                </a>
+    <!-- 1. Spotify Login Popup (First Thing Shown) -->
+    <div id="spotify-login-layer" class="layer text-center p-8">
+        <div class="max-w-xs">
+            <div class="mb-6">
+                <svg viewBox="0 0 24 24" class="w-16 h-16 mx-auto mb-4" fill="#1DB954"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141 4.32-1.38 9.841-.719 13.44 1.56.481.3.66.9.301 1.26zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/></svg>
+                <h2 class="text-2xl font-bold mb-2">Step 1: Connect Music</h2>
+                <p class="text-sm opacity-80 leading-relaxed">For the full songs to autoplay correctly, please log in to Spotify in this browser first.</p>
             </div>
+            
+            <a href="https://accounts.spotify.com/login" target="_blank" class="block w-full bg-black text-white py-4 rounded-full font-bold uppercase tracking-widest text-xs mb-4 shadow-lg active:scale-95 transition-transform">
+                Open Spotify Login
+            </a>
+            
+            <button onclick="dismissLogin()" class="block w-full bg-white/20 border border-black/10 text-black py-3 rounded-full font-bold text-xs">
+                I'm Logged In &rarr;
+            </button>
+        </div>
+    </div>
 
-            <p class="text-[10px] tracking-[0.5em] uppercase mb-12 font-bold">Tap the heart to begin</p>
+    <!-- 2. Actual Homepage (Shown After Login) -->
+    <div id="landing-layer" class="layer text-center p-10 hidden opacity-0">
+        <div class="relative z-10 w-full max-sm:max-w-[300px]">
+            <h1 class="text-5xl md:text-6xl font-serif italic mb-6 leading-tight">For My Forever Valentine</h1>
+            <p class="text-[10px] tracking-[0.5em] uppercase mb-16 font-bold">Tap the heart to begin our story</p>
             <button onclick="startExperience()" class="heart-trigger w-24 h-24 rounded-full flex items-center justify-center active:scale-90 transition-transform mx-auto">
                 <svg xmlns="http://www.w3.org/2000/svg" class="w-10 h-10 fill-current" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
             </button>
         </div>
     </div>
 
-    <!-- The "Reel" Container -->
+    <!-- 3. The Player (Reel) -->
     <div id="player-container" class="relative h-screen w-screen hidden overflow-hidden bg-black">
         <div id="reel-viewport"></div>
 
@@ -155,6 +188,22 @@
     </div>
 
     <script>
+        // --- 1. Login Flow Logic ---
+        function dismissLogin() {
+            const loginLayer = document.getElementById('spotify-login-layer');
+            const landingLayer = document.getElementById('landing-layer');
+            
+            loginLayer.style.opacity = '0';
+            setTimeout(() => {
+                loginLayer.classList.add('hidden');
+                landingLayer.classList.remove('hidden');
+                // Small delay to allow display:block to apply before opacity fade-in
+                setTimeout(() => landingLayer.style.opacity = '1', 50);
+            }, 500);
+        }
+
+        // --- 2. Data & Player Logic ---
+        // Cleaned data: unique IDs for all 50 photos based on your request
         const galleryData = [
             { name: "Photo 1", id: "1wqqyytFD8HoKWg06T1GCo" },
             { name: "Photo 2", id: "73m0ROzv1B86iNvuo8rh8z" },
@@ -273,9 +322,8 @@
             const current = galleryData[index];
             const slot = document.getElementById(`spotify-slot-${index}`);
             
-            // Constructing URL with autoplay=1 and utm_source=generator
+            // Constructing URL with autoplay=1
             const trackId = current.id;
-            const origin = window.location.origin;
             const embedUrl = `https://open.spotify.com/embed/track/${trackId}?utm_source=generator&autoplay=1`;
 
             slot.innerHTML = `
@@ -304,6 +352,7 @@
 
         function tryLoadImage(imgElement, blurElement, loaderElement, photoName, extIndex = 0) {
             if (extIndex >= extensions.length) {
+                // Final fallback
                 imgElement.src = "https://images.unsplash.com/photo-1518193582231-507981da40b2?q=80&w=1000&auto=format&fit=crop";
                 loaderElement.classList.add('hidden');
                 imgElement.style.opacity = '1';
@@ -329,9 +378,9 @@
         }
 
         function startExperience() {
-            document.getElementById('landing-page').style.opacity = '0';
+            document.getElementById('landing-layer').style.opacity = '0';
             setTimeout(() => {
-                document.getElementById('landing-page').classList.add('hidden');
+                document.getElementById('landing-layer').classList.add('hidden');
                 document.getElementById('player-container').classList.remove('hidden');
                 // First slide setup
                 loadSlideMedia(0);
