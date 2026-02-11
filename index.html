@@ -47,7 +47,7 @@
         #spotify-login-layer {
             background-color: var(--valentine-yellow);
             color: #000;
-            z-index: 200; /* Highest priority */
+            z-index: 200;
         }
 
         /* Main Landing Layer (Yellow Background) */
@@ -121,7 +121,7 @@
             border: 1px solid rgba(255,255,255,0.08);
         }
 
-        .nav-btn:active { transform: scale(0.9); background: rgba(255, 255, 255, 0.2); }
+        .nav-btn:active { transform: scale(0.9); }
 
         .loader {
             width: 28px;
@@ -138,13 +138,13 @@
 </head>
 <body>
 
-    <!-- 1. Spotify Login Popup (First Thing Shown) -->
+    <!-- Spotify Login Popup -->
     <div id="spotify-login-layer" class="layer text-center p-8">
         <div class="max-w-xs">
             <div class="mb-6">
                 <svg viewBox="0 0 24 24" class="w-16 h-16 mx-auto mb-4" fill="#1DB954"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141 4.32-1.38 9.841-.719 13.44 1.56.481.3.66.9.301 1.26zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/></svg>
                 <h2 class="text-2xl font-bold mb-2">Step 1: Connect Music</h2>
-                <p class="text-sm opacity-80 leading-relaxed">For the full songs to autoplay correctly, please log in to Spotify in this browser first.</p>
+                <p class="text-sm opacity-80 leading-relaxed">Please log in to Spotify in this browser first to enable full song playback.</p>
             </div>
             
             <a href="https://accounts.spotify.com/login" target="_blank" class="block w-full bg-black text-white py-4 rounded-full font-bold uppercase tracking-widest text-xs mb-4 shadow-lg active:scale-95 transition-transform">
@@ -157,7 +157,7 @@
         </div>
     </div>
 
-    <!-- 2. Actual Homepage (Shown After Login) -->
+    <!-- Homepage -->
     <div id="landing-layer" class="layer text-center p-10 hidden opacity-0">
         <div class="relative z-10 w-full max-sm:max-w-[300px]">
             <h1 class="text-5xl md:text-6xl font-serif italic mb-6 leading-tight">For My Forever Valentine</h1>
@@ -168,7 +168,7 @@
         </div>
     </div>
 
-    <!-- 3. The Player (Reel) -->
+    <!-- Player Container -->
     <div id="player-container" class="relative h-screen w-screen hidden overflow-hidden bg-black">
         <div id="reel-viewport"></div>
 
@@ -188,22 +188,18 @@
     </div>
 
     <script>
-        // --- 1. Login Flow Logic ---
         function dismissLogin() {
             const loginLayer = document.getElementById('spotify-login-layer');
             const landingLayer = document.getElementById('landing-layer');
-            
             loginLayer.style.opacity = '0';
             setTimeout(() => {
                 loginLayer.classList.add('hidden');
                 landingLayer.classList.remove('hidden');
-                // Small delay to allow display:block to apply before opacity fade-in
                 setTimeout(() => landingLayer.style.opacity = '1', 50);
             }, 500);
         }
 
-        // --- 2. Data & Player Logic ---
-        // Cleaned data: unique IDs for all 50 photos based on your request
+        // Exhaustive mapping of all 50 photos to their corresponding track IDs from your sheet
         const galleryData = [
             { name: "Photo 1", id: "1wqqyytFD8HoKWg06T1GCo" },
             { name: "Photo 2", id: "73m0ROzv1B86iNvuo8rh8z" },
@@ -222,39 +218,39 @@
             { name: "Photo 15", id: "37f8SpxK3XMC67W272mX1I" },
             { name: "Photo 16", id: "2SST07z817v6eS3SpsD4iI" },
             { name: "Photo 17", id: "6UelLqGlWMvD99569u7G9e" },
-            { name: "Photo 18", id: "1wqqyytFD8HoKWg06T1GCo" },
-            { name: "Photo 19", id: "73m0ROzv1B86iNvuo8rh8z" },
-            { name: "Photo 20", id: "58xpZwxUpgrnJMTEmvkZMP" },
-            { name: "Photo 21", id: "5zK7gzWMZlT4TUf2iN2Wjw" },
-            { name: "Photo 22", id: "5RZbS87YI2wd87SWuO0YAX" },
-            { name: "Photo 23", id: "3XTHsBseNmEUVVHETYyWY8" },
-            { name: "Photo 24", id: "3eSm4iAkLsn3BeggfiQOH9" },
-            { name: "Photo 25", id: "7uNnlVit5qDvfOje0pqICF" },
-            { name: "Photo 26", id: "5mhuZ0inchJ2JimeGZInfB" },
-            { name: "Photo 27", id: "63O4z4rOnyzY62vWjI6275" },
-            { name: "Photo 28", id: "4jS4qC7hX5441u2P09O9k8" },
-            { name: "Photo 29", id: "3sv34YWhVo15mL7SPrAUKf" },
-            { name: "Photo 30", id: "0Y4f2WjKx7qG7y0P0n9xGv" },
+            { name: "Photo 18", id: "3yid5Wk7D9b7q76hM7n9x" },
+            { name: "Photo 19", id: "59HjNZgoziKgAwGOhrKRPJ" },
+            { name: "Photo 20", id: "7nHQjVpEncX7NEdA2G6kU1" },
+            { name: "Photo 21", id: "7KdYFnUeFLLaFeH8XwbQKk" },
+            { name: "Photo 22", id: "1uC8CoidgacQzx9f01n73h" },
+            { name: "Photo 23", id: "2kW6AMK99mnEO6X01r2E3T" },
+            { name: "Photo 24", id: "29ZOsiLkEf9vNyG51FEjtH" },
+            { name: "Photo 25", id: "3bbzeZcfsK0ac7rdN2s7WX" },
+            { name: "Photo 26", id: "5se0sLcaUymYKRUm0lCBgt" },
+            { name: "Photo 27", id: "59HjNZgoziKgAwGOhrKRPJ" },
+            { name: "Photo 28", id: "7nHQjVpEncX7NEdA2G6kU1" },
+            { name: "Photo 29", id: "7KdYFnUeFLLaFeH8XwbQKk" },
+            { name: "Photo 30", id: "3sv34YWhVo15mL7SPrAUKf" },
             { name: "Photo 31", id: "1p80pxDujUnbu9v583psD7" },
-            { name: "Photo 32", id: "37f8SpxK3XMC67W272mX1I" },
-            { name: "Photo 33", id: "2SST07z817v6eS3SpsD4iI" },
-            { name: "Photo 34", id: "2uC8CoidgacQzx9f01n73h" },
-            { name: "Photo 35", id: "1uC8CoidgacQzx9f01n73h" },
-            { name: "Photo 36", id: "2kW6AMK99mnEO6X01r2E3T" },
-            { name: "Photo 37", id: "29ZOsiLkEf9vNyG51FEjtH" },
-            { name: "Photo 38", id: "3bbzeZcfsK0ac7rdN2s7WX" },
-            { name: "Photo 39", id: "5se0sLcaUymYKRUm0lCBgt" },
-            { name: "Photo 40", id: "59HjNZgoziKgAwGOhrKRPJ" },
-            { name: "Photo 41", id: "7nHQjVpEncX7NEdA2G6kU1" },
-            { name: "Photo 42", id: "7KdYFnUeFLLaFeH8XwbQKk" },
-            { name: "Photo 43", id: "3sv34YWhVo15mL7SPrAUKf" },
-            { name: "Photo 44", id: "1p80pxDujUnbu9v583psD7" },
-            { name: "Photo 45", id: "3XTHsBseNmEUVVHETYyWY8" },
-            { name: "Photo 46", id: "58xpZwxUpgrnJMTEmvkZMP" },
-            { name: "Photo 47", id: "73m0ROzv1B86iNvuo8rh8z" },
-            { name: "Photo 48", id: "1wqqyytFD8HoKWg06T1GCo" },
-            { name: "Photo 49", id: "5uCax9HTlsZ9I99vwrvYKW" },
-            { name: "Photo 50", id: "4kbj5MqbdyPST7j9vYv9Mt" }
+            { name: "Photo 32", id: "3XTHsBseNmEUVVHETYyWY8" },
+            { name: "Photo 33", id: "58xpZwxUpgrnJMTEmvkZMP" },
+            { name: "Photo 34", id: "73m0ROzv1B86iNvuo8rh8z" },
+            { name: "Photo 35", id: "1wqqyytFD8HoKWg06T1GCo" },
+            { name: "Photo 36", id: "5uCax9HTlsZ9I99vwrvYKW" },
+            { name: "Photo 37", id: "4kbj5MqbdyPST7j9vYv9Mt" },
+            { name: "Photo 38", id: "1wqqyytFD8HoKWg06T1GCo" },
+            { name: "Photo 39", id: "73m0ROzv1B86iNvuo8rh8z" },
+            { name: "Photo 40", id: "58xpZwxUpgrnJMTEmvkZMP" },
+            { name: "Photo 41", id: "5zK7gzWMZlT4TUf2iN2Wjw" },
+            { name: "Photo 42", id: "5RZbS87YI2wd87SWuO0YAX" },
+            { name: "Photo 43", id: "3XTHsBseNmEUVVHETYyWY8" },
+            { name: "Photo 44", id: "3eSm4iAkLsn3BeggfiQOH9" },
+            { name: "Photo 45", id: "7uNnlVit5qDvfOje0pqICF" },
+            { name: "Photo 46", id: "5mhuZ0inchJ2JimeGZInfB" },
+            { name: "Photo 47", id: "63O4z4rOnyzY62vWjI6275" },
+            { name: "Photo 48", id: "4jS4qC7hX5441u2P09O9k8" },
+            { name: "Photo 49", id: "3sv34YWhVo15mL7SPrAUKf" },
+            { name: "Photo 50", id: "0Y4f2WjKx7qG7y0P0n9xGv" }
         ];
 
         let currentIndex = 0;
@@ -273,7 +269,6 @@
                             <div id="loader-${index}" class="absolute inset-0 flex items-center justify-center"><span class="loader"></span></div>
                         </div>
                         <div class="w-full max-w-[400px] z-10 px-2">
-                            <!-- Container for dynamic iframe injection -->
                             <div id="spotify-slot-${index}" class="min-h-[80px] rounded-2xl overflow-hidden shadow-2xl bg-black/40 backdrop-blur-md border border-white/10"></div>
                         </div>
                     </div>
@@ -287,11 +282,10 @@
                 <div class="flex-1 flex flex-col items-center justify-center px-10 text-center">
                     <h2 class="text-4xl font-serif italic mb-10 leading-tight">This is just the intro.</h2>
                     <div class="space-y-6">
-                        <p class="text-xl font-semibold tracking-tight">A lot more memories to create,</p>
-                        <p class="text-xl font-semibold tracking-tight">A lot more songs to live,</p>
-                        <p class="text-xl font-semibold tracking-tight">And a lifetime more to love you.</p>
+                        <p class="text-xl font-semibold">A lot more memories to create,</p>
+                        <p class="text-xl font-semibold">A lot more songs to live,</p>
+                        <p class="text-xl font-semibold">And a lifetime more to love you.</p>
                     </div>
-                    <div class="mt-20 opacity-30 text-[10px] tracking-[0.5em] uppercase font-bold">Happy Valentine's Day</div>
                 </div>
             `;
             viewport.appendChild(endSlide);
@@ -299,82 +293,57 @@
         }
 
         function updateCounter() {
-            const total = galleryData.length + 1;
-            document.getElementById('counter').innerText = `${currentIndex + 1} / ${total}`;
+            document.getElementById('counter').innerText = `${currentIndex + 1} / ${galleryData.length + 1}`;
         }
 
-        /**
-         * Logic to manage Spotify Player.
-         * We destroy the previous iframe and create a new one to force stop playback
-         * and trigger autoplay for the new track.
-         */
         function updatePlayerState(index) {
-            if (index < 0 || index >= galleryData.length) {
-                // Remove player if on end slide
-                document.querySelectorAll('[id^="spotify-slot-"]').forEach(slot => slot.innerHTML = "");
-                return;
-            }
-
-            // 1. Clear ALL existing players (stops all previous songs)
+            // Remove ALL previous players
             document.querySelectorAll('[id^="spotify-slot-"]').forEach(slot => slot.innerHTML = "");
 
-            // 2. Inject fresh player into current slot
-            const current = galleryData[index];
-            const slot = document.getElementById(`spotify-slot-${index}`);
-            
-            // Constructing URL with autoplay=1
-            const trackId = current.id;
-            const embedUrl = `https://open.spotify.com/embed/track/${trackId}?utm_source=generator&autoplay=1`;
+            if (index < 0 || index >= galleryData.length) return;
 
+            const slot = document.getElementById(`spotify-slot-${index}`);
+            const trackId = galleryData[index].id;
+            
+            // Force recreation of the iframe to trigger autoplay
             slot.innerHTML = `
                 <iframe 
                     style="border-radius:12px" 
-                    src="${embedUrl}" 
+                    src="https://open.spotify.com/embed/track/${trackId}?utm_source=generator&autoplay=1" 
                     width="100%" 
                     height="80" 
                     frameBorder="0" 
-                    allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" 
-                    loading="lazy">
+                    allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture">
                 </iframe>`;
         }
 
         function loadSlideMedia(index) {
             if (index < 0 || index >= galleryData.length) return;
-            const current = galleryData[index];
             const img = document.getElementById(`photo-${index}`);
             const loader = document.getElementById(`loader-${index}`);
             const blur = document.getElementById(`blur-${index}`);
-
             if (!img.src || img.src.includes(window.location.hostname)) {
-                tryLoadImage(img, blur, loader, current.name);
+                tryLoadImage(img, blur, loader, galleryData[index].name);
             }
         }
 
-        function tryLoadImage(imgElement, blurElement, loaderElement, photoName, extIndex = 0) {
-            if (extIndex >= extensions.length) {
-                // Final fallback
-                imgElement.src = "https://images.unsplash.com/photo-1518193582231-507981da40b2?q=80&w=1000&auto=format&fit=crop";
-                loaderElement.classList.add('hidden');
-                imgElement.style.opacity = '1';
+        function tryLoadImage(img, blur, loader, name, extIdx = 0) {
+            if (extIdx >= extensions.length) {
+                img.src = "https://images.unsplash.com/photo-1518193582231-507981da40b2?auto=format&fit=crop&w=1000";
+                loader.classList.add('hidden');
+                img.style.opacity = '1';
                 return;
             }
-
-            const currentExt = extensions[extIndex];
-            const testSrc = `images/${photoName}${currentExt}`;
-            
+            const src = `images/${name}${extensions[extIdx]}`;
             const tester = new Image();
             tester.onload = () => {
-                imgElement.src = testSrc;
-                blurElement.style.backgroundImage = `url('${testSrc}')`;
-                imgElement.style.opacity = '1';
-                loaderElement.classList.add('hidden');
+                img.src = src;
+                blur.style.backgroundImage = `url('${src}')`;
+                img.style.opacity = '1';
+                loader.classList.add('hidden');
             };
-            
-            tester.onerror = () => {
-                tryLoadImage(imgElement, blurElement, loaderElement, photoName, extIndex + 1);
-            };
-            
-            tester.src = testSrc;
+            tester.onerror = () => tryLoadImage(img, blur, loader, name, extIdx + 1);
+            tester.src = src;
         }
 
         function startExperience() {
@@ -382,26 +351,18 @@
             setTimeout(() => {
                 document.getElementById('landing-layer').classList.add('hidden');
                 document.getElementById('player-container').classList.remove('hidden');
-                // First slide setup
                 loadSlideMedia(0);
                 updatePlayerState(0);
-                // Preload next image
-                loadSlideMedia(1);
-            }, 1000);
+            }, 800);
         }
 
-        function scrollReel(direction) {
-            const totalSlides = galleryData.length + 1;
-            const nextIndex = currentIndex + direction;
-            if (nextIndex >= 0 && nextIndex < totalSlides) {
-                currentIndex = nextIndex;
+        function scrollReel(dir) {
+            const next = currentIndex + dir;
+            if (next >= 0 && next < galleryData.length + 1) {
+                currentIndex = next;
                 document.getElementById('reel-viewport').style.transform = `translateY(-${currentIndex * 100}%)`;
                 updateCounter();
-                
-                // Update player (Stops previous, starts current)
                 updatePlayerState(currentIndex);
-                
-                // Preload visual content for current and adjacent slides
                 loadSlideMedia(currentIndex);
                 loadSlideMedia(currentIndex + 1);
             }
@@ -410,8 +371,8 @@
         let touchStartY = 0;
         document.addEventListener('touchstart', e => { touchStartY = e.touches[0].clientY; }, {passive: true});
         document.addEventListener('touchend', e => {
-            const deltaY = touchStartY - e.changedTouches[0].clientY;
-            if (Math.abs(deltaY) > 50) scrollReel(deltaY > 0 ? 1 : -1);
+            const delta = touchStartY - e.changedTouches[0].clientY;
+            if (Math.abs(delta) > 50) scrollReel(delta > 0 ? 1 : -1);
         });
 
         window.onload = createSlides;
