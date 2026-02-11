@@ -103,15 +103,33 @@
         .yellow-theme { background: var(--valentine-yellow); color: #000; }
         .yellow-theme p { color: rgba(0,0,0,0.6); }
         .heart-trigger { background: #000; color: #fff; box-shadow: 0 15px 30px rgba(0,0,0,0.2); }
+        
+        .spotify-hint {
+            background: rgba(0,0,0,0.05);
+            border: 1px solid rgba(0,0,0,0.1);
+            border-radius: 12px;
+            padding: 12px;
+            margin-bottom: 24px;
+        }
     </style>
 </head>
 <body>
 
     <!-- Landing Screen -->
     <div id="landing-page" class="fixed inset-0 z-[100] yellow-theme flex flex-col items-center justify-center p-10 text-center transition-all duration-1000">
-        <div class="relative z-10 w-full max-w-sm">
-            <h1 class="text-6xl font-serif italic mb-6 leading-tight">For My Forever Valentine</h1>
-            <p class="text-[10px] tracking-[0.5em] uppercase mb-16 font-bold">Tap the heart to begin our story</p>
+        <div class="relative z-10 w-full max-sm:max-w-[300px]">
+            <h1 class="text-5xl md:text-6xl font-serif italic mb-4 leading-tight">For My Forever Valentine</h1>
+            
+            <!-- Spotify Login Instruction Block -->
+            <div class="spotify-hint mb-8">
+                <p class="text-[11px] font-bold uppercase tracking-wider mb-2">Important for the full experience:</p>
+                <p class="text-xs mb-4 leading-relaxed">To hear the <b>full songs</b> (not just previews), make sure you are logged into Spotify in this browser.</p>
+                <a href="https://accounts.spotify.com/login" target="_blank" class="inline-block bg-[#1DB954] text-white text-[10px] font-bold uppercase tracking-widest px-4 py-2 rounded-full hover:scale-105 transition-transform">
+                    Login to Spotify
+                </a>
+            </div>
+
+            <p class="text-[10px] tracking-[0.5em] uppercase mb-12 font-bold">Tap the heart to begin</p>
             <button onclick="startExperience()" class="heart-trigger w-24 h-24 rounded-full flex items-center justify-center active:scale-90 transition-transform mx-auto">
                 <svg xmlns="http://www.w3.org/2000/svg" class="w-10 h-10 fill-current" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
             </button>
@@ -138,62 +156,61 @@
     </div>
 
     <script>
-        // Data synced exactly with your uploaded CSV (Corrected track IDs for 18-33)
         const galleryData = [
-            { name: "Photo 1", url: "https://open.spotify.com/embed/track/1wqqyytFD8HoKWg06T1GCo?utm_source=generator" },
-            { name: "Photo 2", url: "https://open.spotify.com/embed/track/73m0ROzv1B86iNvuo8rh8z?utm_source=generator" },
-            { name: "Photo 3", url: "https://open.spotify.com/embed/track/58xpZwxUpgrnJMTEmvkZMP?utm_source=generator" },
-            { name: "Photo 4", url: "https://open.spotify.com/embed/track/5zK7gzWMZlT4TUf2iN2Wjw?utm_source=generator" },
-            { name: "Photo 5", url: "https://open.spotify.com/embed/track/5RZbS87YI2wd87SWuO0YAX?utm_source=generator" },
-            { name: "Photo 6", url: "https://open.spotify.com/embed/track/3XTHsBseNmEUVVHETYyWY8?utm_source=generator" },
-            { name: "Photo 7", url: "https://open.spotify.com/embed/track/3eSm4iAkLsn3BeggfiQOH9?utm_source=generator" },
-            { name: "Photo 8", url: "https://open.spotify.com/embed/track/7uNnlVit5qDvfOje0pqICF?utm_source=generator" },
-            { name: "Photo 9", url: "https://open.spotify.com/embed/track/5mhuZ0inchJ2JimeGZInfB?utm_source=generator" },
-            { name: "Photo 10", url: "https://open.spotify.com/embed/track/63O4z4rOnyzY62vWjI6275?utm_source=generator" },
-            { name: "Photo 11", url: "https://open.spotify.com/embed/track/4jS4qC7hX5441u2P09O9k8?utm_source=generator" },
-            { name: "Photo 12", url: "https://open.spotify.com/embed/track/3sv34YWhVo15mL7SPrAUKf?utm_source=generator" },
-            { name: "Photo 13", url: "https://open.spotify.com/embed/track/0Y4f2WjKx7qG7y0P0n9xGv?utm_source=generator" },
-            { name: "Photo 14", url: "https://open.spotify.com/embed/track/1p80pxDujUnbu9v583psD7?utm_source=generator" },
-            { name: "Photo 15", url: "https://open.spotify.com/embed/track/37f8SpxK3XMC67W272mX1I?utm_source=generator" },
-            { name: "Photo 16", url: "https://open.spotify.com/embed/track/2SST07z817v6eS3SpsD4iI?utm_source=generator" },
-            { name: "Photo 17", url: "https://open.spotify.com/embed/track/6UelLqGlWMvD99569u7G9e?utm_source=generator" },
-            { name: "Photo 18", url: "https://open.spotify.com/embed/track/1wqqyytFD8HoKWg06T1GCo?utm_source=generator" },
-            { name: "Photo 19", url: "https://open.spotify.com/embed/track/73m0ROzv1B86iNvuo8rh8z?utm_source=generator" },
-            { name: "Photo 20", url: "https://open.spotify.com/embed/track/58xpZwxUpgrnJMTEmvkZMP?utm_source=generator" },
-            { name: "Photo 21", url: "https://open.spotify.com/embed/track/5zK7gzWMZlT4TUf2iN2Wjw?utm_source=generator" },
-            { name: "Photo 22", url: "https://open.spotify.com/embed/track/5RZbS87YI2wd87SWuO0YAX?utm_source=generator" },
-            { name: "Photo 23", url: "https://open.spotify.com/embed/track/3XTHsBseNmEUVVHETYyWY8?utm_source=generator" },
-            { name: "Photo 24", url: "https://open.spotify.com/embed/track/3eSm4iAkLsn3BeggfiQOH9?utm_source=generator" },
-            { name: "Photo 25", url: "https://open.spotify.com/embed/track/7uNnlVit5qDvfOje0pqICF?utm_source=generator" },
-            { name: "Photo 26", url: "https://open.spotify.com/embed/track/5mhuZ0inchJ2JimeGZInfB?utm_source=generator" },
-            { name: "Photo 27", url: "https://open.spotify.com/embed/track/63O4z4rOnyzY62vWjI6275?utm_source=generator" },
-            { name: "Photo 28", url: "https://open.spotify.com/embed/track/4jS4qC7hX5441u2P09O9k8?utm_source=generator" },
-            { name: "Photo 29", url: "https://open.spotify.com/embed/track/3sv34YWhVo15mL7SPrAUKf?utm_source=generator" },
-            { name: "Photo 30", url: "https://open.spotify.com/embed/track/0Y4f2WjKx7qG7y0P0n9xGv?utm_source=generator" },
-            { name: "Photo 31", url: "https://open.spotify.com/embed/track/1p80pxDujUnbu9v583psD7?utm_source=generator" },
-            { name: "Photo 32", url: "https://open.spotify.com/embed/track/37f8SpxK3XMC67W272mX1I?utm_source=generator" },
-            { name: "Photo 33", url: "https://open.spotify.com/embed/track/2SST07z817v6eS3SpsD4iI?utm_source=generator" },
-            { name: "Photo 34", url: "https://open.spotify.com/embed/track/2uC8CoidgacQzx9f01n73h?utm_source=generator" },
-            { name: "Photo 35", url: "https://open.spotify.com/embed/track/1uC8CoidgacQzx9f01n73h?utm_source=generator" },
-            { name: "Photo 36", url: "https://open.spotify.com/embed/track/2kW6AMK99mnEO6X01r2E3T?utm_source=generator" },
-            { name: "Photo 37", url: "https://open.spotify.com/embed/track/29ZOsiLkEf9vNyG51FEjtH?utm_source=generator" },
-            { name: "Photo 38", url: "https://open.spotify.com/embed/track/3bbzeZcfsK0ac7rdN2s7WX?utm_source=generator" },
-            { name: "Photo 39", url: "https://open.spotify.com/embed/track/5se0sLcaUymYKRUm0lCBgt?utm_source=generator" },
-            { name: "Photo 40", url: "https://open.spotify.com/embed/track/59HjNZgoziKgAwGOhrKRPJ?utm_source=generator" },
-            { name: "Photo 41", url: "https://open.spotify.com/embed/track/7nHQjVpEncX7NEdA2G6kU1?utm_source=generator" },
-            { name: "Photo 42", url: "https://open.spotify.com/embed/track/7KdYFnUeFLLaFeH8XwbQKk?utm_source=generator" },
-            { name: "Photo 43", url: "https://open.spotify.com/embed/track/3sv34YWhVo15mL7SPrAUKf?utm_source=generator" },
-            { name: "Photo 44", url: "https://open.spotify.com/embed/track/1p80pxDujUnbu9v583psD7?utm_source=generator" },
-            { name: "Photo 45", url: "https://open.spotify.com/embed/track/3XTHsBseNmEUVVHETYyWY8?utm_source=generator" },
-            { name: "Photo 46", url: "https://open.spotify.com/embed/track/58xpZwxUpgrnJMTEmvkZMP?utm_source=generator" },
-            { name: "Photo 47", url: "https://open.spotify.com/embed/track/73m0ROzv1B86iNvuo8rh8z?utm_source=generator" },
-            { name: "Photo 48", url: "https://open.spotify.com/embed/track/1wqqyytFD8HoKWg06T1GCo?utm_source=generator" },
-            { name: "Photo 49", url: "https://open.spotify.com/embed/track/5uCax9HTlsZ9I99vwrvYKW?utm_source=generator" },
-            { name: "Photo 50", url: "https://open.spotify.com/embed/track/4kbj5MqbdyPST7j9vYv9Mt?utm_source=generator" }
+            { name: "Photo 1", id: "1wqqyytFD8HoKWg06T1GCo" },
+            { name: "Photo 2", id: "73m0ROzv1B86iNvuo8rh8z" },
+            { name: "Photo 3", id: "58xpZwxUpgrnJMTEmvkZMP" },
+            { name: "Photo 4", id: "5zK7gzWMZlT4TUf2iN2Wjw" },
+            { name: "Photo 5", id: "5RZbS87YI2wd87SWuO0YAX" },
+            { name: "Photo 6", id: "3XTHsBseNmEUVVHETYyWY8" },
+            { name: "Photo 7", id: "3eSm4iAkLsn3BeggfiQOH9" },
+            { name: "Photo 8", id: "7uNnlVit5qDvfOje0pqICF" },
+            { name: "Photo 9", id: "5mhuZ0inchJ2JimeGZInfB" },
+            { name: "Photo 10", id: "63O4z4rOnyzY62vWjI6275" },
+            { name: "Photo 11", id: "4jS4qC7hX5441u2P09O9k8" },
+            { name: "Photo 12", id: "3sv34YWhVo15mL7SPrAUKf" },
+            { name: "Photo 13", id: "0Y4f2WjKx7qG7y0P0n9xGv" },
+            { name: "Photo 14", id: "1p80pxDujUnbu9v583psD7" },
+            { name: "Photo 15", id: "37f8SpxK3XMC67W272mX1I" },
+            { name: "Photo 16", id: "2SST07z817v6eS3SpsD4iI" },
+            { name: "Photo 17", id: "6UelLqGlWMvD99569u7G9e" },
+            { name: "Photo 18", id: "1wqqyytFD8HoKWg06T1GCo" },
+            { name: "Photo 19", id: "73m0ROzv1B86iNvuo8rh8z" },
+            { name: "Photo 20", id: "58xpZwxUpgrnJMTEmvkZMP" },
+            { name: "Photo 21", id: "5zK7gzWMZlT4TUf2iN2Wjw" },
+            { name: "Photo 22", id: "5RZbS87YI2wd87SWuO0YAX" },
+            { name: "Photo 23", id: "3XTHsBseNmEUVVHETYyWY8" },
+            { name: "Photo 24", id: "3eSm4iAkLsn3BeggfiQOH9" },
+            { name: "Photo 25", id: "7uNnlVit5qDvfOje0pqICF" },
+            { name: "Photo 26", id: "5mhuZ0inchJ2JimeGZInfB" },
+            { name: "Photo 27", id: "63O4z4rOnyzY62vWjI6275" },
+            { name: "Photo 28", id: "4jS4qC7hX5441u2P09O9k8" },
+            { name: "Photo 29", id: "3sv34YWhVo15mL7SPrAUKf" },
+            { name: "Photo 30", id: "0Y4f2WjKx7qG7y0P0n9xGv" },
+            { name: "Photo 31", id: "1p80pxDujUnbu9v583psD7" },
+            { name: "Photo 32", id: "37f8SpxK3XMC67W272mX1I" },
+            { name: "Photo 33", id: "2SST07z817v6eS3SpsD4iI" },
+            { name: "Photo 34", id: "2uC8CoidgacQzx9f01n73h" },
+            { name: "Photo 35", id: "1uC8CoidgacQzx9f01n73h" },
+            { name: "Photo 36", id: "2kW6AMK99mnEO6X01r2E3T" },
+            { name: "Photo 37", id: "29ZOsiLkEf9vNyG51FEjtH" },
+            { name: "Photo 38", id: "3bbzeZcfsK0ac7rdN2s7WX" },
+            { name: "Photo 39", id: "5se0sLcaUymYKRUm0lCBgt" },
+            { name: "Photo 40", id: "59HjNZgoziKgAwGOhrKRPJ" },
+            { name: "Photo 41", id: "7nHQjVpEncX7NEdA2G6kU1" },
+            { name: "Photo 42", id: "7KdYFnUeFLLaFeH8XwbQKk" },
+            { name: "Photo 43", id: "3sv34YWhVo15mL7SPrAUKf" },
+            { name: "Photo 44", id: "1p80pxDujUnbu9v583psD7" },
+            { name: "Photo 45", id: "3XTHsBseNmEUVVHETYyWY8" },
+            { name: "Photo 46", id: "58xpZwxUpgrnJMTEmvkZMP" },
+            { name: "Photo 47", id: "73m0ROzv1B86iNvuo8rh8z" },
+            { name: "Photo 48", id: "1wqqyytFD8HoKWg06T1GCo" },
+            { name: "Photo 49", id: "5uCax9HTlsZ9I99vwrvYKW" },
+            { name: "Photo 50", id: "4kbj5MqbdyPST7j9vYv9Mt" }
         ];
 
         let currentIndex = 0;
-        const extensions = ['.jpg', '.jpeg', '.png', '.HEIC', '.JPG', '.JPEG', '.PNG', '.heic'];
+        const extensions = ['.jpg', '.JPG', '.jpeg', '.JPEG', '.png', '.PNG', '.heic', '.HEIC', '.webp', '.WEBP'];
 
         function createSlides() {
             const viewport = document.getElementById('reel-viewport');
@@ -202,7 +219,7 @@
                 slide.className = 'reel-slide';
                 slide.innerHTML = `
                     <div class="blur-bg" id="blur-${index}"></div>
-                    <div class="flex-1 flex flex-col items-center justify-center px-6 gap-12">
+                    <div class="flex-1 flex flex-col items-center justify-center px-6 gap-8">
                         <div class="album-art-container">
                             <img id="photo-${index}" class="w-full h-full object-cover opacity-0 transition-opacity duration-700" alt="Memory">
                             <div id="loader-${index}" class="absolute inset-0 flex items-center justify-center"><span class="loader"></span></div>
@@ -229,6 +246,12 @@
                 </div>
             `;
             viewport.appendChild(endSlide);
+            updateCounter();
+        }
+
+        function updateCounter() {
+            const total = galleryData.length + 1;
+            document.getElementById('counter').innerText = `${currentIndex + 1} / ${total}`;
         }
 
         function loadSlideData(index) {
@@ -237,12 +260,11 @@
             const img = document.getElementById(`photo-${index}`);
             const loader = document.getElementById(`loader-${index}`);
             const blur = document.getElementById(`blur-${index}`);
-            const spotify = document.getElementById(`spotify-${index}`);
+            const spotifyContainer = document.getElementById(`spotify-${index}`);
 
-            // Embed Spotify with Autoplay parameter
-            if (spotify.innerHTML === "") {
-                const embedUrl = current.url.includes('?') ? `${current.url}&autoplay=1` : `${current.url}?autoplay=1`;
-                spotify.innerHTML = `<iframe style="border-radius:20px" src="${embedUrl}" width="100%" height="80" frameBorder="0" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"></iframe>`;
+            if (spotifyContainer.innerHTML === "") {
+                const embedUrl = `https://open.spotify.com/embed/track/${current.id}?utm_source=generator&autoplay=1`;
+                spotifyContainer.innerHTML = `<iframe style="border-radius:20px" src="${embedUrl}" width="100%" height="80" frameBorder="0" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>`;
             }
 
             if (!img.src || img.src.includes(window.location.hostname)) {
@@ -252,14 +274,15 @@
 
         function tryLoadImage(imgElement, blurElement, loaderElement, photoName, extIndex = 0) {
             if (extIndex >= extensions.length) {
-                // Final fallback if all image formats fail
                 imgElement.src = "https://images.unsplash.com/photo-1518193582231-507981da40b2?q=80&w=1000&auto=format&fit=crop";
                 loaderElement.classList.add('hidden');
                 imgElement.style.opacity = '1';
                 return;
             }
 
-            const testSrc = `images/${photoName}${extensions[extIndex]}`;
+            const currentExt = extensions[extIndex];
+            const testSrc = `images/${photoName}${currentExt}`;
+            
             const tester = new Image();
             tester.onload = () => {
                 imgElement.src = testSrc;
@@ -267,7 +290,11 @@
                 imgElement.style.opacity = '1';
                 loaderElement.classList.add('hidden');
             };
-            tester.onerror = () => tryLoadImage(imgElement, blurElement, loaderElement, photoName, extIndex + 1);
+            
+            tester.onerror = () => {
+                tryLoadImage(imgElement, blurElement, loaderElement, photoName, extIndex + 1);
+            };
+            
             tester.src = testSrc;
         }
 
@@ -277,7 +304,7 @@
                 document.getElementById('landing-page').classList.add('hidden');
                 document.getElementById('player-container').classList.remove('hidden');
                 loadSlideData(0);
-                loadSlideData(1); // Preload next
+                loadSlideData(1);
             }, 1000);
         }
 
@@ -287,11 +314,12 @@
             if (nextIndex >= 0 && nextIndex < totalSlides) {
                 currentIndex = nextIndex;
                 document.getElementById('reel-viewport').style.transform = `translateY(-${currentIndex * 100}%)`;
-                document.getElementById('counter').innerText = `${currentIndex + 1} / ${totalSlides}`;
+                updateCounter();
                 
                 if (currentIndex < galleryData.length) {
                     loadSlideData(currentIndex);
-                    loadSlideData(currentIndex + 1); // Preload next
+                    loadSlideData(currentIndex + 1);
+                    loadSlideData(currentIndex + 2);
                 }
             }
         }
