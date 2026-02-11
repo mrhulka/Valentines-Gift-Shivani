@@ -2,60 +2,154 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>For My Forever Valentine</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Our Symphony | Valentine 2026</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Playfair+Display:ital@0;1&display=swap');
-        body { font-family: 'Inter', sans-serif; background-color: #050505; color: #ffffff; overflow: hidden; }
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600&family=Playfair+Display:ital,wght@0,600;1,600&display=swap');
+        
+        :root {
+            --spotify-green: #1DB954;
+            --player-bg: #121212;
+            --valentine-yellow: #fdd835; 
+        }
+
+        html, body {
+            position: fixed;
+            overflow: hidden;
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            background-color: #000;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            color: #fff;
+            -webkit-user-select: none;
+            user-select: none;
+            touch-action: none;
+        }
+
         .font-serif { font-family: 'Playfair Display', serif; }
-        .fade-in { animation: fadeIn 2s ease-out forwards; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-        .gallery-image { transition: opacity 1.2s ease-in-out, transform 1.5s ease-out; }
-        .nav-btn { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.1); transition: all 0.4s ease; display: flex; align-items: center; justify-content: center; z-index: 50; }
-        .nav-btn:hover:not(:disabled) { background: rgba(255, 255, 255, 0.15); transform: scale(1.1); border-color: rgba(255, 255, 255, 0.4); }
-        .nav-btn:disabled { opacity: 0; cursor: default; }
-        .landing-bg { background-color: #1a1a1a; background-size: cover; background-position: center; }
-        .page-counter { position: absolute; top: 20px; right: 20px; font-size: 0.75rem; color: rgba(255,255,255,0.4); letter-spacing: 0.1em; }
+
+        #reel-viewport {
+            height: 100%;
+            width: 100%;
+            transition: transform 0.8s cubic-bezier(0.23, 1, 0.32, 1);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .reel-slide {
+            height: 100vh;
+            width: 100vw;
+            flex-shrink: 0;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            padding-top: env(safe-area-inset-top);
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+
+        .album-art-container {
+            aspect-ratio: 1 / 1;
+            width: 85vw;
+            max-width: 360px;
+            position: relative;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 30px 60px -12px rgba(0, 0, 0, 0.8);
+            margin: 0 auto;
+            background: #1a1a1a;
+        }
+
+        .blur-bg {
+            position: absolute;
+            inset: -50px;
+            background-size: cover;
+            background-position: center;
+            filter: blur(70px) brightness(0.3);
+            z-index: -1;
+            transform: scale(1.2);
+            transition: opacity 1s ease;
+        }
+
+        .nav-btn {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 50%;
+            width: 58px;
+            height: 58px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            pointer-events: auto;
+            border: 1px solid rgba(255,255,255,0.08);
+        }
+
+        .nav-btn:active { transform: scale(0.9); background: rgba(255, 255, 255, 0.2); }
+
+        .loader {
+            width: 28px;
+            height: 28px;
+            border: 3px solid rgba(255,255,255,0.1);
+            border-bottom-color: #fff;
+            border-radius: 50%;
+            animation: rotation 1s linear infinite;
+        }
+        @keyframes rotation { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+        /* Yellow Theme (Landing & End) */
+        .yellow-theme {
+            background: var(--valentine-yellow);
+            color: #000;
+        }
+        
+        .yellow-theme p { color: rgba(0,0,0,0.6); }
+
+        .heart-trigger {
+            background: #000;
+            color: #fff;
+            box-shadow: 0 15px 30px rgba(0,0,0,0.2);
+        }
     </style>
 </head>
 <body>
 
-    <div id="landing-page" class="fixed inset-0 z-50 flex flex-col items-center justify-center landing-bg transition-opacity duration-1000">
-        <div class="relative z-10 text-center px-6 fade-in">
-            <h1 class="text-5xl md:text-7xl font-serif mb-6 italic text-white drop-shadow-2xl">To My Forever Valentine</h1>
-            <p class="text-white/70 text-sm tracking-[0.3em] uppercase mb-10">Our Story in 50 Melodies</p>
-            <button onclick="startExperience()" class="group relative px-12 py-4 overflow-hidden rounded-full border border-white/40 bg-black/30 backdrop-blur-md transition-all duration-500 hover:border-white/80">
-                <span class="relative z-10 tracking-widest uppercase text-xs font-bold text-white group-hover:text-black">Enter Our Story</span>
-                <div class="absolute inset-0 bg-white translate-y-full transition-transform duration-500 group-hover:translate-y-0"></div>
+    <!-- Landing Screen -->
+    <div id="landing-page" class="fixed inset-0 z-[100] yellow-theme flex flex-col items-center justify-center p-10 text-center transition-all duration-1000">
+        <div class="relative z-10 w-full max-w-sm">
+            <h1 class="text-6xl font-serif italic mb-6 leading-tight">For My Forever Valentine</h1>
+            <p class="text-[10px] tracking-[0.5em] uppercase mb-16 font-bold">Tap the heart to begin our story</p>
+            <button onclick="startExperience()" class="heart-trigger w-24 h-24 rounded-full flex items-center justify-center active:scale-90 transition-transform mx-auto">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-10 h-10 fill-current" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
             </button>
         </div>
     </div>
 
-    <main id="gallery-container" class="relative h-screen w-screen hidden">
-        <div class="page-counter" id="counter">1 / 50</div>
-        
-        <div id="image-frame" class="absolute inset-0 flex items-center justify-center overflow-hidden">
-            <img id="current-photo" src="" alt="Memory" class="gallery-image w-full h-full object-cover opacity-0 scale-110">
-            <div class="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/80"></div>
+    <!-- The "Reel" Container -->
+    <div id="player-container" class="relative h-screen w-screen hidden overflow-hidden bg-black">
+        <div id="reel-viewport">
+            <!-- Dynamic Slides -->
         </div>
 
-        <div class="absolute bottom-12 left-1/2 -translate-x-1/2 z-30 w-[90%] max-w-md">
-            <div id="spotify-wrapper" class="rounded-xl overflow-hidden shadow-2xl"></div>
+        <!-- Global Overlays -->
+        <div class="fixed top-0 left-0 right-0 p-8 flex justify-between items-center z-50 pointer-events-none pt-[calc(20px+env(safe-area-inset-top))]">
+            <div class="text-[10px] tracking-[0.4em] uppercase text-white/30 font-bold">Soundtrack of Us</div>
+            <div id="counter" class="text-[10px] tracking-[0.2em] text-white/90 bg-white/10 px-4 py-1.5 rounded-full backdrop-blur-xl border border-white/10">1 / 51</div>
         </div>
 
-        <div class="absolute inset-y-0 left-0 w-24 flex items-center justify-center">
-            <button id="prev-btn" onclick="prevSlide()" class="nav-btn p-5 rounded-full" disabled>
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+        <!-- Navigation Buttons -->
+        <div class="fixed bottom-0 left-0 right-0 flex justify-center gap-10 z-50 pointer-events-none pb-[calc(40px+env(safe-area-inset-bottom))]">
+            <button onclick="scrollReel(-1)" class="nav-btn">
+                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m18 15-6-6-6 6"/></svg>
+            </button>
+            <button onclick="scrollReel(1)" class="nav-btn">
+                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
             </button>
         </div>
-
-        <div class="absolute inset-y-0 right-0 w-24 flex items-center justify-center">
-            <button id="next-btn" onclick="nextSlide()" class="nav-btn p-5 rounded-full">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
-            </button>
-        </div>
-    </main>
+    </div>
 
     <script>
         const galleryData = [
@@ -111,71 +205,125 @@
             { name: "Photo 50", url: "https://open.spotify.com/embed/track/4kbj5MqbdyPST7j9vYv9Mt?utm_source=generator" }
         ];
 
-        const extensions = ['.jpg', '.jpeg', '.HEIC', '.png', '.JPG', '.JPEG', '.heic', '.PNG'];
         let currentIndex = 0;
+        const extensions = ['.jpg', '.jpeg', '.HEIC', '.png', '.JPG', '.JPEG', '.heic', '.PNG'];
+
+        function createSlides() {
+            const viewport = document.getElementById('reel-viewport');
+            
+            // Memory Slides
+            galleryData.forEach((item, index) => {
+                const slide = document.createElement('div');
+                slide.className = 'reel-slide';
+                slide.innerHTML = `
+                    <div class="blur-bg" id="blur-${index}"></div>
+                    <div class="flex-1 flex flex-col items-center justify-center px-6 gap-12">
+                        <div class="album-art-container">
+                            <img id="photo-${index}" class="w-full h-full object-cover opacity-0 transition-opacity duration-1000" alt="Memory">
+                            <div id="loader-${index}" class="absolute inset-0 flex items-center justify-center">
+                                <span class="loader"></span>
+                            </div>
+                        </div>
+                        <div class="w-full max-w-[400px] z-10 px-2">
+                            <div id="spotify-${index}" class="min-h-[80px] rounded-2xl overflow-hidden shadow-2xl bg-black/40 backdrop-blur-md border border-white/10"></div>
+                        </div>
+                    </div>
+                `;
+                viewport.appendChild(slide);
+            });
+
+            // Yellow End Slide
+            const endSlide = document.createElement('div');
+            endSlide.className = 'reel-slide yellow-theme';
+            endSlide.innerHTML = `
+                <div class="flex-1 flex flex-col items-center justify-center px-10 text-center">
+                    <h2 class="text-4xl font-serif italic mb-10 leading-tight">This is just the intro.</h2>
+                    <div class="space-y-6">
+                        <p class="text-xl font-semibold tracking-tight">A lot more memories to create,</p>
+                        <p class="text-xl font-semibold tracking-tight">A lot more songs to live,</p>
+                        <p class="text-xl font-semibold tracking-tight">And a lifetime more to love you.</p>
+                    </div>
+                    <div class="mt-20 opacity-30 text-[10px] tracking-[0.5em] uppercase font-bold">Happy Valentine's Day</div>
+                </div>
+            `;
+            viewport.appendChild(endSlide);
+        }
+
+        function loadSlideData(index) {
+            if (index < 0 || index >= galleryData.length) return;
+            const current = galleryData[index];
+            const img = document.getElementById(`photo-${index}`);
+            const loader = document.getElementById(`loader-${index}`);
+            const blur = document.getElementById(`blur-${index}`);
+            const spotify = document.getElementById(`spotify-${index}`);
+
+            if (spotify.innerHTML === "") {
+                spotify.innerHTML = `<iframe style="border-radius:20px" src="${current.url}&autoplay=1" width="100%" height="80" frameBorder="0" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"></iframe>`;
+            } else {
+                const iframe = spotify.querySelector('iframe');
+                if (iframe) iframe.src = current.url + "&autoplay=1";
+            }
+
+            if (!img.src || img.src === window.location.href) {
+                tryLoadImage(img, blur, loader, current.name);
+            }
+        }
+
+        function tryLoadImage(imgElement, blurElement, loaderElement, photoName, extIndex = 0) {
+            if (extIndex >= extensions.length) {
+                const placeholder = "https://images.unsplash.com/photo-1518193582231-507981da40b2?q=80&w=1000&auto=format&fit=crop";
+                imgElement.src = placeholder;
+                blurElement.style.backgroundImage = `url('${placeholder}')`;
+                imgElement.style.opacity = '1';
+                loaderElement.classList.add('hidden');
+                return;
+            }
+
+            const testSrc = `images/${photoName}${extensions[extIndex]}`;
+            const tester = new Image();
+            tester.onload = () => {
+                imgElement.src = testSrc;
+                blurElement.style.backgroundImage = `url('${testSrc}')`;
+                imgElement.style.opacity = '1';
+                loaderElement.classList.add('hidden');
+            };
+            tester.onerror = () => tryLoadImage(imgElement, blurElement, loaderElement, photoName, extIndex + 1);
+            tester.src = testSrc;
+        }
 
         function startExperience() {
             document.getElementById('landing-page').style.opacity = '0';
             setTimeout(() => {
                 document.getElementById('landing-page').classList.add('hidden');
-                document.getElementById('gallery-container').classList.remove('hidden');
-                updateSlide();
+                document.getElementById('player-container').classList.remove('hidden');
+                loadSlideData(0);
+                loadSlideData(1);
             }, 1000);
         }
 
-        function tryLoadImage(imgElement, photoName, extIndex = 0) {
-            if (extIndex >= extensions.length) {
-                imgElement.src = "https://images.unsplash.com/photo-1518193582231-507981da40b2?q=80&w=2000&auto=format&fit=crop";
-                imgElement.style.opacity = '1';
-                return;
-            }
-            const testSrc = `images/${photoName}${extensions[extIndex]}`;
-            const tester = new Image();
-            tester.onload = () => {
-                imgElement.src = testSrc;
-                imgElement.style.opacity = '1';
-                imgElement.style.transform = 'scale(1.0)';
-            };
-            tester.onerror = () => tryLoadImage(imgElement, photoName, extIndex + 1);
-            tester.src = testSrc;
-        }
-
-        function updateSlide() {
-            const current = galleryData[currentIndex];
-            const photo = document.getElementById('current-photo');
-            const counter = document.getElementById('counter');
-            
-            photo.style.opacity = '0';
-            photo.style.transform = 'scale(1.1)';
-            counter.innerText = `${currentIndex + 1} / ${galleryData.length}`;
-
-            setTimeout(() => {
-                document.getElementById('spotify-wrapper').innerHTML = `
-                    <iframe style="border-radius:12px" src="${current.url}" 
-                    width="100%" height="152" frameBorder="0" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"></iframe>`;
+        function scrollReel(direction) {
+            const totalSlides = galleryData.length + 1;
+            const nextIndex = currentIndex + direction;
+            if (nextIndex >= 0 && nextIndex < totalSlides) {
+                currentIndex = nextIndex;
+                document.getElementById('reel-viewport').style.transform = `translateY(-${currentIndex * 100}%)`;
+                document.getElementById('counter').innerText = `${currentIndex + 1} / ${totalSlides}`;
                 
-                tryLoadImage(photo, current.name);
-                document.getElementById('prev-btn').disabled = (currentIndex === 0);
-                document.getElementById('next-btn').disabled = (currentIndex === galleryData.length - 1);
-            }, 600);
+                if (currentIndex < galleryData.length) {
+                    loadSlideData(currentIndex);
+                }
+            }
         }
 
-        function nextSlide() { if (currentIndex < galleryData.length - 1) { currentIndex++; updateSlide(); } }
-        function prevSlide() { if (currentIndex > 0) { currentIndex--; updateSlide(); } }
-
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'ArrowRight') nextSlide();
-            if (e.key === 'ArrowLeft') prevSlide();
+        let touchStartY = 0;
+        document.addEventListener('touchstart', e => { touchStartY = e.touches[0].clientY; }, {passive: true});
+        document.addEventListener('touchend', e => {
+            const touchEndY = e.changedTouches[0].clientY;
+            const deltaY = touchStartY - touchEndY;
+            if (Math.abs(deltaY) > 50) scrollReel(deltaY > 0 ? 1 : -1);
         });
 
-        window.onload = () => {
-            const landing = document.getElementById('landing-page');
-            extensions.forEach(ext => {
-                const img = new Image();
-                img.onload = () => landing.style.backgroundImage = `linear-gradient(to bottom, rgba(0,0,0,0.3), rgba(0,0,0,0.8)), url('images/Photo 1${ext}')`;
-                img.src = `images/Photo 1${ext}`;
-            });
-        };
+        window.onload = createSlides;
     </script>
 </body>
 </html>
