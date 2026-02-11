@@ -2,352 +2,314 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Our Symphony | Valentine 2026</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>For My Forever Valentine</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&family=Pinyon+Script&family=Montserrat:wght@300;400&display=swap" rel="stylesheet">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600&family=Playfair+Display:ital,wght@0,600;1,600&family=Dancing+Script:wght@700&display=swap');
-        
         :root {
-            --valentine-yellow: #fdd835; 
-            --valentine-red: #ff4d4d;
+            --yellow: #FFDE21;
+            --heart-red: #ff4d4d;
+            --vinyl-black: #121212;
         }
 
-        html, body {
-            position: fixed;
-            overflow: hidden;
-            width: 100%;
-            height: 100%;
-            margin: 0;
-            padding: 0;
+        body {
+            font-family: 'Montserrat', sans-serif;
             background-color: #000;
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            color: #fff;
-            -webkit-user-select: none;
-            user-select: none;
-            touch-action: none;
-        }
-
-        .font-serif { font-family: 'Playfair Display', serif; }
-        .font-curvy { font-family: 'Dancing Script', cursive; }
-
-        /* Landing Layer */
-        .layer {
-            position: fixed;
-            inset: 0;
-            z-index: 100;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
-            background-color: var(--valentine-yellow);
-            color: #000;
-            visibility: visible;
-            opacity: 1;
-        }
-
-        .layer.hidden-state {
-            opacity: 0;
-            visibility: hidden;
-            transform: scale(1.1);
-        }
-
-        /* Heart Button */
-        .heart-trigger { 
-            background: var(--valentine-red); 
-            color: #fff; 
-            box-shadow: 0 10px 40px rgba(255, 77, 77, 0.5); 
-            transition: transform 0.2s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            border: none;
-            outline: none;
-            -webkit-tap-highlight-color: transparent;
-            animation: heartPulse 2s infinite;
+            margin: 0;
+            overflow: hidden; 
         }
         
-        @keyframes heartPulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.1); }
-            100% { transform: scale(1); }
-        }
+        .main-serif { font-family: 'Playfair Display', serif; }
+        .handwritten { font-family: 'Pinyon Script', cursive; }
 
-        /* Main Player Shell */
-        #player-container {
-            position: absolute;
-            inset: 0;
-            background: #000;
-            opacity: 0;
-            visibility: hidden;
-            transition: opacity 0.8s ease;
-            z-index: 10;
+        .reel-container {
+            height: 100vh;
+            scroll-snap-type: y mandatory;
+            overflow-y: scroll;
+            display: none; 
+            scroll-behavior: smooth;
+            background-color: #000;
         }
-
-        #player-container.active {
-            opacity: 1;
-            visibility: visible;
-        }
-
-        #reel-viewport {
-            height: 100%;
-            width: 100%;
-            transition: transform 0.8s cubic-bezier(0.23, 1, 0.32, 1);
-            display: flex;
-            flex-direction: column;
-        }
-
-        .reel-slide {
+        .reel-page {
             height: 100vh;
             width: 100vw;
-            flex-shrink: 0;
+            scroll-snap-align: start;
             position: relative;
             display: flex;
             flex-direction: column;
             justify-content: center;
-            padding-top: env(safe-area-inset-top);
-            padding-bottom: env(safe-area-inset-bottom);
-        }
-
-        /* 1:1 Photo Container */
-        .album-art-container {
-            aspect-ratio: 1 / 1;
-            width: 85vw;
-            max-width: 380px;
-            position: relative;
-            border-radius: 20px;
+            align-items: center;
             overflow: hidden;
-            box-shadow: 0 40px 80px -15px rgba(0, 0, 0, 0.9);
-            margin: 0 auto;
-            background: #111;
+        }
+        
+        .blur-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-size: cover;
+            background-position: center;
+            filter: blur(50px) brightness(0.3);
+            transform: scale(1.3);
+            z-index: 1;
         }
 
-        .album-art-container img {
+        .image-container {
+            position: relative;
+            z-index: 10;
+            width: 88vw;
+            height: 88vw;
+            max-width: 420px;
+            max-height: 420px;
+            overflow: hidden;
+            border-radius: 32px;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.6);
+            border: 1px solid rgba(255,255,255,0.15);
+        }
+        
+        .image-container img {
             width: 100%;
             height: 100%;
             object-fit: cover;
         }
 
-        .blur-bg {
-            position: absolute;
-            inset: -50px;
-            background-size: cover;
-            background-position: center;
-            filter: blur(60px) brightness(0.25);
-            z-index: -1;
-            transform: scale(1.3);
-            transition: opacity 1.2s ease;
+        #landing-page, .end-page {
+            height: 100vh;
+            width: 100vw;
+            background-color: var(--yellow);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            text-align: center;
         }
 
-        /* Visualizer */
-        .bars-container {
+        #landing-page {
+            position: fixed;
+            top: 0;
+            left: 0;
+            transition: transform 1s cubic-bezier(0.85, 0, 0.15, 1);
+        }
+
+        .vinyl-container {
+            position: relative;
+            width: 240px;
+            height: 240px;
+            margin-top: 2rem;
+            cursor: pointer;
+            animation: fadeIn 1.8s ease-out;
+            filter: drop-shadow(0 15px 30px rgba(0,0,0,0.3));
+        }
+
+        .vinyl-record {
+            width: 100%;
+            height: 100%;
+            background: var(--vinyl-black);
+            border-radius: 50%;
+            position: relative;
+            animation: rotateVinyl 12s linear infinite;
             display: flex;
-            align-items: flex-end;
-            gap: 3px;
-            height: 18px;
+            justify-content: center;
+            align-items: center;
+            border: 1px solid #000;
+        }
+
+        .vinyl-record::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            border-radius: 50%;
+            background: repeating-radial-gradient(circle at center, rgba(255, 255, 255, 0.05) 0px, rgba(255, 255, 255, 0.05) 1px, transparent 2px, transparent 3px);
+            pointer-events: none;
+        }
+
+        .vinyl-sheen {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            border-radius: 50%;
+            background: linear-gradient(135deg, transparent 40%, rgba(255,255,255,0.1) 48%, rgba(255,255,255,0.15) 50%, rgba(255,255,255,0.1) 52%, transparent 60%);
+            z-index: 2;
+        }
+
+        .vinyl-label {
+            width: 90px;
+            height: 90px;
+            background: var(--heart-red);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 5;
+            box-shadow: 0 0 10px rgba(0,0,0,0.5);
+            border: 4px solid #000;
+        }
+
+        @keyframes rotateVinyl { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(30px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
+        @keyframes beat { 0%, 100% { transform: scale(1); } 15% { transform: scale(1.3); } 30% { transform: scale(1); } 45% { transform: scale(1.15); } }
+
+        .beating-heart {
+            animation: beat 1s infinite ease-in-out;
+            color: var(--heart-red);
+            filter: drop-shadow(0 0 15px rgba(255, 77, 77, 0.6));
+        }
+
+        .fade-out { transform: translateY(-100vh) !important; }
+
+        .music-indicator {
+            position: absolute;
+            bottom: 40px;
+            z-index: 20;
+            display: flex;
+            gap: 4px;
         }
         .bar {
             width: 3px;
-            background: #fff;
-            border-radius: 10px;
-            animation: bounce 0.6s ease-in-out infinite alternate;
+            height: 14px;
+            background: rgba(255,255,255,0.7);
+            border-radius: 4px;
+            animation: pulse 0.8s ease-in-out infinite;
         }
-        @keyframes bounce { 0% { height: 4px; } 100% { height: 18px; } }
+        @keyframes pulse { 0%, 100% { height: 8px; } 50% { height: 20px; } }
 
-        .yellow-theme { background-color: var(--valentine-yellow); color: #000; }
+        .text-reveal {
+            animation: fadeIn 1.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            opacity: 0;
+        }
     </style>
 </head>
 <body>
 
-    <!-- Landing Page -->
-    <div id="landing-layer" class="layer text-center p-8">
-        <div class="w-full max-w-[340px]">
-            <h1 class="text-6xl font-curvy mb-4 leading-tight">For My<br>Forever<br>Valentine</h1>
-            <p class="text-[10px] tracking-[0.5em] uppercase mb-16 font-bold opacity-60">tap the heart to enter</p>
-            <button onclick="startExperience()" class="heart-trigger w-32 h-32 rounded-full mx-auto">
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-16 h-16 fill-current" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
-            </button>
+    <div id="landing-page">
+        <div class="text-reveal" style="animation-delay: 0.3s">
+            <h1 class="main-serif text-5xl text-black font-light tracking-tight">For my forever</h1>
+            <h2 class="handwritten text-7xl text-black -mt-4 mb-2">Valentine</h2>
         </div>
-    </div>
-
-    <!-- Main Player Container -->
-    <div id="player-container">
-        <div id="reel-viewport"></div>
-
-        <!-- Floating UI -->
-        <div class="fixed top-0 left-0 right-0 p-6 flex justify-between items-center z-50 pointer-events-none pt-[calc(24px+env(safe-area-inset-top))]">
-            <div class="flex items-center gap-3">
-                <div class="bars-container" id="visualizer">
-                    <div class="bar" style="animation-delay: 0s"></div>
-                    <div class="bar" style="animation-delay: 0.2s"></div>
-                    <div class="bar" style="animation-delay: 0.4s"></div>
+        
+        <div class="vinyl-container" onclick="enterExperience()">
+            <div class="vinyl-record">
+                <div class="vinyl-sheen"></div>
+                <div class="vinyl-label">
+                    <svg viewBox="0 0 24 24" width="45" height="45" fill="black">
+                        <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                    </svg>
                 </div>
-                <div class="text-[9px] tracking-[0.4em] uppercase text-white/50 font-bold">Our Symphony</div>
             </div>
-            <div id="counter" class="text-[10px] tracking-[0.1em] text-white/90 bg-white/10 px-4 py-2 rounded-full backdrop-blur-3xl border border-white/10">1 / 6</div>
         </div>
+        
+        <p class="mt-12 text-[10px] font-bold uppercase tracking-[0.5em] text-black/40 text-reveal" style="animation-delay: 1.2s">
+            Tap the vinyl to play
+        </p>
     </div>
 
-    <audio id="main-audio" preload="auto"></audio>
+    <div class="reel-container" id="reel">
+        <!-- Memory 1 -->
+        <section class="reel-page" data-song="1.mp3">
+            <div class="blur-bg" style="background-image: url('Photo 1.jpg')"></div>
+            <div class="image-container">
+                <img src="Photo 1.jpg" alt="Memory 1" onerror="this.src='https://images.unsplash.com/photo-1518199266791-5375a83190b7?q=80&w=800'">
+            </div>
+            <div class="music-indicator"><div class="bar"></div><div class="bar"></div><div class="bar"></div></div>
+        </section>
+
+        <!-- Memory 2 -->
+        <section class="reel-page" data-song="2.mp3">
+            <div class="blur-bg" style="background-image: url('Photo 2.jpg')"></div>
+            <div class="image-container">
+                <img src="Photo 2.jpg" alt="Memory 2" onerror="this.src='https://images.unsplash.com/photo-1522673607200-164883eecd0c?q=80&w=800'">
+            </div>
+            <div class="music-indicator"><div class="bar"></div><div class="bar"></div><div class="bar"></div></div>
+        </section>
+
+        <!-- Memory 3 -->
+        <section class="reel-page" data-song="3.mp3">
+            <div class="blur-bg" style="background-image: url('Photo 3.jpg')"></div>
+            <div class="image-container">
+                <img src="Photo 3.jpg" alt="Memory 3" onerror="this.src='https://images.unsplash.com/photo-1474552226712-ac0f0961a954?q=80&w=800'">
+            </div>
+            <div class="music-indicator"><div class="bar"></div><div class="bar"></div><div class="bar"></div></div>
+        </section>
+
+        <!-- Memory 4 -->
+        <section class="reel-page" data-song="4.mp3">
+            <div class="blur-bg" style="background-image: url('Photo 4.jpg')"></div>
+            <div class="image-container">
+                <img src="Photo 4.jpg" alt="Memory 4" onerror="this.src='https://images.unsplash.com/photo-1516589174184-c6858b16ecb0?q=80&w=800'">
+            </div>
+            <div class="music-indicator"><div class="bar"></div><div class="bar"></div><div class="bar"></div></div>
+        </section>
+
+        <!-- Memory 5 -->
+        <section class="reel-page" data-song="5.mp3">
+            <div class="blur-bg" style="background-image: url('Photo 5.jpg')"></div>
+            <div class="image-container">
+                <img src="Photo 5.jpg" alt="Memory 5" onerror="this.src='https://images.unsplash.com/photo-1511733331976-2906c8880d60?q=80&w=800'">
+            </div>
+            <div class="music-indicator"><div class="bar"></div><div class="bar"></div><div class="bar"></div></div>
+        </section>
+
+        <section class="reel-page end-page scroll-snap-align-start">
+            <div class="px-10 flex flex-col items-center">
+                <div class="beating-heart mb-14">
+                    <svg viewBox="0 0 24 24" width="80" height="80" fill="currentColor">
+                        <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                    </svg>
+                </div>
+                <p class="main-serif text-3xl italic text-black leading-tight max-w-[320px]">
+                    For many more memories to make and many more songs to live.
+                </p>
+                <div class="w-24 h-[1px] bg-black/10 my-10"></div>
+                <h2 class="handwritten text-6xl text-black tracking-tight">Happy Valentine's Day</h2>
+            </div>
+        </section>
+    </div>
+
+    <audio id="global-audio" loop preload="auto"></audio>
 
     <script>
-        const galleryData = [
-            { text: "Where it all began" },
-            { text: "Our favorite melody" },
-            { text: "In every heartbeat" },
-            { text: "The rhythm of us" },
-            { text: "Always in tune" }
-        ];
+        const audio = document.getElementById('global-audio');
+        const landing = document.getElementById('landing-page');
+        const reel = document.getElementById('reel');
+        const pages = document.querySelectorAll('.reel-page');
+        let currentPageIndex = -1;
 
-        let currentIndex = 0;
-        const audioPlayer = document.getElementById('main-audio');
-
-        function createSlides() {
-            const viewport = document.getElementById('reel-viewport');
-            
-            // Photo Slides
-            galleryData.forEach((item, index) => {
-                const slide = document.createElement('div');
-                slide.className = 'reel-slide';
-                slide.innerHTML = `
-                    <div class="blur-bg" id="blur-${index}"></div>
-                    <div class="flex-1 flex flex-col items-center justify-center">
-                        <div class="album-art-container">
-                            <img id="photo-${index}" class="opacity-0 transition-opacity duration-1000" alt="Memory">
-                            <div id="loader-${index}" class="absolute inset-0 flex items-center justify-center">
-                                <div class="w-8 h-8 border-2 border-white/20 border-t-white rounded-full animate-spin"></div>
-                            </div>
-                        </div>
-                        <div class="mt-12 text-center px-10">
-                             <p class="text-white text-2xl font-curvy leading-relaxed">${item.text}</p>
-                        </div>
-                    </div>
-                `;
-                viewport.appendChild(slide);
-            });
-
-            // End Slides (Page 7 & 8 from your flow)
-            const endSlide = document.createElement('div');
-            endSlide.className = 'reel-slide yellow-theme';
-            endSlide.innerHTML = `
-                <div class="flex-1 flex flex-col items-center justify-center px-12 text-center">
-                    <p class="text-3xl font-serif italic mb-2 tracking-tight">TO MANY MORE</p>
-                    <p class="text-4xl font-curvy mb-4">Memories</p>
-                    <p class="text-2xl font-serif italic mb-2 tracking-tight">TO LIVING MANY MORE</p>
-                    <h1 class="text-6xl font-curvy">Songs</h1>
-                </div>
-            `;
-            viewport.appendChild(endSlide);
-
-            const finalSlide = document.createElement('div');
-            finalSlide.className = 'reel-slide yellow-theme';
-            finalSlide.innerHTML = `
-                <div class="flex-1 flex flex-col items-center justify-center px-12 text-center">
-                    <h1 class="text-5xl font-curvy mb-6 leading-tight">Happy<br>Valentines<br>Day My Love</h1>
-                    <div class="mt-20 opacity-30 text-[10px] uppercase tracking-[0.5em] font-bold">Forever & Always</div>
-                </div>
-            `;
-            viewport.appendChild(finalSlide);
-            
-            updateCounter();
+        function enterExperience() {
+            landing.classList.add('fade-out');
+            reel.style.display = 'block';
+            document.body.style.overflow = 'auto';
+            setTimeout(() => { handleScroll(); }, 800);
         }
 
-        function updateCounter() {
-            const counter = document.getElementById('counter');
-            if(counter) counter.innerText = `${currentIndex + 1} / ${galleryData.length + 2}`;
-        }
-
-        function playTrack(index) {
-            if (index < 0 || index >= galleryData.length) {
-                audioPlayer.pause();
-                document.getElementById('visualizer').style.opacity = '0';
-                return;
-            }
-
-            document.getElementById('visualizer').style.opacity = '1';
-            audioPlayer.src = `songs/${index + 1}.mp3`;
-            audioPlayer.play().catch(e => console.warn("Audio needs user interaction first"));
-        }
-
-        function loadSlideMedia(index) {
-            if (index < 0 || index >= galleryData.length) return;
-            const img = document.getElementById(`photo-${index}`);
-            const loader = document.getElementById(`loader-${index}`);
-            const blur = document.getElementById(`blur-${index}`);
-            
-            if (img && (!img.src || img.src.includes(window.location.hostname))) {
-                const extensions = ['.jpg', '.JPG', '.jpeg', '.JPEG', '.png', '.webp'];
-                let extIdx = 0;
-
-                const tryLoad = () => {
-                    if (extIdx >= extensions.length) {
-                        img.src = "https://images.unsplash.com/photo-1518193582231-507981da40b2?auto=format&fit=crop&w=1000";
-                        if(loader) loader.classList.add('hidden');
-                        img.style.opacity = '1';
-                        return;
-                    }
-                    const src = `images/Photo ${index + 1}${extensions[extIdx]}`;
-                    const tester = new Image();
-                    tester.onload = () => {
-                        img.src = src;
-                        if(blur) blur.style.backgroundImage = `url('${src}')`;
-                        img.style.opacity = '1';
-                        if(loader) loader.classList.add('hidden');
-                    };
-                    tester.onerror = () => {
-                        extIdx++;
-                        tryLoad();
-                    };
-                    tester.src = src;
-                };
-                tryLoad();
+        function handleScroll() {
+            const scrollPos = reel.scrollTop;
+            const windowHeight = window.innerHeight;
+            const newIndex = Math.round(scrollPos / windowHeight);
+            if (newIndex !== currentPageIndex) {
+                currentPageIndex = newIndex;
+                updateMusic(currentPageIndex);
             }
         }
 
-        function startExperience() {
-            audioPlayer.play().then(() => {
-                audioPlayer.pause();
-                doTransition();
-            }).catch(() => {
-                doTransition();
-            });
-        }
-
-        function doTransition() {
-            document.getElementById('landing-layer').classList.add('hidden-state');
-            document.getElementById('player-container').classList.add('active');
-            
-            setTimeout(() => {
-                loadSlideMedia(0);
-                playTrack(0);
-            }, 300);
-        }
-
-        function scrollReel(dir) {
-            const totalSlides = galleryData.length + 2;
-            const next = currentIndex + dir;
-            if (next >= 0 && next < totalSlides) {
-                currentIndex = next;
-                document.getElementById('reel-viewport').style.transform = `translateY(-${currentIndex * 100}%)`;
-                updateCounter();
-                playTrack(currentIndex);
-                loadSlideMedia(currentIndex);
-                loadSlideMedia(currentIndex + 1);
+        function updateMusic(index) {
+            const activePage = pages[index];
+            if (!activePage) return;
+            const songSrc = activePage.getAttribute('data-song');
+            if (songSrc) {
+                if (audio.src.split('/').pop() !== songSrc) {
+                    audio.pause();
+                    audio.src = songSrc;
+                    audio.load();
+                    audio.play().catch(e => console.log("Play deferred:", e));
+                }
+            } else {
+                audio.pause();
+                audio.currentTime = 0;
             }
         }
-
-        let touchStartY = 0;
-        document.addEventListener('touchstart', e => { touchStartY = e.touches[0].clientY; }, {passive: true});
-        document.addEventListener('touchend', e => {
-            const delta = touchStartY - e.changedTouches[0].clientY;
-            if (Math.abs(delta) > 50) {
-                scrollReel(delta > 0 ? 1 : -1);
-            }
-        });
-
-        window.onload = createSlides;
+        reel.addEventListener('scroll', handleScroll);
     </script>
 </body>
 </html>
