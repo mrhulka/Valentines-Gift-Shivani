@@ -100,19 +100,9 @@
         }
         @keyframes rotation { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 
-        /* Yellow Theme (Landing & End) */
-        .yellow-theme {
-            background: var(--valentine-yellow);
-            color: #000;
-        }
-        
+        .yellow-theme { background: var(--valentine-yellow); color: #000; }
         .yellow-theme p { color: rgba(0,0,0,0.6); }
-
-        .heart-trigger {
-            background: #000;
-            color: #fff;
-            box-shadow: 0 15px 30px rgba(0,0,0,0.2);
-        }
+        .heart-trigger { background: #000; color: #fff; box-shadow: 0 15px 30px rgba(0,0,0,0.2); }
     </style>
 </head>
 <body>
@@ -130,17 +120,13 @@
 
     <!-- The "Reel" Container -->
     <div id="player-container" class="relative h-screen w-screen hidden overflow-hidden bg-black">
-        <div id="reel-viewport">
-            <!-- Dynamic Slides -->
-        </div>
+        <div id="reel-viewport"></div>
 
-        <!-- Global Overlays -->
         <div class="fixed top-0 left-0 right-0 p-8 flex justify-between items-center z-50 pointer-events-none pt-[calc(20px+env(safe-area-inset-top))]">
             <div class="text-[10px] tracking-[0.4em] uppercase text-white/30 font-bold">Soundtrack of Us</div>
             <div id="counter" class="text-[10px] tracking-[0.2em] text-white/90 bg-white/10 px-4 py-1.5 rounded-full backdrop-blur-xl border border-white/10">1 / 51</div>
         </div>
 
-        <!-- Navigation Buttons -->
         <div class="fixed bottom-0 left-0 right-0 flex justify-center gap-10 z-50 pointer-events-none pb-[calc(40px+env(safe-area-inset-bottom))]">
             <button onclick="scrollReel(-1)" class="nav-btn">
                 <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m18 15-6-6-6 6"/></svg>
@@ -152,6 +138,7 @@
     </div>
 
     <script>
+        // Data synced exactly with your uploaded CSV
         const galleryData = [
             { name: "Photo 1", url: "https://open.spotify.com/embed/track/1wqqyytFD8HoKWg06T1GCo?utm_source=generator" },
             { name: "Photo 2", url: "https://open.spotify.com/embed/track/73m0ROzv1B86iNvuo8rh8z?utm_source=generator" },
@@ -206,12 +193,10 @@
         ];
 
         let currentIndex = 0;
-        const extensions = ['.jpg', '.jpeg', '.HEIC', '.png', '.JPG', '.JPEG', '.heic', '.PNG'];
+        const extensions = ['.jpg', '.jpeg', '.png', '.HEIC', '.JPG', '.JPEG', '.PNG', '.heic'];
 
         function createSlides() {
             const viewport = document.getElementById('reel-viewport');
-            
-            // Memory Slides
             galleryData.forEach((item, index) => {
                 const slide = document.createElement('div');
                 slide.className = 'reel-slide';
@@ -219,10 +204,8 @@
                     <div class="blur-bg" id="blur-${index}"></div>
                     <div class="flex-1 flex flex-col items-center justify-center px-6 gap-12">
                         <div class="album-art-container">
-                            <img id="photo-${index}" class="w-full h-full object-cover opacity-0 transition-opacity duration-1000" alt="Memory">
-                            <div id="loader-${index}" class="absolute inset-0 flex items-center justify-center">
-                                <span class="loader"></span>
-                            </div>
+                            <img id="photo-${index}" class="w-full h-full object-cover opacity-0 transition-opacity duration-700" alt="Memory">
+                            <div id="loader-${index}" class="absolute inset-0 flex items-center justify-center"><span class="loader"></span></div>
                         </div>
                         <div class="w-full max-w-[400px] z-10 px-2">
                             <div id="spotify-${index}" class="min-h-[80px] rounded-2xl overflow-hidden shadow-2xl bg-black/40 backdrop-blur-md border border-white/10"></div>
@@ -232,7 +215,6 @@
                 viewport.appendChild(slide);
             });
 
-            // Yellow End Slide
             const endSlide = document.createElement('div');
             endSlide.className = 'reel-slide yellow-theme';
             endSlide.innerHTML = `
@@ -257,25 +239,23 @@
             const blur = document.getElementById(`blur-${index}`);
             const spotify = document.getElementById(`spotify-${index}`);
 
+            // Embed Spotify with Autoplay parameter
             if (spotify.innerHTML === "") {
-                spotify.innerHTML = `<iframe style="border-radius:20px" src="${current.url}&autoplay=1" width="100%" height="80" frameBorder="0" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"></iframe>`;
-            } else {
-                const iframe = spotify.querySelector('iframe');
-                if (iframe) iframe.src = current.url + "&autoplay=1";
+                const embedUrl = current.url.includes('?') ? `${current.url}&autoplay=1` : `${current.url}?autoplay=1`;
+                spotify.innerHTML = `<iframe style="border-radius:20px" src="${embedUrl}" width="100%" height="80" frameBorder="0" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"></iframe>`;
             }
 
-            if (!img.src || img.src === window.location.href) {
+            if (!img.src || img.src.includes(window.location.hostname)) {
                 tryLoadImage(img, blur, loader, current.name);
             }
         }
 
         function tryLoadImage(imgElement, blurElement, loaderElement, photoName, extIndex = 0) {
             if (extIndex >= extensions.length) {
-                const placeholder = "https://images.unsplash.com/photo-1518193582231-507981da40b2?q=80&w=1000&auto=format&fit=crop";
-                imgElement.src = placeholder;
-                blurElement.style.backgroundImage = `url('${placeholder}')`;
-                imgElement.style.opacity = '1';
+                // Final fallback if all image formats fail
+                imgElement.src = "https://images.unsplash.com/photo-1518193582231-507981da40b2?q=80&w=1000&auto=format&fit=crop";
                 loaderElement.classList.add('hidden');
+                imgElement.style.opacity = '1';
                 return;
             }
 
@@ -297,7 +277,7 @@
                 document.getElementById('landing-page').classList.add('hidden');
                 document.getElementById('player-container').classList.remove('hidden');
                 loadSlideData(0);
-                loadSlideData(1);
+                loadSlideData(1); // Preload next
             }, 1000);
         }
 
@@ -311,6 +291,7 @@
                 
                 if (currentIndex < galleryData.length) {
                     loadSlideData(currentIndex);
+                    loadSlideData(currentIndex + 1); // Preload next
                 }
             }
         }
@@ -318,8 +299,7 @@
         let touchStartY = 0;
         document.addEventListener('touchstart', e => { touchStartY = e.touches[0].clientY; }, {passive: true});
         document.addEventListener('touchend', e => {
-            const touchEndY = e.changedTouches[0].clientY;
-            const deltaY = touchStartY - touchEndY;
+            const deltaY = touchStartY - e.changedTouches[0].clientY;
             if (Math.abs(deltaY) > 50) scrollReel(deltaY > 0 ? 1 : -1);
         });
 
