@@ -21,6 +21,25 @@ RB.excel = (function () {
   /* sheets: [{ name, columns: [{label, get, type, width}], rows, note }]
    * type: 'money' | 'number' | 'percent' | 'date' | undefined (text) */
   function download(filename, sheets, meta) {
+    // A shared preview runs in a sandbox that blocks a page from starting a
+    // download. Say so plainly and show what the file holds, rather than
+    // letting the button appear broken.
+    if (window.RB && RB.PREVIEW) {
+      return RB.ui.modal('Export — ' + filename + '.xlsx',
+        '<p class="sec" style="margin-top:0">This shared preview cannot download files. ' +
+        'On the hosted app this button saves the workbook below straight to your machine.</p>' +
+        '<div class="table-wrap"><table class="data"><thead><tr><th>Sheet</th>' +
+        '<th class="num">Rows</th><th class="num">Columns</th></tr></thead><tbody>' +
+        sheets.map(function (s) {
+          return '<tr><td class="strong">' + U.esc(s.name) + '</td>' +
+            '<td class="num">' + U.count(s.rows.length) + '</td>' +
+            '<td class="num">' + s.columns.length + '</td></tr>';
+        }).join('') + '</tbody></table></div>' +
+        (meta && meta.filters ? '<p class="small muted" style="margin-top:12px">Filters: ' +
+          U.esc(meta.filters) + '</p>' : '') +
+        '<div class="modal-actions"><button class="btn btn-primary" data-close="1">Got it</button></div>',
+        { wide: true });
+    }
     if (!window.XLSX) return fallbackCSV(filename, sheets);
 
     var wb = XLSX.utils.book_new();
