@@ -13,16 +13,18 @@ RB.charts = (function () {
 
   var U = RB.util;
 
-  var SERIES = ['var(--series-1)', 'var(--series-2)', 'var(--series-3)', 'var(--series-4)',
-                'var(--series-5)', 'var(--series-6)', 'var(--series-7)', 'var(--series-8)'];
-  // Ordinal ramp: never lighter than step 250 on light / darker than 600 on dark.
-  var ORDINAL = ['var(--seq-250)', 'var(--seq-300)', 'var(--seq-350)', 'var(--seq-400)',
-                 'var(--seq-450)', 'var(--seq-500)', 'var(--seq-550)', 'var(--seq-600)'];
-  var SEQ = ['var(--seq-100)', 'var(--seq-150)', 'var(--seq-200)', 'var(--seq-250)', 'var(--seq-300)',
-             'var(--seq-350)', 'var(--seq-400)', 'var(--seq-450)', 'var(--seq-500)', 'var(--seq-550)'];
-  var STATUS = { good: 'var(--good)', warning: 'var(--warning)', serious: 'var(--serious)', critical: 'var(--critical)' };
+  /* No categorical palette. Every chart here plots one measure, so a mark is
+   * Charcoal, magnitude uses the single-hue grey->charcoal ramp, and Yellow is
+   * a highlight that always sits beside a direct value label (it is 1.6:1 on
+   * Paper and can never carry meaning on its own). Red means lost or overdue. */
+  var INK = 'var(--charcoal)';
+  var ORDINAL = ['var(--ramp-1)', 'var(--ramp-2)', 'var(--ramp-3)',
+                 'var(--ramp-4)', 'var(--ramp-5)', 'var(--ramp-6)'];
+  var SEQ = ORDINAL;
+  var STATUS = { good: 'var(--ok)', warning: 'var(--warn)', critical: 'var(--bad)',
+                 brand: 'var(--brand)', ink: INK };
 
-  function seriesColor(i) { return SERIES[i % SERIES.length]; }
+  function seriesColor() { return INK; }
 
   function ordinalColor(i, n) {
     if (n <= 1) return ORDINAL[0];
@@ -92,7 +94,7 @@ RB.charts = (function () {
     var H = data.length * rowH + 8;
     var plotW = W - labelW - valueW - 12;
     var max = niceMax(Math.max.apply(null, data.map(function (d) { return d.value || 0; })));
-    var colorFn = opts.color || function () { return 'var(--series-1)'; };
+    var colorFn = opts.color || function () { return INK; };
 
     var marks = data.map(function (d, i) {
       var y = i * rowH + 4;
@@ -177,10 +179,11 @@ RB.charts = (function () {
       ]);
       return '<g class="mark" data-tip="' + t + '"' + (opts.onClick ? ' data-key="' + esc(d.key) + '" style="cursor:pointer"' : '') + '>' +
         '<text class="axis-label" x="' + (labelW - 10) + '" y="' + (y + h / 2 + 4) + '" text-anchor="end">' + esc(d.key) + '</text>' +
-        '<path d="' + bar(labelW, y, w, h, 4, 'right') + '" fill="' + ordinalColor(i, data.length) + '"></path>' +
+        '<path d="' + bar(labelW, y, w, h, 4, 'right') + '" fill="' +
+          (opts.highlightLast && i === data.length - 1 ? 'var(--brand)' : ordinalColor(i, data.length)) + '"></path>' +
         '<text class="value-label strong" x="' + (labelW + w + 10) + '" y="' + (y + h / 2 + 4) + '">' + esc(U.count(d.n)) + '</text>' +
         '<text class="value-label" x="' + (W - 8) + '" y="' + (y + h / 2 + 4) + '" text-anchor="end">' + esc(fmt(d.value)) + '</text>' +
-        (conv ? '<text class="value-label" x="' + (labelW + w + 10) + '" y="' + (y + h + 9) + '" fill="var(--text-muted)">' + esc(conv) + ' through</text>' : '') +
+        (conv ? '<text class="value-label" x="' + (labelW + w + 10) + '" y="' + (y + h + 9) + '" fill="var(--ink-muted)">' + esc(conv) + ' through</text>' : '') +
         '<rect class="hit" x="0" y="' + y + '" width="' + W + '" height="' + rowH + '"></rect>' +
       '</g>';
     }).join('');
@@ -219,7 +222,7 @@ RB.charts = (function () {
         ? '<path d="' + d + 'L' + xAt(n - 1) + ',' + yAt(0) + 'L' + xAt(0) + ',' + yAt(0) + 'Z" fill="' + color + '" opacity=".10"></path>' : '';
       var dots = s.points.map(function (p, i) {
         return '<circle class="mark" cx="' + xAt(i) + '" cy="' + yAt(p.y) + '" r="4" fill="' + color +
-          '" stroke="var(--surface-1)" stroke-width="2" data-tip="' +
+          '" stroke="var(--surface)" stroke-width="2" data-tip="' +
           tip(labels[i], [[s.label, fmt(p.y)]]) + '"></circle>';
       }).join('');
       var end = '<text class="value-label strong" x="' + (xAt(n - 1) + 8) + '" y="' + (yAt(s.points[n - 1].y) + 4) + '">' +
@@ -250,7 +253,7 @@ RB.charts = (function () {
     var step = plotW / data.length;
     var bw = Math.min(step - 8, 46);
     var fmt = opts.format || U.count;
-    var colorFn = opts.color || function () { return 'var(--series-1)'; };
+    var colorFn = opts.color || function () { return INK; };
 
     var grid = '';
     for (var g = 0; g <= 4; g++) {
@@ -302,7 +305,7 @@ RB.charts = (function () {
         var t = max ? v / max : 0;
         var x = labelW + j * cellW;
         // Ink flips to the surface colour once the fill gets dark enough to need it.
-        var ink = t > 0.62 ? 'var(--surface-1)' : 'var(--text-primary)';
+        var ink = t > 0.62 ? 'var(--surface)' : 'var(--ink)';
         return '<g class="mark" data-tip="' + tip(r + ' · ' + c, [[opts.measureLabel || 'Value', fmt(v)]]) + '"' +
           (opts.onClick ? ' data-key="' + esc(r + '||' + c) + '" style="cursor:pointer"' : '') + '>' +
           '<rect x="' + (x + 1) + '" y="' + (y + 1) + '" width="' + (cellW - 2) + '" height="' + (cellH - 2) +
@@ -334,7 +337,7 @@ RB.charts = (function () {
       return (i ? 'L' : 'M') + (i / (values.length - 1) * W).toFixed(1) + ',' + (H - (v / max) * (H - 3) - 1.5).toFixed(1);
     }).join('');
     return '<svg class="viz stat-spark" width="' + W + '" height="' + H + '" viewBox="0 0 ' + W + ' ' + H + '" aria-hidden="true">' +
-      '<path d="' + d + '" fill="none" stroke="' + (opts.color || 'var(--series-1)') + '" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" opacity=".75"></path></svg>';
+      '<path d="' + d + '" fill="none" stroke="' + (opts.color || 'var(--charcoal)') + '" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" opacity=".75"></path></svg>';
   }
 
   /* --------------------------------------------------------------- helpers */
@@ -373,7 +376,7 @@ RB.charts = (function () {
   }
 
   return {
-    SERIES: SERIES, STATUS: STATUS, seriesColor: seriesColor, ordinalColor: ordinalColor, seqColor: seqColor,
+    INK: INK, STATUS: STATUS, seriesColor: seriesColor, ordinalColor: ordinalColor, seqColor: seqColor,
     hbar: hbar, stackedBar: stackedBar, funnel: funnel, line: line, column: column,
     heatmap: heatmap, sparkline: sparkline, legend: legend, initTooltip: initTooltip, truncate: truncate
   };

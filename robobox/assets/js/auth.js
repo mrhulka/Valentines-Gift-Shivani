@@ -93,13 +93,10 @@ RB.auth = (function () {
 
   /* The one function every view uses to decide what rows a user may see. */
   function visibleSchools() {
-    var rows = RB.store.all();
+    var rows = RB.store.schools();
     if (scope() !== 'own') return rows;
     var key = current && current.ownerKey;
-    return rows.filter(function (s) {
-      return s.owners.indexOf(key) !== -1 ||
-             s.activities.some(function (a) { return a.by === current.id; });
-    });
+    return rows.filter(function (s) { return s.ownerKey === key; });
   }
 
   /* Strictly the signed-in person's own accounts, whatever their role. The
@@ -107,15 +104,12 @@ RB.auth = (function () {
    * not a second copy of the company view. */
   function mySchools() {
     if (!current) return [];
-    return RB.store.all().filter(function (s) {
-      return s.owners.indexOf(current.ownerKey) !== -1 ||
-             s.activities.some(function (a) { return a.by === current.id; });
-    });
+    return RB.store.schools().filter(function (s) { return s.ownerKey === current.ownerKey; });
   }
 
   function ownsRow(s) {
     if (scope() !== 'own') return true;
-    return s.owners.indexOf(current.ownerKey) !== -1;
+    return s.ownerKey === current.ownerKey;
   }
 
   return {

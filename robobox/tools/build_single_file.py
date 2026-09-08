@@ -9,7 +9,7 @@ markup from index.html, and every script inlined in load order.
 import os, re, sys
 
 ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..')
-OUT = sys.argv[1] if len(sys.argv) > 1 else os.path.join(ROOT, 'dist', 'robobox-sales-os.html')
+OUT = sys.argv[1] if len(sys.argv) > 1 else os.path.join(ROOT, 'dist', 'robobox-connect.html')
 
 def read(*parts):
     with open(os.path.join(ROOT, *parts), encoding='utf-8') as f:
@@ -22,11 +22,12 @@ body = re.search(r'<body[^>]*>(.*)</body>', html, re.S).group(1)
 body = re.sub(r'<script src="[^"]+"></script>\s*', '', body).strip()
 
 # Load order matters: each module reads the ones above it at definition time.
-SCRIPTS = ['seed-data.js', 'util.js', 'store.js', 'auth.js', 'metrics.js',
-           'charts.js', 'components.js', 'views-sales.js', 'views-ceo.js', 'app.js']
+SCRIPTS = ['seed-data.js', 'util.js', 'model.js', 'store.js', 'auth.js',
+           'charts.js', 'ui.js', 'connect-form.js', 'views.js', 'app.js']
 
 parts = [
-    '<title>Robobox Sales OS</title>',
+    '<title>Robobox Connect</title>',
+    '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">',
     '<style>\n' + read('assets', 'css', 'app.css') + '\n</style>',
     body,
     '<script>window.RB = { PREVIEW: true };</script>',

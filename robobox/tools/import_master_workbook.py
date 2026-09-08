@@ -1,14 +1,14 @@
-"""Convert the Robobox master workbook into the app's seed JSON.
+"""Reshape the master workbook into School -> Opportunity -> Connect.
 
-Rules:
-  - Nothing is invented. Where the source has no value the field stays null.
-  - Where a stage can be *suggested* from evidence it is written to
-    suggestedStage with the phrase that triggered it, never to stage.
+Nothing is invented. Where the sheet has no value the field stays null; where a
+value is implied by the sheet's own wording it is written as a Connect (an
+observation with a date), never as a fact about the opportunity.
 """
 import openpyxl, json, re, hashlib, datetime, collections, os
 
 SRC = os.environ.get('ROBOBOX_XLSX', 'ROBOBOX_MASTER_CLEANED_PIPELINE_1.xlsx')
 OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'assets', 'js', 'seed-data.js')
+BASE_YEAR = 2025   # the sheet's only machine dates sit in 2025
 
 wb = openpyxl.load_workbook(SRC, data_only=True)
 ws = wb['CLEAN MASTER']
@@ -16,18 +16,8 @@ rows = list(ws.iter_rows(values_only=True))
 hdr = [str(h).strip() for h in rows[0]]
 raw = [dict(zip(hdr, r)) for r in rows[1:]]
 
-aq = wb['ACTION QUEUE']
-aq_rows = list(aq.iter_rows(values_only=True))
-aq_hdr = [str(h).strip() for h in aq_rows[0]]
-action_keys = set()
-for r in aq_rows[1:]:
-    d = dict(zip(aq_hdr, r))
-    action_keys.add((str(d.get('School Name') or '').strip().upper(),
-                     str(d.get('Location') or '').strip().upper()))
-
 def s(v):
-    if v is None:
-        return None
+    if v is None: return None
     t = str(v).strip()
     return t or None
 
@@ -38,287 +28,268 @@ def num(v):
     except (TypeError, ValueError):
         return None
 
-# ---------------------------------------------------------------- owners
-OWNER_FIX = {'AYUSH': 'AYUSH', 'PARTH': 'PARTH', 'SID': 'SID',
-             'VIKAS': 'VIKAS', 'MANISH': 'MANISH'}
+def uid(prefix, *parts):
+    return prefix + '-' + hashlib.sha1('|'.join(parts).upper().encode()).hexdigest()[:10]
 
-def owners(v):
-    t = s(v)
-    if not t:
-        return []
-    parts = re.split(r'\s*(?:&|\+|/|,| AND )\s*', t.upper())
-    out = []
-    for p in parts:
-        p = p.strip()
-        if p in OWNER_FIX and OWNER_FIX[p] not in out:
-            out.append(OWNER_FIX[p])
-    return out
+# ------------------------------------------------------------- controlled lists
+BOARDS = ['CBSE', 'ICSE', 'SSC', 'IB', 'IGCSE', 'Other']
+def board(v):
+    u = (s(v) or '').upper()
+    if 'IB' in u or 'PYP' in u or 'MYP' in u: return 'IB'
+    if 'IGCSE' in u or 'CAMBRIDGE' in u:      return 'IGCSE'
+    if 'CBSE' in u:                           return 'CBSE'
+    if 'ICSE' in u or 'ISC' in u:             return 'ICSE'
+    if 'STATE' in u or 'MSBSHSE' in u:        return 'SSC'
+    return 'Other' if u else None
 
-# ---------------------------------------------------------------- lead source
-SOURCE_FIX = {
-    'ELDROCKS': 'ELDROCKS', 'ELDOCKS': 'ELDROCKS', 'PUNE ELDROCKS': 'ELDROCKS',
-    'ALICE REFF-ELDROCKS': 'ELDROCKS', 'COLD': 'COLD', 'COLDS': 'COLD',
-    '91 MEDIA': '91 MEDIA', 'BNI': 'BNI',
-}
-def source(v):
-    t = s(v)
-    if not t:
-        return None, None
-    u = t.upper()
-    if u in SOURCE_FIX:
-        return SOURCE_FIX[u], (t if SOURCE_FIX[u] != u else None)
-    if u in ('ADVANI', 'SAURAV', 'TEJAS REF', 'SAWANT', 'HARSHITHA NEW SCHOOL'):
-        return 'REFERRAL', t
-    if 'PARTH' in u:
-        return 'INTERNAL', t
-    return 'OTHER', t
+COMPETITORS = ['Aerobay', 'Eduvate', 'STEMROBO', 'RCOM', 'OLL', 'NEXT', 'iRobo', 'Other', 'None']
+def competitor(v):
+    u = (s(v) or '').upper()
+    if not u: return 'None'
+    for c in ['AEROBAY', 'EDUVATE', 'STEMROBO', 'RCOM', 'OLL', 'NEXT']:
+        if c in u: return next(x for x in COMPETITORS if x.upper() == c)
+    if 'IROBO' in u: return 'iRobo'
+    return 'Other'
 
-# ---------------------------------------------------------------- board
-def boards(v):
-    """Split the multi-board strings and fold the variants onto one vocabulary.
-    IB's three programmes (PYP/MYP/DP) are one board, not three."""
-    t = s(v)
-    if not t:
-        return []
-    u = t.upper()
-    out = []
+def lead_source(v):
+    u = (s(v) or '').upper()
+    if not u: return None
+    if 'ELDROCK' in u or 'ELDOCK' in u: return 'Eldrocks'
+    if '91' in u:                       return '91 Media'
+    if 'BNI' in u:                      return 'BNI'
+    if 'COLD' in u:                     return 'Cold'
+    if 'PARTH' in u or 'INTERNAL' in u: return 'Internal'
+    if 'REF' in u or u in ('ADVANI', 'SAURAV', 'SAWANT', 'HARSHITHA NEW SCHOOL'): return 'Referral'
+    return 'Other'
 
-    def add(b):
-        if b not in out:
-            out.append(b)
+# Region: the sheet's four clusters all sit in the Mumbai metropolitan area.
+def region(v):
+    return 'Mumbai'
 
-    if re.search(r'\bIB\b|PYP|MYP|\bDP\b', u):
-        add('IB')
-    if 'CBSE' in u:
-        add('CBSE')
-    if 'ICSE' in u or 'ISC' in u:
-        add('ICSE')
-    if 'STATE BOARD' in u or 'MSBSHSE' in u:
-        add('STATE BOARD')
-    if 'CAMBRIDGE' in u or 'IGCSE' in u:
-        add('CAMBRIDGE')
-    if 'STEINER' in u or 'WALDORF' in u:
-        add('STEINER / WALDORF')
-    return out
+def sub_region(v):
+    return s(v)
 
-# ---------------------------------------------------------------- dates
-MONTHS = {'JAN': 1, 'FEB': 2, 'MAR': 3, 'APR': 4, 'MAY': 5, 'JUN': 6,
-          'JUL': 7, 'AUG': 8, 'SEP': 9, 'OCT': 10, 'NOV': 11, 'DEC': 12}
-# The workbook's only machine dates sit in 2025 (2025-08, 2025-11) and the
-# text dates run Jan->Aug of the same cycle, so bare month names resolve to 2025.
-BASE_YEAR = 2025
+# Offering: read from how the rep described the deal. Anything unreadable stays
+# null rather than being forced into a category.
+OFFERING_RULES = [
+    ('Bagless Skills',     r'BAGLESS|BAGFLESS|BAGLES|POWERPACK'),
+    ('Robotics Workshop',  r'WORKSHOP|\bWKS\b'),
+    ('Advanced Lab Pro',   r'COMPOSITE LAB|ADVANCED LAB'),
+    ('STEM Lab',           r'STEM'),
+    ('Kit Class',          r'\bKIT'),
+    ('Advanced Lab',       r'ROBOTIC|\bLAB\b|CURRICUL|TINKER|\bATL\b'),
+]
+def offering(*fields):
+    blob = ' '.join(f for f in fields if f).upper()
+    for name, pat in OFFERING_RULES:
+        if re.search(pat, blob): return name
+    return None
 
-def parse_contacted(v):
-    """-> (iso_date|None, precision, raw)  precision: exact|day|month|none"""
+EXISTING_LAB_RULES = [
+    ('Competitor',        r'ALREADY HAVE ROBOTICS|CHOSE |EXISTING VENDOR|ALREADY WORKING'),
+    ('Robobox',           r'HAVE DONE BAGLESS|RENEWED|EXISTING CLIENT'),
+]
+def existing_lab(comp, *fields):
+    blob = ' '.join(f for f in fields if f).upper()
+    for name, pat in EXISTING_LAB_RULES:
+        if re.search(pat, blob): return name
+    return 'Competitor' if comp != 'None' else "Don't Know"
+
+# --------------------------------------------------------------------- dates
+MONTHS = {'JAN':1,'FEB':2,'MAR':3,'APR':4,'MAY':5,'JUN':6,'JUL':7,'AUG':8,'SEP':9,'OCT':10,'NOV':11,'DEC':12}
+def parse_date(v):
+    """-> (iso|None, precision)"""
     if isinstance(v, datetime.datetime):
-        return v.date().isoformat(), 'exact', v.date().isoformat()
+        return v.date().isoformat(), 'exact'
     t = s(v)
-    if not t:
-        return None, 'none', None
+    if not t: return None, 'none'
     u = t.upper()
-    if 'NOT CONTACT' in u or 'NOT CONATCT' in u:
-        return None, 'none', t
-    if 'EXISTING' in u:
-        return None, 'none', t
+    if 'NOT CONTACT' in u or 'NOT CONATCT' in u: return None, 'none'
     m = re.search(r'(\d{1,2})\s*(?:ST|ND|RD|TH)?\s*([A-Z]{3,9})', u)
-    if m:
-        mon = MONTHS.get(m.group(2)[:3])
-        if mon:
-            day = int(m.group(1))
-            year = BASE_YEAR
-            try:
-                return datetime.date(year, mon, day).isoformat(), 'day', t
-            except ValueError:
-                pass
+    if m and MONTHS.get(m.group(2)[:3]):
+        try:
+            return datetime.date(BASE_YEAR, MONTHS[m.group(2)[:3]], int(m.group(1))).isoformat(), 'day'
+        except ValueError:
+            pass
     for name, mon in MONTHS.items():
         if name in u:
-            # week-of-month phrasing lands mid-month; flagged as month precision
-            return datetime.date(BASE_YEAR, mon, 15).isoformat(), 'month', t
+            return datetime.date(BASE_YEAR, mon, 15).isoformat(), 'month'
     if 'LAST YEAR' in u:
-        return datetime.date(BASE_YEAR - 1, 10, 15).isoformat(), 'month', t
-    return None, 'none', t
+        return datetime.date(BASE_YEAR - 1, 10, 15).isoformat(), 'month'
+    return None, 'none'
 
-# ---------------------------------------------------------------- blockers
+# ------------------------------------------------------------------ blockers
 BLOCKER_RULES = [
-    ('PRICE',        r'PRIC|PAYING CAP|CHEAP|BUDGET|COST|EXPENSIVE|LOW PAY|FINANC|FEES'),
-    ('ACCESS',       r'DOES NOT MEET|DOESNT MEET|CANT FIND A MEET|NO MEET|NOT MEET|DIFFICULT TO MEET|HARD TO MEET|NO RESPON|NOT RESPON|UNAVAIL'),
-    ('DECISION',     r'MGMT|MANAGEMENT|TRUSTEE|DECISION|SLOW|TAKES TIME|APPROVAL|BOARD|DOUBTFUL|COMMITTEE'),
-    ('INCUMBENT',    r'ALREADY (HAVE|HAS|WORKING)|EXISTING VENDOR|TIED UP|CONTRACT|CHOSE '),
-    ('TRUST',        r'TRUST|RECOUP|CONVINC|CONFIDEN|PROOF|DOUBT'),
-    ('TIMING',       r'NEXT YEAR|ACADEMIC|SESSION|AFTER EXAM|VACATION|HOLIDAY|POSTPON|DEFER'),
-    ('CAPACITY',     r'LOW STRENGTH|SMALL SCHOOL|SPACE|INFRA|LAB'),
+    ('Budget / Pricing',            r'PRIC|PAYING CAP|CHEAP|BUDGET|COST|EXPENSIVE|LOW PAY|FINANC|FEES'),
+    ('Decision Maker Access',       r'DOES NOT MEET|DOESNT MEET|CANT FIND A MEET|NO MEET|NOT MEET|DIFFICULT TO MEET|HARD TO MEET|NO RESPON|NOT RESPON'),
+    ('Management Approval',         r'MGMT|MANAGEMENT|TRUSTEE|APPROVAL|BOARD|COMMITTEE|DOUBTFUL|SLOW|TAKES TIME'),
+    ('Existing Competitor',         r'ALREADY (HAVE|HAS|WORKING)|EXISTING VENDOR|CHOSE '),
+    ('Trust / Credibility',         r'TRUST|RECOUP|CONVINC|CONFIDEN|PROOF|DOUBT'),
+    ('Timing',                      r'NEXT YEAR|ACADEMIC|SESSION|AFTER EXAM|VACATION|POSTPON|DEFER'),
+    ('Student Strength / School Capacity', r'LOW STRENGTH|SMALL SCHOOL|SPACE|INFRA'),
 ]
-def blocker_tags(v):
-    t = s(v)
-    if not t:
-        return []
-    u = t.upper()
-    tags = [name for name, pat in BLOCKER_RULES if re.search(pat, u)]
-    return tags or ['OTHER']
+def blocker(v):
+    u = (s(v) or '').upper()
+    if not u: return 'None'
+    for name, pat in BLOCKER_RULES:
+        if re.search(pat, u): return name
+    return 'Other'
 
-# ---------------------------------------------------------------- competition
-COMP_FIX = {
-    'RCOM CHENNAI': 'RCOM', 'KITS FROM STEMROBO': 'STEMROBO',
-    'EDUVATE IN OTHER BRANCHES': 'EDUVATE', 'AEROBAY QUEST PLUS': 'AEROBAY',
-    'IROBO': 'IROBOKIDZ', 'SOME COMPANY': 'UNNAMED', 'SOME DELHI COMPANY': 'UNNAMED',
-}
-def competitors(v):
-    t = s(v)
-    if not t:
-        return []
-    u = t.upper().strip()
-    return [COMP_FIX.get(u, u)]
-
-# ------------------------------------------------------------- products
-# Robobox sells two main lines plus one-off workshops. The sheet never has a
-# product column, so the line is read from how the rep described the deal.
-PRODUCT_RULES = [
-    ('Bagless',    r'BAGLESS|BAGFLESS|BAGLES|POWERPACK'),
-    ('Curriculum', r'ROBOTIC|CURRICUL|COMPOSITE LAB|\bLAB\b|STEM|TINKER|\bATL\b|AFTER SCHOOL'),
-    ('Workshop',   r'WORKSHOP|\bWKS\b'),
+# ------------------------------------------------------------------ response
+# The sheet records an outcome in prose; map it to the controlled response the
+# Connect form would have captured.
+RESPONSE_RULES = [
+    ('Asked for Proposal',           r'PROPOSAL|QUOT'),
+    ('Meeting Fixed',                r'MEETING (FIXED|SCHEDULED|ALIGNED)|ALIGNED A (ROBOTICS )?DEMO'),
+    ('Very Interested',              r'INTERESTED|LIKED|WANTS|RENEWED|CAN START'),
+    ('Decision Maker Not Available', r'DOES NOT MEET|CANT FIND A MEET|NO MEET SINCE'),
+    ('Existing Vendor',              r'ALREADY (HAVE|WORKING)|CHOSE '),
+    ('Asked to Reconnect',           r'HAVE MET|HAS MET|MET \w|HAVE DONE'),
 ]
-
-def products(*fields):
+def response(*fields):
     blob = ' '.join(f for f in fields if f).upper()
-    if not blob:
-        return []
-    return [name for name, pat in PRODUCT_RULES if re.search(pat, blob)]
+    for name, pat in RESPONSE_RULES:
+        if re.search(pat, blob): return name
+    return 'Neutral'
 
-# ---------------------------------------------------------------- stage
-# Evidence -> suggested stage. Ordered most-advanced first; first hit wins.
-STAGE_RULES = [
-    ('Negotiation',   r'\bNEGOTIAT|FINAL(ISING|IZING)|CLOSING THE DEAL|RATE FINAL'),
-    ('Proposal',      r'\bPROPOSAL|QUOT(E|ATION)|SENT THE (PRICE|RATE)|PRICING SHARED|SHARED THE PRICE'),
-    ('Demo',          r'\bDEMO|WORKSHOP DONE|CONDUCTED|SESSION DONE|SHOW LAB'),
-    ('Meeting Done',  r'\bHAVE MET|HAS MET|MET \w|MEETING DONE|HAD A MEET|DISCUSSED WITH'),
-    ('Meeting Fixed', r'\bMEETING (FIXED|SCHEDULED|ALIGNED)|MEET (FIXED|ALIGNED|SCHEDULED)|ALIGNED A MEET'),
-    ('Contacted',     r'\bSPOKE|CALLED|CONNECTED WITH|REACHED OUT|IN TOUCH|FOLLOW ?UP'),
+MODE_RULES = [('Meeting', r'HAVE MET|HAS MET|MET \w|MEETING'), ('Demo', r'DEMO'),
+              ('School Visit', r'VISIT'), ('Cold Call', r'COLD')]
+def mode(*fields):
+    blob = ' '.join(f for f in fields if f).upper()
+    for name, pat in MODE_RULES:
+        if re.search(pat, blob): return name
+    return 'Introductory Call'
+
+NEXT_ACTION_RULES = [
+    ('Meeting',              r'\bMEET\b|MEET '),
+    ('Send Proposal',        r'PROPOSAL|QUOT'),
+    ('Demo',                 r'DEMO'),
+    ('Commercial Discussion', r'PRICE|PRICING|COMMERCIAL|RATE'),
+    ('Management Discussion', r'MGMT|MANAGEMENT|TRUSTEE'),
+    ('Call',                 r'CALL|CONNECT'),
 ]
-def suggest_stage(opportunity, remarks, contact_status, contacted_iso):
-    blob = ' '.join(x for x in [opportunity, remarks] if x).upper()
-    for stage, pat in STAGE_RULES:
-        m = re.search(pat, blob)
-        if m:
-            return stage, m.group(0).strip().title()
-    if contact_status and 'NOT CONTACTED' in contact_status.upper():
-        return 'New Lead', 'Marked not contacted'
-    if contacted_iso:
-        return 'Contacted', 'Has a last-contacted date'
-    return 'New Lead', 'No contact evidence in source'
+def next_action(v):
+    u = (s(v) or '').upper()
+    if not u: return None
+    for name, pat in NEXT_ACTION_RULES:
+        if re.search(pat, u): return name
+    return 'Reconnect'
 
-# ---------------------------------------------------------------- build
-def slug(*parts):
-    h = hashlib.sha1('|'.join(parts).upper().encode()).hexdigest()[:8]
-    return 'SCH-' + h
+OWNERS = {'AYUSH', 'PARTH', 'SID', 'VIKAS', 'MANISH'}
+def owners(v):
+    t = (s(v) or '').upper()
+    return [p.strip() for p in re.split(r'\s*(?:&|\+|/|,| AND )\s*', t) if p.strip() in OWNERS]
 
+# ================================================================== build
+schools, opportunities, connects, contacts = [], [], [], []
 seen = {}
-schools = []
+
 for i, r in enumerate(raw):
     name = s(r['School Name'])
-    if not name:
-        continue
+    if not name: continue
     loc = s(r['Location'])
-    sid = slug(name, loc or '')
-    if sid in seen:
-        sid = sid + '-' + str(i)
+    sid = uid('SCH', name, loc or '')
+    if sid in seen:                      # same name+location twice in the sheet
+        continue
     seen[sid] = True
 
-    contacted_iso, precision, contacted_raw = parse_contacted(r['Last Contacted'])
-    if r['Last Contacted Exact'] is not None:
-        ci, _, _ = parse_contacted(r['Last Contacted Exact'])
-        if ci:
-            contacted_iso, precision = ci, 'exact'
-
-    opportunity = s(r['Opportunity'])
+    opportunity_txt = s(r['Opportunity'])
     remarks = s(r['Remarks'])
-    contact_status = s(r['Contact Status'])
-    stage_sug, stage_why = suggest_stage(opportunity, remarks, contact_status, contacted_iso)
-
-    src, src_raw = source(r['Lead Source'])
-    deal = num(r['Expected Deal Size'])
-    students = num(r['Student Count Midpoint']) or num(r['Student Count'])
-    rate = round(deal / students) if deal and students else None
+    next_txt = s(r['Next Action'])
+    comp = competitor(r['Competition'])
+    own = owners(r['Sales Owner'])
 
     schools.append({
         'id': sid,
-        'srNo': s(r['Sr No']),
         'name': name,
-        'region': s(r['Region']),
         'location': loc,
-        'boards': boards(r['Board']),
-        'students': int(students) if students else None,
-        'studentsMin': int(num(r['Student Count Min'])) if num(r['Student Count Min']) else None,
-        'studentsMax': int(num(r['Student Count Max'])) if num(r['Student Count Max']) else None,
-        'decisionMaker': s(r['Decision Maker']),
-        'owners': owners(r['Sales Owner']),
-        'leadSource': src,
-        'leadSourceRaw': src_raw,
-        'opportunityStatus': s(r['Opportunity Status']),
-        'opportunity': opportunity,
-        'dealSize': deal,
-        'ratePerStudent': rate,
-        'stage': None,                       # never inferred - the team confirms it
-        'suggestedStage': stage_sug,
-        'suggestedStageReason': stage_why,
-        'probability': None,
-        'lastContacted': contacted_iso,
-        'lastContactedRaw': contacted_raw,
-        'lastContactedPrecision': precision,
-        'contactStatus': contact_status,
-        'nextAction': s(r['Next Action']),
-        'nextActionDate': None,
-        'expectedClosure': None,
-        'expectedClosureRaw': s(r['Expected Closure Date']),
-        'products': products(opportunity, remarks, s(r['Next Action'])),
-        'blockers': s(r['Blockers']),
-        'blockerTags': blocker_tags(r['Blockers']),
-        'competitors': competitors(r['Competition']),
-        'remarks': remarks,
-        'missingCount': int(num(r['Missing Critical Fields']) or 0),
-        'duplicateFlag': s(r['Duplicate Check']) == 'Possible duplicate',
-        'inActionQueue': (name.upper(), (loc or '').upper()) in action_keys,
-        'origin': 'import',
-        'addedAt': None,
-        'rejectedReason': None,
-        'activities': [],
+        'region': region(loc),
+        'cluster': s(r['Region']),
+        'board': board(r['Board']),
+        'students': int(num(r['Student Count Midpoint']) or num(r['Student Count']) or 0) or None,
+        'existingLab': existing_lab(comp, opportunity_txt, remarks),
+        'competitor': comp,
+        'leadSource': lead_source(r['Lead Source']),
+        'ownerKey': own[0] if own else None,
         'createdAt': None,
-        'updatedAt': None,
+        'origin': 'import'
     })
 
-meta = {
-    'source': 'ROBOBOX_MASTER_CLEANED_PIPELINE_1.xlsx',
-    'importedAt': datetime.date.today().isoformat(),
-    'baseYearForTextDates': BASE_YEAR,
-    'rowsInSource': len(raw),
-    'schools': len(schools),
-}
+    dm = s(r['Decision Maker'])
+    contact_id = None
+    if dm:
+        contact_id = uid('CON', sid, dm)
+        contacts.append({'id': contact_id, 'schoolId': sid, 'name': dm.title(),
+                         'role': 'Principal', 'phone': None, 'email': None})
 
-def targets(revenue, approach, meetings, updates):
-    return {'revenue': revenue, 'schoolsApproached': approach,
-            'meetings': meetings, 'updates': updates, 'placeholder': True}
+    off = offering(opportunity_txt, remarks, next_txt)
+    potential = num(r['Expected Deal Size'])
+    if not (off or potential or opportunity_txt):
+        continue                          # no opportunity in the sheet, just a school
+
+    oid = uid('OPP', sid, off or 'unknown')
+    contacted_at, precision = parse_date(r['Last Contacted'])
+
+    opportunities.append({
+        'id': oid, 'schoolId': sid,
+        'offering': off, 'variant': None,
+        'ownerKey': own[0] if own else None,
+        'coOwners': own[1:],
+        'initialPotential': potential,
+        'expectedClosure': None,
+        'status': 'Open', 'closedValue': None, 'lossReason': None, 'closedAt': None,
+        'createdAt': contacted_at,
+        'origin': 'import'
+    })
+
+    # One Connect carrying what the sheet actually recorded about this contact.
+    na = next_action(next_txt)
+    connects.append({
+        'id': uid('CNX', oid, '1'),
+        'schoolId': sid, 'opportunityId': oid,
+        'by': (own[0] if own else 'AYUSH').lower(),
+        'kind': 'New',
+        'mode': mode(opportunity_txt, remarks),
+        'contactId': contact_id,
+        'response': response(opportunity_txt, remarks),
+        'interest': 'Warm',
+        'blocker': blocker(r['Blockers']),
+        'blockerDetail': s(r['Blockers']),
+        'commercial': {},
+        'notes': ' — '.join(x for x in [opportunity_txt, remarks] if x) or None,
+        'nextAction': na,
+        'nextActionAt': None,
+        'nextActionNote': next_txt,
+        'at': (contacted_at + 'T10:00:00') if contacted_at else None,
+        'datePrecision': precision,
+        'dateRaw': s(r['Last Contacted']),
+        'origin': 'import'
+    })
 
 users = [
-    {'id': 'parth',  'name': 'Parth',  'role': 'ceo',        'ownerKey': 'PARTH',  'email': 'parth@robobox.in',  'pin': 'parth',  'targets': targets(5000000, 20, 30, 40)},
-    {'id': 'ayush',  'name': 'Ayush',  'role': 'sales_head', 'ownerKey': 'AYUSH',  'email': 'ayush@robobox.in',  'pin': 'ayush',  'targets': targets(5000000, 25, 35, 50)},
-    {'id': 'sid',    'name': 'Sid',    'role': 'sales',      'ownerKey': 'SID',    'email': 'sid@robobox.in',    'pin': 'sid',    'targets': targets(3000000, 20, 30, 40)},
-    {'id': 'vikas',  'name': 'Vikas',  'role': 'sales',      'ownerKey': 'VIKAS',  'email': 'vikas@robobox.in',  'pin': 'vikas',  'targets': targets(3000000, 20, 30, 40)},
-    {'id': 'manish', 'name': 'Manish', 'role': 'sales',      'ownerKey': 'MANISH', 'email': 'manish@robobox.in', 'pin': 'manish', 'targets': targets(2000000, 15, 25, 30)},
+    {'id': 'parth',  'name': 'Parth',  'role': 'ceo',        'ownerKey': 'PARTH',  'email': 'parth@robobox.in',  'pin': 'parth'},
+    {'id': 'ayush',  'name': 'Ayush',  'role': 'sales_head', 'ownerKey': 'AYUSH',  'email': 'ayush@robobox.in',  'pin': 'ayush'},
+    {'id': 'sid',    'name': 'Sid',    'role': 'sales',      'ownerKey': 'SID',    'email': 'sid@robobox.in',    'pin': 'sid'},
+    {'id': 'vikas',  'name': 'Vikas',  'role': 'sales',      'ownerKey': 'VIKAS',  'email': 'vikas@robobox.in',  'pin': 'vikas'},
+    {'id': 'manish', 'name': 'Manish', 'role': 'sales',      'ownerKey': 'MANISH', 'email': 'manish@robobox.in', 'pin': 'manish'},
 ]
 
-payload = {'meta': meta, 'users': users, 'schools': schools}
-js = 'window.ROBOBOX_SEED = ' + json.dumps(payload, ensure_ascii=False, indent=1) + ';\n'
+payload = {
+    'meta': {'source': os.path.basename(SRC), 'importedAt': datetime.date.today().isoformat(),
+             'baseYearForTextDates': BASE_YEAR, 'rowsInSource': len(raw)},
+    'users': users, 'schools': schools, 'contacts': contacts,
+    'opportunities': opportunities, 'connects': connects
+}
 os.makedirs(os.path.dirname(OUT), exist_ok=True)
-open(OUT, 'w').write(js)
+open(OUT, 'w').write('window.ROBOBOX_SEED = ' + json.dumps(payload, ensure_ascii=False, indent=1) + ';\n')
 
-print('schools:', len(schools))
-print('owners :', dict(collections.Counter(o for s_ in schools for o in s_['owners'])))
-print('unowned:', sum(1 for s_ in schools if not s_['owners']))
-print('sugg   :', dict(collections.Counter(s_['suggestedStage'] for s_ in schools)))
-print('blocker:', dict(collections.Counter(t for s_ in schools for t in s_['blockerTags'])))
-print('source :', dict(collections.Counter(s_['leadSource'] for s_ in schools)))
-print('rates  :', dict(collections.Counter(s_['ratePerStudent'] for s_ in schools if s_['ratePerStudent'])))
-print('dates  :', dict(collections.Counter(s_['lastContactedPrecision'] for s_ in schools)))
-print('inAQ   :', sum(1 for s_ in schools if s_['inActionQueue']))
-print('product:', dict(collections.Counter(p for s_ in schools for p in s_['products'])))
-print('noprod :', sum(1 for s_ in schools if not s_['products']))
-print('bytes  :', len(js))
+print('schools      ', len(schools))
+print('contacts     ', len(contacts))
+print('opportunities', len(opportunities))
+print('connects     ', len(connects))
+print('offering     ', dict(collections.Counter(o['offering'] for o in opportunities)))
+print('response     ', dict(collections.Counter(c['response'] for c in connects)))
+print('blocker      ', dict(collections.Counter(c['blocker'] for c in connects)))
+print('board        ', dict(collections.Counter(s_['board'] for s_ in schools)))
+print('competitor   ', dict(collections.Counter(s_['competitor'] for s_ in schools)))
+print('dated        ', sum(1 for c in connects if c['at']))
