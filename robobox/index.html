@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Robobox Sales OS</title>
+<meta name="description" content="Robobox school pipeline: sales capture, personal progress and the CEO analytics dashboard.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><text y='26' font-size='26'>&#129302;</text></svg>">
+<link rel="stylesheet" href="assets/css/app.css">
+</head>
+<body>
+
+<div id="login" class="login" hidden>
+  <div class="login-card">
+    <div class="login-brand"><span class="logo">RB</span> Robobox <em>Sales OS</em></div>
+    <p class="login-sub">School pipeline, activity capture and performance analytics.</p>
+    <form id="login-form" autocomplete="off">
+      <label class="field">
+        <span class="field-label">Who are you?</span>
+        <select id="login-user" class="input"></select>
+      </label>
+      <label class="field">
+        <span class="field-label">Access code</span>
+        <input id="login-pin" class="input" type="password" placeholder="Access code" autocomplete="current-password">
+      </label>
+      <button class="btn btn-primary btn-block" type="submit">Sign in</button>
+      <p id="login-error" class="login-error" hidden></p>
+    </form>
+    <p class="login-hint">Demo build &mdash; each user's access code is their first name in lowercase.</p>
+  </div>
+</div>
+
+<div id="shell" class="shell" hidden>
+  <header class="topbar">
+    <button class="icon-btn nav-toggle" id="nav-toggle" aria-label="Toggle navigation">&#9776;</button>
+    <div class="brand"><span class="logo">RB</span> <strong>Robobox</strong> <span class="brand-sub">Sales OS</span></div>
+    <div class="topbar-search">
+      <input id="global-search" class="input input-search" type="search" placeholder="Search schools, contacts, locations&hellip;" autocomplete="off">
+      <div id="search-results" class="search-results" hidden></div>
+    </div>
+    <div class="topbar-right">
+      <button class="icon-btn" id="theme-toggle" title="Switch theme" aria-label="Switch theme">&#9681;</button>
+      <div class="user-chip" id="user-chip">
+        <span class="avatar" id="user-avatar"></span>
+        <span class="user-meta"><strong id="user-name"></strong><em id="user-role"></em></span>
+      </div>
+      <button class="btn btn-ghost btn-sm" id="logout">Sign out</button>
+    </div>
+  </header>
+
+  <nav class="sidebar" id="sidebar"></nav>
+
+  <main class="main" id="main" tabindex="-1"></main>
+</div>
+
+<div id="modal-root" class="modal-root" hidden>
+  <div class="modal-backdrop" data-close="1"></div>
+  <div class="modal" role="dialog" aria-modal="true">
+    <header class="modal-head">
+      <h2 id="modal-title"></h2>
+      <button class="icon-btn" data-close="1" aria-label="Close">&times;</button>
+    </header>
+    <div class="modal-body" id="modal-body"></div>
+  </div>
+</div>
+
+<div id="tooltip" class="viz-tooltip" hidden></div>
+<div id="toast" class="toast" hidden></div>
+
+<script src="assets/js/seed-data.js"></script>
+<script src="assets/js/util.js"></script>
+<script src="assets/js/store.js"></script>
+<script src="assets/js/auth.js"></script>
+<script src="assets/js/metrics.js"></script>
+<script src="assets/js/charts.js"></script>
+<script src="assets/js/components.js"></script>
+<script src="assets/js/views-sales.js"></script>
+<script src="assets/js/views-ceo.js"></script>
+<script src="assets/js/app.js"></script>
+</body>
+</html>
