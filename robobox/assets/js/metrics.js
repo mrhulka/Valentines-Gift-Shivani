@@ -35,6 +35,23 @@ RB.metrics = (function () {
   var REGIONS = ['CENTRAL', 'WESTERN', 'NAVI', 'KDMC'];
   var BOARDS = ['CBSE', 'ICSE', 'STATE BOARD', 'CAMBRIDGE', 'IB'];
 
+  var PRODUCTS = ['Curriculum', 'Bagless', 'Workshop'];
+
+  var PRODUCT_RULES = [
+    ['Bagless',    /BAGLESS|BAGFLESS|BAGLES|POWERPACK/],
+    ['Curriculum', /ROBOTIC|CURRICUL|COMPOSITE LAB|\bLAB\b|STEM|TINKER|\bATL\b|AFTER SCHOOL/],
+    ['Workshop',   /WORKSHOP|\bWKS\b/]
+  ];
+
+  function tagProducts(text) {
+    if (!text) return [];
+    var u = String(text).toUpperCase();
+    return PRODUCT_RULES.filter(function (r) { return r[1].test(u); }).map(function (r) { return r[0]; });
+  }
+
+  var REJECT_REASONS = ['Price', 'Chose a competitor', 'No budget this year',
+                        'Not a fit', 'No management interest', 'Other'];
+
   var BLOCKER_LABEL = {
     PRICE: 'Price / paying capacity',
     ACCESS: 'Cannot get a meeting',
@@ -102,6 +119,34 @@ RB.metrics = (function () {
     if (!isOpen(s) || !isApproached(s)) return false;
     var d = daysSinceContact(s);
     return d === null ? true : d > (limitDays || 30);
+  }
+
+  /* The three states the sales dashboard reports on, in the team's words.
+   * Silent = we reached out and nothing came back for a while. Rejected =
+   * someone actually said no; it is never inferred from silence. */
+  function isRejected(s) { return stage(s) === 'Lost'; }
+
+  function isSilent(s, limitDays) {
+    if (!isApproached(s) || !isOpen(s)) return false;
+    var d = daysSinceContact(s);
+    return d === null ? true : d > (limitDays || 30);
+  }
+
+  function isClosedWon(s) { return stage(s) === 'Won'; }
+
+  function hasProduct(s, product) { return (s.products || []).indexOf(product) !== -1; }
+
+  /* Schools the team added in the app, not the ones that arrived with the
+   * workbook — "new schools added this month" would otherwise be all 343. */
+  function addedWithin(rows, months) {
+    var cut = new Date();
+    cut.setMonth(cut.getMonth() - months);
+    var cutISO = U.iso(cut);
+    return rows.filter(function (s) {
+      if (s.origin === 'import') return false;
+      var when = s.addedAt || (s.createdAt ? s.createdAt.slice(0, 10) : null);
+      return when && when >= cutISO;
+    });
   }
 
   function isOverdue(s) {
@@ -183,7 +228,26 @@ RB.metrics = (function () {
       workingCount: working.length,
       stageConfirmedPct: working.length
         ? U.pctVal(working.filter(stageConfirmed).length, working.length) : 0,
-      activities: U.sum(rows, function (s) { return s.activities.length; })
+      activities: U.sum(rows, function (s) { return s.activities.length; }),
+
+      /* The sales dashboard's own vocabulary. */
+      silent: rows.filter(function (s) { return isSilent(s, stall); }),
+      rejected: rows.filter(isRejected),
+      // Of everything worked, how much actually closed.
+      conversion: approached.length ? U.pctVal(won.length, approached.length) : 0,
+      potentialRevenue: U.sum(open, dealSize),
+      revenueGenerated: U.sum(won, dealSize),
+      newLast1: addedWithin(rows, 1).length,
+      newLast2: addedWithin(rows, 2).length,
+      newLast3: addedWithin(rows, 3).length,
+      wonByProduct: PRODUCTS.reduce(function (acc, p) {
+        acc[p] = won.filter(function (s) { return hasProduct(s, p); });
+        return acc;
+      }, {}),
+      openByProduct: PRODUCTS.reduce(function (acc, p) {
+        acc[p] = open.filter(function (s) { return hasProduct(s, p); });
+        return acc;
+      }, {})
     };
   }
 
@@ -240,7 +304,8 @@ RB.metrics = (function () {
     competitor: { label: 'Competitor',  get: function (s) { return s.competitors.length ? s.competitors : ['None recorded']; } },
     sizeBand:   { label: 'School size', get: function (s) { return sizeBand(s.students); } },
     rateCard:   { label: 'Rate card',   get: function (s) { return rateBand(s.ratePerStudent); } },
-    status:     { label: 'Pipeline status', get: function (s) { return s.opportunityStatus || '—'; } }
+    status:     { label: 'Pipeline status', get: function (s) { return s.opportunityStatus || '—'; } },
+    product:    { label: 'Product line',  get: function (s) { return (s.products || []).length ? s.products : ['Not recorded']; } }
   };
 
   function blockerLabel(tag) { return BLOCKER_LABEL[tag] || tag; }
@@ -321,8 +386,59 @@ RB.metrics = (function () {
       s.meetingCount = meetings.length;
       s.lastActivity = acts.length ? acts.map(function (a) { return a.date; }).sort().pop() : null;
       s.stalledPct = mine.length ? U.pctVal(s.stalled.length, mine.length) : 0;
+      s.updatesToday = updatesOn(mine, U.iso(U.today()), u.id);
       return s;
     });
+  }
+
+  /* Activities logged on a given day — the "did the team update anything
+   * today" number the sales dashboard leads with. */
+  function updatesOn(rows, dayISO, userId) {
+    var day = dayISO || U.iso(U.today());
+    var n = 0;
+    rows.forEach(function (s) {
+      s.activities.forEach(function (a) {
+        if (a.loggedAt && a.loggedAt.slice(0, 10) === day && (!userId || a.by === userId)) n++;
+      });
+    });
+    return n;
+  }
+
+  function activitiesInMonth(rows, userId) {
+    var month = U.iso(U.today()).slice(0, 7);
+    var out = [];
+    rows.forEach(function (s) {
+      s.activities.forEach(function (a) {
+        if (a.date.slice(0, 7) === month && (!userId || a.by === userId)) out.push(a);
+      });
+    });
+    return out;
+  }
+
+  /* Target vs achievement for the current month. Targets are per person and
+   * editable; the seeded ones are placeholders until someone sets real ones. */
+  function scorecardVsTarget(rows, user, opts) {
+    var t = (user && user.targets) || {};
+    var month = U.iso(U.today()).slice(0, 7);
+    var acts = activitiesInMonth(rows, user && user.id);
+    var wonThisMonth = rows.filter(function (s) {
+      return isWon(s) && s.closedAt && s.closedAt.slice(0, 7) === month;
+    });
+    var approachedThisMonth = rows.filter(function (s) {
+      return s.lastContacted && s.lastContacted.slice(0, 7) === month;
+    });
+    return {
+      placeholder: !!t.placeholder,
+      rows: [
+        { key: 'revenue', label: 'Revenue closed', target: t.revenue || 0,
+          actual: U.sum(wonThisMonth, dealSize), money: true },
+        { key: 'schoolsApproached', label: 'Schools approached', target: t.schoolsApproached || 0,
+          actual: approachedThisMonth.length },
+        { key: 'meetings', label: 'Meetings held', target: t.meetings || 0,
+          actual: acts.filter(function (a) { return /Meeting|Visit|Demo|Workshop/.test(a.type); }).length },
+        { key: 'updates', label: 'Updates logged', target: t.updates || 0, actual: acts.length }
+      ]
+    };
   }
 
   /* Ranked, plain-language problems worth acting on this week. */
@@ -440,7 +556,11 @@ RB.metrics = (function () {
     LEAD_SOURCES: LEAD_SOURCES, REGIONS: REGIONS, BOARDS: BOARDS,
     BLOCKER_LABEL: BLOCKER_LABEL, CRITICAL: CRITICAL, DIMENSIONS: DIMENSIONS,
     AGE_BANDS: AGE_BANDS, SIZE_BANDS: SIZE_BANDS,
-    tagBlockers: tagBlockers, blockerLabel: blockerLabel,
+    PRODUCTS: PRODUCTS, REJECT_REASONS: REJECT_REASONS,
+    tagBlockers: tagBlockers, tagProducts: tagProducts, blockerLabel: blockerLabel,
+    isRejected: isRejected, isSilent: isSilent, isClosedWon: isClosedWon,
+    hasProduct: hasProduct, addedWithin: addedWithin, updatesOn: updatesOn,
+    activitiesInMonth: activitiesInMonth, scorecardVsTarget: scorecardVsTarget,
     stage: stage, stageConfirmed: stageConfirmed, stageIdx: stageIdx,
     isOpen: isOpen, isWon: isWon, isLost: isLost, probability: probability,
     dealSize: dealSize, weighted: weighted, tamValue: tamValue,

@@ -98,6 +98,17 @@ RB.auth = (function () {
     });
   }
 
+  /* Strictly the signed-in person's own accounts, whatever their role. The
+   * personal screens use this so the CEO's "My dashboard" is his own book and
+   * not a second copy of the company view. */
+  function mySchools() {
+    if (!current) return [];
+    return RB.store.all().filter(function (s) {
+      return s.owners.indexOf(current.ownerKey) !== -1 ||
+             s.activities.some(function (a) { return a.by === current.id; });
+    });
+  }
+
   function ownsRow(s) {
     if (scope() !== 'own') return true;
     return s.owners.indexOf(current.ownerKey) !== -1;
@@ -105,7 +116,7 @@ RB.auth = (function () {
 
   return {
     signIn: signIn, restore: restore, signOut: signOut, user: user, role: role,
-    roleLabel: roleLabel, can: can, scope: scope, visibleSchools: visibleSchools,
+    roleLabel: roleLabel, can: can, scope: scope, visibleSchools: visibleSchools, mySchools: mySchools,
     ownsRow: ownsRow, PERMISSIONS: PERMISSIONS
   };
 })();

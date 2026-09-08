@@ -13,7 +13,14 @@ window.ROBOBOX_SEED = {
    "role": "ceo",
    "ownerKey": "PARTH",
    "email": "parth@robobox.in",
-   "pin": "parth"
+   "pin": "parth",
+   "targets": {
+    "revenue": 5000000,
+    "schoolsApproached": 20,
+    "meetings": 30,
+    "updates": 40,
+    "placeholder": true
+   }
   },
   {
    "id": "ayush",
@@ -21,7 +28,14 @@ window.ROBOBOX_SEED = {
    "role": "sales_head",
    "ownerKey": "AYUSH",
    "email": "ayush@robobox.in",
-   "pin": "ayush"
+   "pin": "ayush",
+   "targets": {
+    "revenue": 5000000,
+    "schoolsApproached": 25,
+    "meetings": 35,
+    "updates": 50,
+    "placeholder": true
+   }
   },
   {
    "id": "sid",
@@ -29,7 +43,14 @@ window.ROBOBOX_SEED = {
    "role": "sales",
    "ownerKey": "SID",
    "email": "sid@robobox.in",
-   "pin": "sid"
+   "pin": "sid",
+   "targets": {
+    "revenue": 3000000,
+    "schoolsApproached": 20,
+    "meetings": 30,
+    "updates": 40,
+    "placeholder": true
+   }
   },
   {
    "id": "vikas",
@@ -37,7 +58,14 @@ window.ROBOBOX_SEED = {
    "role": "sales",
    "ownerKey": "VIKAS",
    "email": "vikas@robobox.in",
-   "pin": "vikas"
+   "pin": "vikas",
+   "targets": {
+    "revenue": 3000000,
+    "schoolsApproached": 20,
+    "meetings": 30,
+    "updates": 40,
+    "placeholder": true
+   }
   },
   {
    "id": "manish",
@@ -45,7 +73,14 @@ window.ROBOBOX_SEED = {
    "role": "sales",
    "ownerKey": "MANISH",
    "email": "manish@robobox.in",
-   "pin": "manish"
+   "pin": "manish",
+   "targets": {
+    "revenue": 2000000,
+    "schoolsApproached": 15,
+    "meetings": 25,
+    "updates": 30,
+    "placeholder": true
+   }
   }
  ],
  "schools": [
@@ -83,6 +118,9 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [
+    "Curriculum"
+   ],
    "blockers": "PRICE & MGMT",
    "blockerTags": [
     "PRICE",
@@ -95,6 +133,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 2,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -133,6 +174,10 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [
+    "Curriculum",
+    "Workshop"
+   ],
    "blockers": "NO TRUST IN PARENTS THAT THEY WILL RECOUP",
    "blockerTags": [
     "TRUST"
@@ -142,6 +187,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 2,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -180,6 +228,9 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [
+    "Curriculum"
+   ],
    "blockers": "NO MEET SINCE LONG TIME",
    "blockerTags": [
     "ACCESS"
@@ -189,6 +240,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 2,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -227,6 +281,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": "NO MGMT DECISION",
    "blockerTags": [
     "DECISION"
@@ -238,6 +293,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 3,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -276,6 +334,10 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [
+    "Bagless",
+    "Curriculum"
+   ],
    "blockers": "LOW PAYING CAP",
    "blockerTags": [
     "PRICE"
@@ -287,6 +349,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 2,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -326,6 +391,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": "NEXT ALREADY WORKING",
    "blockerTags": [
     "INCUMBENT"
@@ -337,6 +403,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 2,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -376,6 +445,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": "MGMT MEET TAKES TIME",
    "blockerTags": [
     "DECISION"
@@ -385,6 +455,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 2,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -423,6 +496,11 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [
+    "Bagless",
+    "Curriculum",
+    "Workshop"
+   ],
    "blockers": "DIFFICULT TO MEET DELHI MGMT",
    "blockerTags": [
     "ACCESS",
@@ -433,6 +511,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 2,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -471,6 +552,10 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [
+    "Bagless",
+    "Curriculum"
+   ],
    "blockers": "ALREADY HAVE ROBOTICS",
    "blockerTags": [
     "INCUMBENT"
@@ -482,6 +567,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 2,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -520,6 +608,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -527,6 +616,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 3,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -563,6 +655,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": "MGMT MEET WILL TAKE TIME,",
    "blockerTags": [
     "DECISION"
@@ -572,6 +665,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 6,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -610,6 +706,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -617,6 +714,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 4,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -656,6 +756,9 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [
+    "Bagless"
+   ],
    "blockers": "WANTED A SHOW LAB WITH GOOD PRICE",
    "blockerTags": [
     "PRICE",
@@ -668,6 +771,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 2,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -706,6 +812,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -713,6 +820,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 2,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -751,6 +861,10 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [
+    "Bagless",
+    "Curriculum"
+   ],
    "blockers": "MGMT IS DOUBTFUL TO START PLUS LOW PRICING NEEDED",
    "blockerTags": [
     "PRICE",
@@ -762,6 +876,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 2,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -802,6 +919,10 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [
+    "Bagless",
+    "Curriculum"
+   ],
    "blockers": "PARESH MEET",
    "blockerTags": [
     "OTHER"
@@ -811,6 +932,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 2,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -850,6 +974,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": "THEY CHOSE STEMROBO WITH CHEAP PRICINGS",
    "blockerTags": [
     "PRICE",
@@ -862,6 +987,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 2,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -898,6 +1026,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -905,6 +1034,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 4,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -944,6 +1076,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": "VERY LOW STRENGTH IN CBSE & LOW PAYING CAP IN STATE BOARD",
    "blockerTags": [
     "PRICE",
@@ -955,6 +1088,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 2,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -993,6 +1129,9 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [
+    "Curriculum"
+   ],
    "blockers": "CHEAP PRICING WITH TAILORED MODEL",
    "blockerTags": [
     "PRICE"
@@ -1002,6 +1141,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 2,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -1040,6 +1182,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": "MANISH TAKES SLOW DECISION",
    "blockerTags": [
     "DECISION"
@@ -1049,6 +1192,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 3,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -1088,6 +1234,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -1095,6 +1242,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 4,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -1133,6 +1283,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -1140,6 +1291,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 4,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -1176,6 +1330,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -1183,6 +1338,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 6,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -1219,6 +1377,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -1226,6 +1385,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 4,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -1262,6 +1424,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -1269,6 +1432,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 6,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -1307,6 +1473,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -1314,6 +1481,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 5,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -1351,6 +1521,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -1358,6 +1529,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 6,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -1395,6 +1569,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -1402,6 +1577,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 6,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -1441,6 +1619,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -1448,6 +1627,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 5,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -1484,6 +1666,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -1491,6 +1674,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 6,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -1528,6 +1714,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -1535,6 +1722,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 6,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -1572,6 +1762,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -1579,6 +1770,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 6,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -1618,6 +1812,9 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [
+    "Curriculum"
+   ],
    "blockers": "VERY LOW PAYING CAP",
    "blockerTags": [
     "PRICE"
@@ -1627,6 +1824,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 2,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -1666,6 +1866,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": "SWETA DOES NOT MEET AT ALL",
    "blockerTags": [
     "ACCESS"
@@ -1677,6 +1878,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 3,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -1715,6 +1919,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -1722,6 +1927,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 4,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -1761,6 +1969,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": "SHUCHI TAKES TIME TO CONNECT WITH MGMT",
    "blockerTags": [
     "DECISION"
@@ -1770,6 +1979,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 2,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -1808,6 +2020,9 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [
+    "Curriculum"
+   ],
    "blockers": "SONALI DOES NOT MEET",
    "blockerTags": [
     "ACCESS"
@@ -1817,6 +2032,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 2,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -1855,6 +2073,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -1862,6 +2081,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 4,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -1900,6 +2122,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -1907,6 +2130,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 4,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -1945,6 +2171,10 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [
+    "Bagless",
+    "Curriculum"
+   ],
    "blockers": "NIRANJAN MEET",
    "blockerTags": [
     "OTHER"
@@ -1956,6 +2186,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 2,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -1994,6 +2227,10 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [
+    "Bagless",
+    "Workshop"
+   ],
    "blockers": "TINI BINU & MGMT DOES NOT MEET",
    "blockerTags": [
     "ACCESS",
@@ -2004,6 +2241,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 2,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -2042,6 +2282,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": "CHEAP PRICING WITH TAILORED MODEL",
    "blockerTags": [
     "PRICE"
@@ -2053,6 +2294,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 2,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -2092,6 +2336,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": "CANT FIND A MEET WITH MGMT EVEN VIA NEEL",
    "blockerTags": [
     "ACCESS",
@@ -2102,6 +2347,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 2,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -2138,6 +2386,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -2145,6 +2394,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 6,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -2183,6 +2435,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -2190,6 +2443,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 4,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -2228,6 +2484,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -2235,6 +2492,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 4,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -2273,6 +2533,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -2280,6 +2541,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 4,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -2316,6 +2580,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -2323,6 +2588,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 6,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -2359,6 +2627,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -2366,6 +2635,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 6,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -2402,6 +2674,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -2409,6 +2682,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 6,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -2448,6 +2724,9 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [
+    "Workshop"
+   ],
    "blockers": "LOW TRUST ON US PLUS CHEAP RATES",
    "blockerTags": [
     "PRICE",
@@ -2458,6 +2737,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 3,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -2496,6 +2778,9 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [
+    "Bagless"
+   ],
    "blockers": "ADITA DOESN’T COORDINATES",
    "blockerTags": [
     "OTHER"
@@ -2505,6 +2790,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 2,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -2544,6 +2832,10 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [
+    "Bagless",
+    "Curriculum"
+   ],
    "blockers": "MAHEEKA DOESN’T GIVES A MEETING",
    "blockerTags": [
     "OTHER"
@@ -2553,6 +2845,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 2,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -2589,6 +2884,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -2596,6 +2892,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 4,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -2632,6 +2931,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -2639,6 +2939,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 6,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -2675,6 +2978,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -2682,6 +2986,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 6,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -2720,6 +3027,9 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [
+    "Curriculum"
+   ],
    "blockers": "LOW PAYING CAP, LOW STRENGTH",
    "blockerTags": [
     "PRICE",
@@ -2730,6 +3040,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 2,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -2768,6 +3081,10 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [
+    "Bagless",
+    "Curriculum"
+   ],
    "blockers": "LOW PAYING CAP AND TAILORED MODEL",
    "blockerTags": [
     "PRICE"
@@ -2777,6 +3094,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 3,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -2816,6 +3136,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": "RAJAN TO CONVINCE FOR CURR",
    "blockerTags": [
     "TRUST"
@@ -2825,6 +3146,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 3,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -2864,6 +3188,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -2871,6 +3196,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 4,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -2909,6 +3237,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -2916,6 +3245,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 3,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -2954,6 +3286,11 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [
+    "Bagless",
+    "Curriculum",
+    "Workshop"
+   ],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -2961,6 +3298,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 3,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -2999,6 +3339,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -3006,6 +3347,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 5,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -3042,6 +3386,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -3049,6 +3394,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 6,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -3085,6 +3433,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -3092,6 +3441,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 5,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -3131,6 +3483,10 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [
+    "Bagless",
+    "Curriculum"
+   ],
    "blockers": "LOW PAYING CAP PLUS PARENTS TO CONVINCE",
    "blockerTags": [
     "PRICE",
@@ -3141,6 +3497,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 2,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -3179,6 +3538,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -3186,6 +3546,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 5,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -3225,6 +3588,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -3232,6 +3596,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 4,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -3269,6 +3636,11 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [
+    "Bagless",
+    "Curriculum",
+    "Workshop"
+   ],
    "blockers": "Eduvate is already working plus low paying csap",
    "blockerTags": [
     "PRICE",
@@ -3281,6 +3653,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 2,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -3318,6 +3693,9 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [
+    "Bagless"
+   ],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -3325,6 +3703,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 3,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -3361,6 +3742,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -3368,6 +3750,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 5,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -3404,6 +3789,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -3411,6 +3797,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 6,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -3447,6 +3836,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -3454,6 +3844,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 5,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -3490,6 +3883,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": "FR DOESN’T WANT TO MEET",
    "blockerTags": [
     "OTHER"
@@ -3499,6 +3893,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 5,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -3535,6 +3932,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -3542,6 +3940,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 5,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -3578,6 +3979,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -3585,6 +3987,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 6,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -3621,6 +4026,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -3628,6 +4034,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 5,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -3664,6 +4073,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -3671,6 +4081,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 5,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -3707,6 +4120,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -3714,6 +4128,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 5,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -3750,6 +4167,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -3757,6 +4175,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 6,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -3793,6 +4214,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -3800,6 +4222,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 6,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -3836,6 +4261,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -3843,6 +4269,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 6,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -3879,6 +4308,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -3886,6 +4316,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 6,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -3922,6 +4355,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -3929,6 +4363,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 5,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -3965,6 +4402,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -3972,6 +4410,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 6,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -4008,6 +4449,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -4015,6 +4457,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 6,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -4051,6 +4496,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -4058,6 +4504,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 6,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -4094,6 +4543,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -4101,6 +4551,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 6,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -4137,6 +4590,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -4144,6 +4598,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 6,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -4182,6 +4639,9 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [
+    "Curriculum"
+   ],
    "blockers": "poor mgmt decidions",
    "blockerTags": [
     "DECISION"
@@ -4191,6 +4651,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 2,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -4229,6 +4692,9 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [
+    "Curriculum"
+   ],
    "blockers": "competitors with cheap rates plus commissions",
    "blockerTags": [
     "PRICE"
@@ -4238,6 +4704,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 2,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -4277,6 +4746,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -4284,6 +4754,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 4,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -4322,6 +4795,9 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [
+    "Curriculum"
+   ],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -4329,6 +4805,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 3,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -4368,6 +4847,10 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [
+    "Bagless",
+    "Workshop"
+   ],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -4375,6 +4858,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 2,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -4414,6 +4900,9 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [
+    "Workshop"
+   ],
    "blockers": "Rahul gharat has delayed",
    "blockerTags": [
     "OTHER"
@@ -4423,6 +4912,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 2,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -4461,6 +4953,9 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [
+    "Bagless"
+   ],
    "blockers": "Nikita chose some other compeititor for robotics at cheap rates",
    "blockerTags": [
     "PRICE",
@@ -4471,6 +4966,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 2,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -4509,6 +5007,11 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [
+    "Bagless",
+    "Curriculum",
+    "Workshop"
+   ],
    "blockers": "Mgmt is indecisive & low budget",
    "blockerTags": [
     "PRICE",
@@ -4519,6 +5022,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 2,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -4558,6 +5064,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -4565,6 +5072,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 3,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -4603,6 +5113,9 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [
+    "Workshop"
+   ],
    "blockers": "Sonali doesn’t allow us to meet mgmt",
    "blockerTags": [
     "DECISION"
@@ -4612,6 +5125,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 3,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -4650,6 +5166,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -4657,6 +5174,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 6,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -4695,6 +5215,9 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [
+    "Bagless"
+   ],
    "blockers": "Robotics vendor already there and for bagless she needs cheap rates",
    "blockerTags": [
     "PRICE"
@@ -4706,6 +5229,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 2,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -4744,6 +5270,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -4751,6 +5278,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 5,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -4789,6 +5319,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": "Mathew and Daniel meet",
    "blockerTags": [
     "OTHER"
@@ -4798,6 +5329,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 2,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -4836,6 +5370,9 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [
+    "Bagless"
+   ],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -4843,6 +5380,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 3,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -4883,6 +5423,10 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [
+    "Bagless",
+    "Curriculum"
+   ],
    "blockers": "Ashu Rana has robotics and skeptical in starting Bagless",
    "blockerTags": [
     "OTHER"
@@ -4894,6 +5438,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 3,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -4933,6 +5480,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -4940,6 +5488,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 4,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -4979,6 +5530,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -4986,6 +5538,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 3,
    "duplicateFlag": true,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -5024,6 +5579,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -5031,6 +5587,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 5,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -5069,6 +5628,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -5076,6 +5636,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 4,
    "duplicateFlag": true,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -5115,6 +5678,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -5122,6 +5686,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 5,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -5158,6 +5725,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -5165,6 +5733,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 6,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -5201,6 +5772,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -5208,6 +5780,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 6,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -5246,6 +5821,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -5253,6 +5829,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 4,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -5291,6 +5870,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -5298,6 +5878,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 4,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -5336,6 +5919,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -5343,6 +5927,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 5,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -5379,6 +5966,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -5386,6 +5974,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 6,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -5424,6 +6015,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -5431,6 +6023,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 5,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -5470,6 +6065,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": "Principal doesn’t meet",
    "blockerTags": [
     "OTHER"
@@ -5479,6 +6075,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 4,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -5518,6 +6117,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -5525,6 +6125,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 5,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -5563,6 +6166,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -5570,6 +6174,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 5,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -5606,6 +6213,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -5613,6 +6221,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 6,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -5650,6 +6261,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -5657,6 +6269,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 6,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -5694,6 +6309,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -5701,6 +6317,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 6,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -5737,6 +6356,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -5744,6 +6364,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 6,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -5782,6 +6405,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -5789,6 +6413,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 5,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -5825,6 +6452,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -5832,6 +6460,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 6,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -5870,6 +6501,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -5877,6 +6509,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 6,
    "duplicateFlag": true,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -5915,6 +6550,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -5922,6 +6558,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 5,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -5961,6 +6600,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -5968,6 +6608,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 4,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -6004,6 +6647,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -6011,6 +6655,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 6,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -6047,6 +6694,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -6054,6 +6702,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 6,
    "duplicateFlag": true,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -6090,6 +6741,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": "Already has Robotics, Cheap rates for bagless",
    "blockerTags": [
     "PRICE",
@@ -6102,6 +6754,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 6,
    "duplicateFlag": true,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -6139,6 +6794,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -6146,6 +6802,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 6,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -6182,6 +6841,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -6189,6 +6849,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 6,
    "duplicateFlag": true,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -6225,6 +6888,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -6232,6 +6896,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 6,
    "duplicateFlag": true,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -6270,6 +6937,10 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [
+    "Bagless",
+    "Curriculum"
+   ],
    "blockers": "Already have robotics, Savitha and princi meet difficult",
    "blockerTags": [
     "INCUMBENT"
@@ -6281,6 +6952,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 2,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -6319,6 +6993,9 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [
+    "Curriculum"
+   ],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -6326,6 +7003,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 2,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -6364,6 +7044,10 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [
+    "Bagless",
+    "Curriculum"
+   ],
    "blockers": "Confused with the model and number of students",
    "blockerTags": [
     "OTHER"
@@ -6375,6 +7059,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 2,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -6414,6 +7101,9 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [
+    "Bagless"
+   ],
    "blockers": null,
    "blockerTags": [],
    "competitors": [
@@ -6423,6 +7113,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 2,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -6461,6 +7154,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": "Already has robotics, and only wants assistance & lab setup",
    "blockerTags": [
     "INCUMBENT",
@@ -6473,6 +7167,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 2,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -6511,6 +7208,9 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [
+    "Curriculum"
+   ],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -6518,6 +7218,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 2,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -6556,6 +7259,10 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [
+    "Bagless",
+    "Workshop"
+   ],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -6563,6 +7270,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 2,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -6601,6 +7311,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -6608,6 +7319,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 5,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -6646,6 +7360,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": "need a Financial model",
    "blockerTags": [
     "PRICE"
@@ -6655,6 +7370,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 5,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -6694,6 +7412,9 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [
+    "Bagless"
+   ],
    "blockers": "Have Robotics and low budget",
    "blockerTags": [
     "PRICE"
@@ -6705,6 +7426,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 2,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -6743,6 +7467,10 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [
+    "Bagless",
+    "Curriculum"
+   ],
    "blockers": "chose aerobay over us",
    "blockerTags": [
     "INCUMBENT"
@@ -6754,6 +7482,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 2,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -6792,6 +7523,10 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [
+    "Bagless",
+    "Workshop"
+   ],
    "blockers": "Should work on finances for lab setup",
    "blockerTags": [
     "PRICE",
@@ -6802,6 +7537,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 2,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -6840,6 +7578,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": "Rahul bose meet",
    "blockerTags": [
     "OTHER"
@@ -6849,6 +7588,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 3,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -6887,6 +7629,10 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [
+    "Bagless",
+    "Workshop"
+   ],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -6894,6 +7640,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 3,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -6932,6 +7681,11 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [
+    "Bagless",
+    "Curriculum",
+    "Workshop"
+   ],
    "blockers": null,
    "blockerTags": [],
    "competitors": [
@@ -6941,6 +7695,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 2,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -6979,6 +7736,9 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [
+    "Curriculum"
+   ],
    "blockers": "Mgmt is confused if parents would pay or not",
    "blockerTags": [
     "DECISION"
@@ -6988,6 +7748,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 3,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -7026,6 +7789,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": "Same as Arya Kalyan",
    "blockerTags": [
     "OTHER"
@@ -7037,6 +7801,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 4,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -7076,6 +7843,9 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [
+    "Bagless"
+   ],
    "blockers": "Continued with omotech this year as they were cheap",
    "blockerTags": [
     "PRICE"
@@ -7087,6 +7857,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 2,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -7125,6 +7898,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": "Very low strength",
    "blockerTags": [
     "CAPACITY"
@@ -7134,6 +7908,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 5,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -7173,6 +7950,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": "Already has robotics, princi meet is tough to get",
    "blockerTags": [
     "INCUMBENT"
@@ -7184,6 +7962,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 2,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -7222,6 +8003,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -7229,6 +8011,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 4,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -7267,6 +8052,10 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [
+    "Bagless",
+    "Curriculum"
+   ],
    "blockers": "Has Robotics, Radhamani likes the other vendor brcause of the looks of Lab",
    "blockerTags": [
     "CAPACITY"
@@ -7278,6 +8067,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 3,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -7316,6 +8108,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": "Princi is confused if parents would pay or not",
    "blockerTags": [
     "OTHER"
@@ -7327,6 +8120,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 4,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -7365,6 +8161,11 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [
+    "Bagless",
+    "Curriculum",
+    "Workshop"
+   ],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -7372,6 +8173,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 2,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -7410,6 +8214,9 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [
+    "Workshop"
+   ],
    "blockers": "Low budget plus no match of synergy",
    "blockerTags": [
     "PRICE"
@@ -7419,6 +8226,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 3,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -7458,6 +8268,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -7465,6 +8276,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 3,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -7503,6 +8317,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -7510,6 +8325,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 6,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -7548,6 +8366,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -7555,6 +8374,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 4,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -7593,6 +8415,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -7600,6 +8423,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 3,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -7638,6 +8464,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -7645,6 +8472,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 4,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -7681,6 +8511,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -7688,6 +8519,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 6,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -7724,6 +8558,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -7731,6 +8566,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 5,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -7769,6 +8607,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -7776,6 +8615,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 4,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -7812,6 +8654,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -7819,6 +8662,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 6,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -7857,6 +8703,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -7864,6 +8711,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 5,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -7902,6 +8752,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -7909,6 +8760,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 5,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -7947,6 +8801,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -7954,6 +8809,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 5,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -7992,6 +8850,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -7999,6 +8858,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 5,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -8038,6 +8900,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -8045,6 +8908,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 4,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -8083,6 +8949,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -8090,6 +8957,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 4,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -8126,6 +8996,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -8133,6 +9004,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 6,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -8169,6 +9043,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -8176,6 +9051,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 6,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -8212,6 +9090,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -8219,6 +9098,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 6,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -8257,6 +9139,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -8264,6 +9147,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 3,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -8302,6 +9188,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -8309,6 +9196,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 4,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -8348,6 +9238,10 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [
+    "Bagless",
+    "Curriculum"
+   ],
    "blockers": "Chose Aerobay over us",
    "blockerTags": [
     "INCUMBENT"
@@ -8359,6 +9253,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 2,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -8397,6 +9294,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -8404,6 +9302,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 5,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -8441,6 +9342,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -8448,6 +9350,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 6,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -8486,6 +9391,10 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [
+    "Bagless",
+    "Curriculum"
+   ],
    "blockers": "Sister needs to be convinced",
    "blockerTags": [
     "TRUST"
@@ -8495,6 +9404,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 3,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -8534,6 +9446,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": "Very low budget and skeptical to start",
    "blockerTags": [
     "PRICE"
@@ -8543,6 +9456,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 2,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -8579,6 +9495,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -8586,6 +9503,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 5,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -8622,6 +9542,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": "Affiliation problem so cant start anything",
    "blockerTags": [
     "OTHER"
@@ -8631,6 +9552,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 6,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -8667,6 +9591,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -8674,6 +9599,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 5,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -8712,6 +9640,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -8719,6 +9648,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 3,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -8757,6 +9689,10 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [
+    "Bagless",
+    "Curriculum"
+   ],
    "blockers": null,
    "blockerTags": [],
    "competitors": [
@@ -8766,6 +9702,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 2,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -8804,6 +9743,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -8811,6 +9751,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 4,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -8849,6 +9792,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -8856,6 +9800,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 4,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -8894,6 +9841,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -8901,6 +9849,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 4,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -8937,6 +9888,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -8944,6 +9896,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 6,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -8982,6 +9937,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -8989,6 +9945,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 4,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -9027,6 +9986,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -9034,6 +9994,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 4,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -9070,6 +10033,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -9077,6 +10041,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 6,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -9113,6 +10080,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -9120,6 +10088,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 5,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -9156,6 +10127,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -9163,6 +10135,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 6,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -9202,6 +10177,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -9209,6 +10185,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 4,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -9247,6 +10226,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -9254,6 +10234,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 5,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -9292,6 +10275,10 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [
+    "Bagless",
+    "Curriculum"
+   ],
    "blockers": "Decietful Behaviour, so risk involved",
    "blockerTags": [
     "OTHER"
@@ -9303,6 +10290,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 2,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -9341,6 +10331,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": "Very far, no team member to cover",
    "blockerTags": [
     "OTHER"
@@ -9350,6 +10341,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 4,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -9388,6 +10382,9 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [
+    "Bagless"
+   ],
    "blockers": "Very difficult to meet Kavita",
    "blockerTags": [
     "ACCESS"
@@ -9397,6 +10394,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 2,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -9435,6 +10435,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -9442,6 +10443,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 3,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -9480,6 +10484,10 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [
+    "Curriculum",
+    "Workshop"
+   ],
    "blockers": "Very low budget and needed to change the model of curr",
    "blockerTags": [
     "PRICE"
@@ -9489,6 +10497,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 3,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -9527,6 +10538,9 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [
+    "Curriculum"
+   ],
    "blockers": "Very low budget and needed to change the model of curr",
    "blockerTags": [
     "PRICE"
@@ -9536,6 +10550,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 3,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -9574,6 +10591,9 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [
+    "Bagless"
+   ],
    "blockers": "Very low budget and needed to change the model of curr",
    "blockerTags": [
     "PRICE"
@@ -9585,6 +10605,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 3,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -9625,6 +10648,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": "Jay patel needs to be convinced",
    "blockerTags": [
     "TRUST"
@@ -9634,6 +10658,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 3,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -9672,6 +10699,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -9679,6 +10707,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 3,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -9717,6 +10748,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -9724,6 +10756,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 3,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -9764,6 +10799,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -9771,6 +10807,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 5,
    "duplicateFlag": true,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -9811,6 +10850,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": "Jay patel needs to be convinced",
    "blockerTags": [
     "TRUST"
@@ -9820,6 +10860,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 4,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -9858,6 +10901,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -9865,6 +10909,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 4,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -9903,6 +10950,10 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [
+    "Bagless",
+    "Curriculum"
+   ],
    "blockers": "Zubair is very indecisive",
    "blockerTags": [
     "OTHER"
@@ -9912,6 +10963,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 2,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -9950,6 +11004,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -9957,6 +11012,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 4,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -9995,6 +11053,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -10002,6 +11061,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 5,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -10040,6 +11102,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -10047,6 +11110,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 5,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -10083,6 +11149,10 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [
+    "Bagless",
+    "Curriculum"
+   ],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -10090,6 +11160,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 3,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -10127,6 +11200,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -10134,6 +11208,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 6,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -10175,6 +11252,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -10182,6 +11260,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 4,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -10219,6 +11300,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -10226,6 +11308,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 6,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -10262,6 +11347,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -10269,6 +11355,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 6,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -10308,6 +11397,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -10315,6 +11405,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 4,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -10353,6 +11446,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -10360,6 +11454,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 5,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -10396,6 +11493,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -10403,6 +11501,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 6,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -10442,6 +11543,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [
@@ -10451,6 +11553,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 5,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -10489,6 +11594,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -10496,6 +11602,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 5,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -10533,6 +11642,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -10540,6 +11650,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 6,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -10576,6 +11689,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -10583,6 +11697,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 6,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -10619,6 +11736,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -10626,6 +11744,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 6,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -10663,6 +11784,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -10670,6 +11792,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 6,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -10706,6 +11831,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -10713,6 +11839,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 6,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -10749,6 +11878,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -10756,6 +11886,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 6,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -10793,6 +11926,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -10800,6 +11934,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 6,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -10837,6 +11974,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -10844,6 +11982,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 6,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -10880,6 +12021,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -10887,6 +12029,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 6,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -10923,6 +12068,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -10930,6 +12076,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 6,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -10967,6 +12116,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -10974,6 +12124,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 6,
    "duplicateFlag": true,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -11011,6 +12164,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -11018,6 +12172,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 6,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -11055,6 +12212,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -11062,6 +12220,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 6,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -11099,6 +12260,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -11106,6 +12268,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 6,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -11143,6 +12308,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -11150,6 +12316,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 6,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -11186,6 +12355,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -11193,6 +12363,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 6,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -11229,6 +12402,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -11236,6 +12410,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 6,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -11273,6 +12450,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -11280,6 +12458,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 6,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -11316,6 +12497,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -11323,6 +12505,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 6,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -11359,6 +12544,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -11366,6 +12552,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 6,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -11404,6 +12593,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -11411,6 +12601,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 6,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -11447,6 +12640,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -11454,6 +12648,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 6,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -11490,6 +12687,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -11497,6 +12695,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 6,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -11533,6 +12734,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -11540,6 +12742,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 6,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -11576,6 +12781,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -11583,6 +12789,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 6,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -11620,6 +12829,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -11627,6 +12837,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 6,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -11663,6 +12876,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -11670,6 +12884,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 6,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -11707,6 +12924,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -11714,6 +12932,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 6,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -11751,6 +12972,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -11758,6 +12980,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 6,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -11794,6 +13019,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -11801,6 +13027,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 6,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -11837,6 +13066,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -11844,6 +13074,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 6,
    "duplicateFlag": true,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -11881,6 +13114,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -11888,6 +13122,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 6,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -11926,6 +13163,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -11933,6 +13171,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 6,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -11972,6 +13213,9 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [
+    "Bagless"
+   ],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -11979,6 +13223,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 2,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -12018,6 +13265,9 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [
+    "Bagless"
+   ],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -12025,6 +13275,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 2,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -12063,6 +13316,10 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [
+    "Bagless",
+    "Curriculum"
+   ],
    "blockers": "RCOM works, Better in technology than us",
    "blockerTags": [
     "OTHER"
@@ -12074,6 +13331,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 2,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -12112,6 +13372,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": "Already has robotics, has a synergy with vendor",
    "blockerTags": [
     "INCUMBENT"
@@ -12123,6 +13384,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 3,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -12159,6 +13423,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -12166,6 +13431,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 4,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -12205,6 +13473,9 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [
+    "Bagless"
+   ],
    "blockers": "New princi so lack opf decision making plus she doubts if parents can pay",
    "blockerTags": [
     "DECISION",
@@ -12215,6 +13486,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 2,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -12254,6 +13528,9 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [
+    "Bagless"
+   ],
    "blockers": "Sonu Arora opposes robotics to intergrate in curr",
    "blockerTags": [
     "OTHER"
@@ -12263,6 +13540,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 2,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -12301,6 +13581,9 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [
+    "Bagless"
+   ],
    "blockers": null,
    "blockerTags": [],
    "competitors": [
@@ -12310,6 +13593,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 3,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -12348,6 +13634,9 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [
+    "Bagless"
+   ],
    "blockers": "Very low budget and needed to change the model of curr",
    "blockerTags": [
     "PRICE"
@@ -12359,6 +13648,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 3,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -12398,6 +13690,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -12405,6 +13698,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 5,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -12443,6 +13739,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -12450,6 +13747,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 4,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -12488,6 +13788,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -12495,6 +13796,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 4,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -12531,6 +13835,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -12538,6 +13843,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 6,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -12576,6 +13884,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -12583,6 +13892,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 4,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -12620,6 +13932,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -12627,6 +13940,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 6,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -12663,6 +13979,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -12670,6 +13987,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 6,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -12706,6 +14026,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -12713,6 +14034,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 6,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -12749,6 +14073,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -12756,6 +14081,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 6,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -12792,6 +14120,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -12799,6 +14128,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 5,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -12835,6 +14167,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -12842,6 +14175,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 6,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -12878,6 +14214,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -12885,6 +14222,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 6,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -12922,6 +14262,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -12929,6 +14270,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 6,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -12966,6 +14310,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -12973,6 +14318,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 6,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -13009,6 +14357,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -13016,6 +14365,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 6,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -13052,6 +14404,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -13059,6 +14412,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 6,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -13096,6 +14452,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -13103,6 +14460,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 6,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -13139,6 +14499,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -13146,6 +14507,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 6,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -13182,6 +14546,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -13189,6 +14554,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 6,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -13225,6 +14593,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -13232,6 +14601,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 6,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -13268,6 +14640,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -13275,6 +14648,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 6,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -13311,6 +14687,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -13318,6 +14695,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 6,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -13354,6 +14734,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -13361,6 +14742,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 6,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -13397,6 +14781,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -13404,6 +14789,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 6,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -13441,6 +14829,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -13448,6 +14837,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 6,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -13484,6 +14876,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -13491,6 +14884,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 6,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -13528,6 +14924,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -13535,6 +14932,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 6,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -13573,6 +14973,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -13580,6 +14981,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 4,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -13619,6 +15023,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -13626,6 +15031,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 4,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -13665,6 +15073,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -13672,6 +15081,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 4,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -13710,6 +15122,9 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [
+    "Bagless"
+   ],
    "blockers": "Kavita unable to take decisions as husband dies and shes old, no decision maker other than her on board.",
    "blockerTags": [
     "DECISION"
@@ -13719,6 +15134,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 3,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -13758,6 +15176,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -13765,6 +15184,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 2,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -13804,6 +15226,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -13811,6 +15234,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 5,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -13848,6 +15274,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -13855,6 +15282,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 6,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -13894,6 +15324,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -13901,6 +15332,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 4,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -13938,6 +15372,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -13945,6 +15380,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 6,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -13982,6 +15420,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -13989,6 +15428,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 7,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -14026,6 +15468,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -14033,6 +15476,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 7,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -14070,6 +15516,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -14077,6 +15524,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 6,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -14114,6 +15564,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -14121,6 +15572,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 6,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -14157,6 +15611,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -14164,6 +15619,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 6,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -14200,6 +15658,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -14207,6 +15666,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 6,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -14243,6 +15705,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -14250,6 +15713,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 6,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -14286,6 +15752,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -14293,6 +15760,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 6,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -14330,6 +15800,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -14337,6 +15808,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 6,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -14375,6 +15849,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": "No connect with trustee",
    "blockerTags": [
     "DECISION",
@@ -14385,6 +15860,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 3,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -14423,6 +15901,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -14430,6 +15909,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 4,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -14468,6 +15950,10 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [
+    "Bagless",
+    "Curriculum"
+   ],
    "blockers": "Already has robotics",
    "blockerTags": [
     "INCUMBENT"
@@ -14479,6 +15965,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 2,
    "duplicateFlag": false,
    "inActionQueue": true,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -14515,6 +16004,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -14522,6 +16012,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 6,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -14560,6 +16053,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -14567,6 +16061,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 5,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -14603,6 +16100,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -14610,6 +16108,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 6,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -14646,6 +16147,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -14653,6 +16155,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 6,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -14689,6 +16194,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -14696,6 +16202,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 6,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -14732,6 +16241,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -14739,6 +16249,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 6,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -14775,6 +16288,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -14782,6 +16296,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 6,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -14818,6 +16335,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -14825,6 +16343,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 6,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -14861,6 +16382,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -14868,6 +16390,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 6,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -14904,6 +16429,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -14911,6 +16437,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 6,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -14947,6 +16476,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -14954,6 +16484,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 6,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -14990,6 +16523,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -14997,6 +16531,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 6,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -15033,6 +16570,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -15040,6 +16578,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 6,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -15076,6 +16617,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -15083,6 +16625,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 6,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -15119,6 +16664,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -15126,6 +16672,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 6,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -15162,6 +16711,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -15169,6 +16719,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 6,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -15205,6 +16758,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -15212,6 +16766,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 6,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -15248,6 +16805,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -15255,6 +16813,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 6,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -15291,6 +16852,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -15298,6 +16860,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 6,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -15334,6 +16899,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -15341,6 +16907,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 6,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -15377,6 +16946,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -15384,6 +16954,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 6,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -15420,6 +16993,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -15427,6 +17001,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 6,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -15463,6 +17040,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -15470,6 +17048,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 6,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null
@@ -15506,6 +17087,7 @@ window.ROBOBOX_SEED = {
    "nextActionDate": null,
    "expectedClosure": null,
    "expectedClosureRaw": null,
+   "products": [],
    "blockers": null,
    "blockerTags": [],
    "competitors": [],
@@ -15513,6 +17095,9 @@ window.ROBOBOX_SEED = {
    "missingCount": 6,
    "duplicateFlag": false,
    "inActionQueue": false,
+   "origin": "import",
+   "addedAt": null,
+   "rejectedReason": null,
    "activities": [],
    "createdAt": null,
    "updatedAt": null

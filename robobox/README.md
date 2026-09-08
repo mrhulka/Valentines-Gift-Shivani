@@ -41,32 +41,41 @@ home page.
 
 ## What the sales team does
 
-**My day** is the landing page: overdue follow-ups, what is due this week,
-accounts that have gone quiet, and anything with no next step written down.
+**Log an update** is the form the whole thing turns on. It sits in the top bar
+on every screen: pick a school, record what happened — date, type, who they met,
+how it went, notes, which product line, where it leaves the deal, what happens
+next — and the pipeline rewrites itself. Last-contact date, stage, probability,
+next action, deal size, expected closure and the product split all follow from
+that one entry. Nobody edits a spreadsheet row again. Marking a school Lost asks
+why, so rejections become an analysable list rather than a silent gap.
 
-**Log an update** is the one form that matters. A rep records what happened —
-date, type, who they met, how it went, notes — and the pipeline updates itself:
-last-contact date, stage, probability, next action, deal size and expected
-closure all follow from that single entry. That is the manual step this app
-removes; nobody edits a spreadsheet row again.
+**Today** is the landing page and it leads with the number that matters:
+updates you logged today. Under it sit overdue follow-ups, what is due today and
+this week, accounts that have gone silent, this month against target, and
+anything with no next step written down. Every row has its own Log button.
 
-**My progress** gives each rep their own funnel, their activity trend by
-outcome, their weakest conversion step, and a list of their records that are
-still missing required fields.
+**My dashboard** is the rep's own scoreboard — total schools, approached,
+silent, rejected, closed, conversion, potential vs generated revenue, average
+deal size, new schools added over one, two and three months, performance per
+region, closed deals split by Curriculum / Bagless / Workshop, target vs
+achievement for the month, and the records still missing required fields.
 
 ---
 
 ## What the CEO sees
 
+The command centre is deliberately short — four numbers, the insights, and
+performance split the two ways it gets asked for. Everything heavier sits on its
+own screen instead of crowding the front page.
+
 | Screen | Answers |
 |---|---|
-| **Command centre** | TAM, coverage, open and weighted pipeline, value at risk, and a ranked list of what needs a decision this week |
-| **Funnel** | Cumulative funnel, step-by-step conversion, the value that stops at each step, and the same funnel cut by region, source, owner and board |
-| **Market** | The 343-school universe, coverage by region / size / board, a region × stage heatmap, and the never-contacted schools ranked by size |
-| **Team** | Per-rep pipeline, coverage, gone-quiet rate, record completeness, and every unassigned school |
+| **Command centre** | TAM, market approached, open pipeline, won. Then insights — blockers by value held up, biggest schools, most students — and performance per region and per sales person. Plus whether anyone logged anything today |
+| **Team performance** | Total accounts, updated-today, approached, conversion, potential and generated revenue, average deal size and silent count per person, with each rep's month against target |
+| **Market** | The 343-school universe, coverage by region / size / board, a region × stage heatmap, and never-contacted schools ranked by size |
 | **Blockers** | Blockers grouped into categories with the value behind each, a blocker × region heatmap, competitor presence, rate-card mix, and the raw field notes |
-| **Pipeline health** | Whether the numbers can be trusted: completeness, stage confirmation, contact-date quality, staleness bands, duplicates, and a chase list |
-| **Deep dive** | A pivot — group by any of eleven dimensions, pick any of eleven measures, cross two dimensions into a heatmap, then open the schools behind any cell |
+| **Deep dive** | The funnel and step conversion, then a pivot — group by any of twelve dimensions, pick any of eleven measures, cross two into a heatmap, and open the schools behind any cell |
+| **Data health** | Whether the numbers can be trusted: completeness, stage confirmation, contact-date quality, staleness bands, duplicates, and a chase list |
 
 Every chart is clickable. A bar, a funnel step, a heatmap cell or a KPI tile
 opens the rows behind it, and each row opens that school's full history. The
@@ -108,6 +117,17 @@ The import deliberately does not invent anything. What it did and did not do:
   capacity) sit on top so the same problem can be fixed once instead of 29 times.
 - **10 possible duplicates** carried through the flag from the source workbook
   and are surfaced for merging rather than silently removed.
+- **Product lines were read from the deal wording**, since the sheet has no
+  product column: Bagless in 50 schools, Curriculum (robotics, composite lab,
+  after-school) in 42, Workshops in 17. The remaining 274 show as "not recorded"
+  until a rep picks the line on the log form.
+- **Nothing is marked Rejected.** The sheet never recorded a loss, so every
+  Closed and Rejected count starts at zero and fills in as the team logs them.
+  Silence is not treated as rejection — a school with no reply for 30+ days is
+  "silent", which is a different problem with a different fix.
+- **Monthly targets are placeholders.** Revenue, schools approached, meetings
+  and updates targets ship as stand-in numbers badged "placeholder" wherever
+  they appear. Ayush or Parth set the real ones in Settings.
 
 To re-run the import against a newer workbook, edit and run
 `tools/import_master_workbook.py`; it rewrites `assets/js/seed-data.js`.

@@ -308,14 +308,25 @@ RB.ui = (function () {
         field('Deal size (₹)', '<input class="input" type="number" name="dealSize" min="0" step="1000" value="' + (s.dealSize || '') + '" placeholder="e.g. 1360000">',
           s.students ? s.students + ' students × ₹1,700 = ' + U.money(s.students * 1700, { full: true }) : '') +
       '</div>' +
+      field('What are we selling them', '<div class="chip-row" id="product-chips">' +
+        M.PRODUCTS.map(function (pr) {
+          return '<button type="button" class="chip" data-product="' + U.esc(pr) + '" aria-pressed="' +
+            (s.products.indexOf(pr) !== -1) + '">' + U.esc(pr) + '</button>';
+        }).join('') + '</div><input type="hidden" name="products" value="' + U.esc(s.products.join(',')) + '">',
+        'Pick every line in play. Drives the Curriculum vs Bagless split on the dashboards.') +
+      '<div class="field" id="reject-wrap"' + (M.stage(s) === 'Lost' ? '' : ' hidden') + '>' +
+        '<span class="field-label">Why did we lose it?</span>' +
+        select('rejectedReason', M.REJECT_REASONS, s.rejectedReason, { placeholder: 'Pick a reason' }) +
+        '<span class="field-hint">Only asked when you mark a school Lost. This is what makes the rejection analysis worth reading.</span>' +
+      '</div>' +
       '<div class="field-row">' +
         field('Expected closure', '<input class="input" type="date" name="expectedClosure" value="' + U.esc(s.expectedClosure || '') + '">') +
         field('Blockers', '<input class="input" name="blockers" value="' + U.esc(s.blockers || '') + '" placeholder="What is standing in the way?">') +
       '</div>' +
       '<div class="section-title">Next step</div>' +
       '<div class="field-row">' +
-        field('What happens next', '<input class="input" name="nextAction" value="' + U.esc(s.nextAction || '') + '" placeholder="e.g. Meet the trustee with pricing" required>') +
-        field('By when', '<input class="input" type="date" name="nextActionDate" value="' + U.esc(s.nextActionDate || U.addDays(today, 7)) + '" required>') +
+        field('What happens next', '<input class="input" name="nextAction" value="' + U.esc(s.nextAction || '') + '" placeholder="e.g. Meet the trustee with pricing">') +
+        field('By when', '<input class="input" type="date" name="nextActionDate" value="' + U.esc(s.nextActionDate || U.addDays(today, 7)) + '">') +
       '</div>' +
       '<div class="modal-actions"><button type="button" class="btn" data-close="1">Cancel</button>' +
       '<button type="submit" class="btn btn-primary">Save update</button></div>' +
@@ -323,6 +334,21 @@ RB.ui = (function () {
 
     modal('Log an update', html, {
       onMount: function (host) {
+        var chips = host.querySelector('#product-chips');
+        var hidden = host.querySelector('[name="products"]');
+        chips.addEventListener('click', function (e) {
+          var b = e.target.closest('[data-product]');
+          if (!b) return;
+          b.setAttribute('aria-pressed', b.getAttribute('aria-pressed') !== 'true');
+          hidden.value = Array.prototype.filter.call(chips.children, function (c) {
+            return c.getAttribute('aria-pressed') === 'true';
+          }).map(function (c) { return c.getAttribute('data-product'); }).join(',');
+        });
+        var stageSel = host.querySelector('[name="stageTo"]');
+        var rejectWrap = host.querySelector('#reject-wrap');
+        stageSel.addEventListener('change', function () {
+          rejectWrap.hidden = stageSel.value !== 'Lost';
+        });
         host.querySelector('#act-form').addEventListener('submit', function (e) {
           e.preventDefault();
           var v = formValues(this);
@@ -330,12 +356,59 @@ RB.ui = (function () {
             date: v.date, type: v.type, contact: v.contact, outcome: v.outcome, notes: v.notes,
             stageTo: v.stageTo, dealSize: v.dealSize === '' ? null : Number(v.dealSize),
             expectedClosure: v.expectedClosure || null, blockers: v.blockers || null,
-            nextAction: v.nextAction, nextActionDate: v.nextActionDate
+            nextAction: v.nextAction, nextActionDate: v.nextActionDate,
+            products: v.products ? v.products.split(',').filter(Boolean) : null,
+            rejectedReason: v.stageTo === 'Lost' ? (v.rejectedReason || null) : null
           }, RB.auth.user().id);
           closeModal();
           toast('Update saved — ' + s.name + ' is now at ' + v.stageTo + '.');
           RB.app.refresh();
         });
+      }
+    });
+  }
+
+  /* Pick a school, then log against it. This is the entry point from the top
+   * bar, so a rep coming back from a visit can record it in two clicks without
+   * hunting through the pipeline table first. */
+  function quickLog() {
+    var rows = RB.auth.visibleSchools();
+    var recent = U.sortBy(rows.filter(function (r) { return M.isOpen(r); }), function (r) {
+      return r.nextActionDate ? -U.daysSince(r.nextActionDate) : -99999;
+    }, 'desc').slice(0, 8);
+
+    var html =
+      '<p class="sec" style="margin-top:0">Which school did you speak to?</p>' +
+      '<input class="input" id="ql-search" type="search" placeholder="Start typing a school name…" autocomplete="off">' +
+      '<div class="section-title">Due soonest</div>' +
+      '<div id="ql-list"></div>';
+
+    modal('Log today\u2019s work', html, {
+      onMount: function (host) {
+        var list = host.querySelector('#ql-list');
+        var search = host.querySelector('#ql-search');
+        draw(recent);
+        search.focus();
+        search.addEventListener('input', U.debounce(function () {
+          var q = search.value.trim().toLowerCase();
+          if (!q) return draw(recent);
+          draw(rows.filter(function (r) {
+            return (r.name + ' ' + (r.location || '')).toLowerCase().indexOf(q) !== -1;
+          }).slice(0, 12));
+        }, 160));
+
+        function draw(items) {
+          list.innerHTML = items.length ? items.map(function (r) {
+            return '<button class="ql-row" data-pick="' + U.esc(r.id) + '">' +
+              '<span><strong>' + U.esc(r.name) + '</strong>' +
+              '<span class="small muted"> ' + U.esc([r.location, r.owners.join('/')].filter(Boolean).join(' · ')) + '</span></span>' +
+              '<span class="small muted nowrap">' + (r.nextActionDate ? 'due ' + U.esc(U.fmtDate(r.nextActionDate)) : U.esc(U.relative(r.lastContacted))) + '</span>' +
+              '</button>';
+          }).join('') : '<div class="empty">No school matches that.</div>';
+          list.querySelectorAll('[data-pick]').forEach(function (b) {
+            b.addEventListener('click', function () { logActivityForm(b.getAttribute('data-pick')); });
+          });
+        }
       }
     });
   }
@@ -520,7 +593,7 @@ RB.ui = (function () {
     stageTag: stageTag, healthTag: healthTag, meter: meter, table: table,
     schoolColumns: schoolColumns, exportSchools: exportSchools, exportActivities: exportActivities,
     select: select, field: field, formValues: formValues, logActivityForm: logActivityForm,
-    schoolForm: schoolForm, schoolDetail: schoolDetail, insightList: insightList,
+    schoolForm: schoolForm, schoolDetail: schoolDetail, insightList: insightList, quickLog: quickLog,
     EXPORT_COLUMNS: EXPORT_COLUMNS
   };
 })();

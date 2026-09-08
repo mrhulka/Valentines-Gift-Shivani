@@ -103,94 +103,94 @@ RB.viewsCEO = (function () {
     });
   }
 
-  /* ==================================================== COMMAND CENTER ==== */
-  function commandCenter(host) {
+  /* ==================================================== COMMAND CENTRE ==== */
+  /* Deliberately short. Four numbers that describe the whole business, the
+   * insights worth acting on, and performance split the two ways the CEO
+   * actually asks for it — by region and by person. Anything deeper lives on
+   * its own screen rather than crowding this one. */
+  function commandCentre(host) {
     render();
     function render() {
       var all = RB.store.all();
       var rows = apply(all);
       var s = M.summarise(rows, opts());
       var rate = settings().tamRatePerStudent;
-      var limit = settings().stalledAfterDays;
-      var contact = M.contactSeries(rows, 8);
-      var f = M.funnel(rows);
       var byRegion = M.byDimension(rows, 'region', opts());
       var byOwner = M.byDimension(rows, 'owner', opts());
+      var blockers = topBlockers(rows).slice(0, 5);
+      var biggest = U.sortBy(rows.filter(function (r) { return M.isOpen(r) && r.dealSize; }), M.dealSize, 'desc').slice(0, 8);
+      var mostStudents = U.sortBy(rows.filter(function (r) { return r.students; }), function (r) { return r.students; }, 'desc').slice(0, 8);
+      var updatedToday = M.updatesOn(all, U.iso(U.today()));
 
       host.innerHTML =
         head('Command centre',
-             'The whole market, the whole pipeline, and what is standing in the way. ' +
-             (activeFilters().length ? 'Filtered to ' + U.count(rows.length) + ' of ' + U.count(all.length) + ' schools.' : U.count(all.length) + ' schools in the addressable market.'),
+             activeFilters().length
+               ? 'Filtered to ' + U.count(rows.length) + ' of ' + U.count(all.length) + ' schools.'
+               : 'The whole business on one screen.',
              '<button class="btn" id="tam-rate">TAM @ ₹' + U.count(rate) + '/student</button>' +
              '<button class="btn" id="export-all">Download everything</button>') +
         filterBar() +
 
         UI.statRow([
-          UI.stat({ label: 'Total addressable market', value: U.money(s.tamValue),
-                    foot: '<span class="sec">' + U.count(s.students) + ' students across ' + U.count(s.studentsKnown) +
-                          ' of ' + U.count(s.schools) + ' schools</span>',
-                    title: 'Student count × ₹' + U.count(rate) + ' per student. ' +
-                           (s.schools - s.studentsKnown) + ' schools have no student count yet, so the real market is larger.' }),
+          UI.stat({ label: 'TAM', value: U.money(s.tamValue),
+                    foot: '<span class="sec">' + U.count(s.schools) + ' schools · ' + U.count(s.students) + ' students</span>',
+                    title: 'Student count × ₹' + U.count(rate) + '. ' + (s.schools - s.studentsKnown) +
+                           ' schools have no student count yet, so the real market is larger.' }),
           UI.stat({ label: 'Market approached', value: Math.round(s.coverage) + '%',
-                    foot: '<span class="sec">' + U.count(s.approached) + ' touched · ' + U.count(s.schools - s.approached) + ' never contacted</span>',
                     tone: s.coverage < 40 ? 'critical' : s.coverage < 70 ? 'warning' : null,
+                    foot: '<span class="sec">' + U.count(s.approached) + ' touched · ' + U.count(s.schools - s.approached) + ' never contacted</span>',
                     onClick: 'coverage' }),
           UI.stat({ label: 'Open pipeline', value: U.money(s.openValue),
-                    foot: '<span class="sec">' + U.count(s.openCount) + ' quantified deals · ' + U.pct(s.openValue, s.tamValue) + ' of TAM</span>',
-                    onClick: 'open' }),
-          UI.stat({ label: 'Weighted forecast', value: U.money(s.weighted),
-                    foot: '<span class="sec">stage-adjusted expectation</span>' }),
-          UI.stat({ label: 'Won', value: U.money(s.wonValue),
-                    foot: '<span class="sec">' + s.wonCount + ' deals' + (s.winRate === null ? ' · no closed deals yet' : ' · ' + Math.round(s.winRate) + '% win rate') + '</span>',
-                    onClick: 'won' }),
-          UI.stat({ label: 'Pipeline at risk', value: U.money(U.sum(s.stalled, M.dealSize)),
-                    tone: 'serious',
-                    foot: '<span class="sec">' + s.stalled.length + ' accounts quiet ' + limit + '+ days</span>',
-                    onClick: 'stalled' })
+                    foot: '<span class="sec">' + U.count(s.openCount) + ' quantified deals</span>', onClick: 'open' }),
+          UI.stat({ label: 'Won', value: U.money(s.revenueGenerated),
+                    tone: s.wonCount ? 'good' : null,
+                    foot: '<span class="sec">' + s.wonCount + ' schools · ' +
+                          (s.conversion ? s.conversion.toFixed(1) + '% conversion' : 'nothing closed yet') + '</span>',
+                    onClick: 'won' })
         ]) +
 
-        '<div class="card"><div class="card-head"><h3>What needs a decision this week</h3>' +
-          '<span class="card-sub">ranked by money at stake</span></div>' +
-          UI.insightList(M.insights(rows, opts()), true) + '</div>' +
+        '<div class="card" style="border-left:3px solid ' + (updatedToday ? 'var(--good)' : 'var(--warning)') + '">' +
+          '<div class="row wrap" style="gap:14px">' +
+            '<div><div class="stat-label">Updates logged today</div>' +
+              '<div class="stat-value sm">' + U.count(updatedToday) + '</div></div>' +
+            '<div style="flex:1;min-width:240px" class="sec small">' +
+              (updatedToday
+                ? 'The numbers above include today\u2019s field work.'
+                : 'Nobody has logged anything today, so everything above is as of the last update.') +
+            '</div>' +
+            '<button class="btn btn-sm" id="go-team">See who</button>' +
+          '</div>' +
+        '</div>' +
 
-        '<div class="grid grid-2" style="margin-top:16px">' +
-          card('Pipeline funnel', 'Cumulative. Click a stage to see the accounts sitting at or past it.',
-               C.funnel({ data: f, format: U.money, onClick: true })) +
-          card('When was the market last touched', 'Schools by the month of their most recent contact.',
-               contact.length > 1
-                 ? C.column({ data: contact.map(function (c) { return { key: U.monthLabel(c.key), value: c.n }; }),
-                              measureLabel: 'Schools', height: 240 })
-                 : '<div class="empty">Not enough dated contact history yet.</div>') +
+        '<div class="section-title">Insights</div>' +
+        '<div class="grid grid-3">' +
+          insightCard('Blockers', 'What is stopping deals, by value held up.',
+            blockers.map(function (b) {
+              return listRow(b.key, U.money(b.value), b.n + ' schools', 'blocker:' + b.key);
+            }).join('') || '<div class="empty">None recorded.</div>') +
+          insightCard('Biggest schools', 'Largest open deals in the pipeline.',
+            biggest.map(function (r) {
+              return listRow(r.name, U.money(r.dealSize), [r.location, r.owners.join('/')].filter(Boolean).join(' · '), 'school:' + r.id);
+            }).join('') || '<div class="empty">No quantified deals.</div>') +
+          insightCard('Most students', 'Where the largest student bodies are.',
+            mostStudents.map(function (r) {
+              return listRow(r.name, U.count(r.students), (M.isApproached(r) ? M.stage(r) : 'never contacted'), 'school:' + r.id);
+            }).join('') || '<div class="empty">No student counts recorded.</div>') +
         '</div>' +
 
         '<div class="grid grid-2" style="margin-top:16px">' +
-          card('Coverage by region', 'Share of schools in each cluster that anyone has approached.',
-               C.hbar({ data: U.sortBy(byRegion.map(function (g) { return { key: g.key, value: Math.round(g.coverage) }; }),
-                                       function (d) { return d.value; }, 'desc'),
-                        format: function (v) { return v + '%'; }, measureLabel: 'Coverage',
-                        onClick: true,
-                        tipRows: function (d) {
-                          var g = byRegion.filter(function (x) { return x.key === d.key; })[0];
-                          return [['Approached', U.count(g.approached) + ' of ' + U.count(g.schools)],
-                                  ['TAM value', U.money(g.tamValue)],
-                                  ['Open pipeline', U.money(g.openValue)]];
-                        } }),
-               'region') +
-          card('Open pipeline by owner', 'Where the live value sits.',
-               C.hbar({ data: byOwner.map(function (g) { return { key: g.key, value: g.openValue }; }),
-                        format: U.money, measureLabel: 'Open value', onClick: true,
-                        color: function (d) { return d.key === 'Unassigned' ? 'var(--serious)' : 'var(--series-1)'; },
-                        tipRows: function (d) {
-                          var g = byOwner.filter(function (x) { return x.key === d.key; })[0];
-                          return [['Open value', U.money(g.openValue)], ['Accounts', U.count(g.schools)],
-                                  ['Gone quiet', U.count(g.stalled.length)]];
-                        } }),
-               'owner') +
-        '</div>';
+          card('Performance per region', 'Contacted against closed.', RB.viewsSales.perfTable(byRegion, 'Region')) +
+          card('Performance per sales person', 'Contacted against closed.', RB.viewsSales.perfTable(byOwner, 'Sales person')) +
+        '</div>' +
+
+        '<div class="card" style="margin-top:16px"><div class="card-head"><h3>What needs a decision this week</h3>' +
+          '<span class="card-sub">ranked by money at stake</span></div>' +
+          UI.insightList(M.insights(rows, opts()).slice(0, 5)) + '</div>';
 
       bindFilters(host, render);
       host.querySelector('#export-all').addEventListener('click', function () { UI.exportSchools(rows, 'robobox-full-pipeline.csv'); });
       host.querySelector('#tam-rate').addEventListener('click', rateDialog);
+      host.querySelector('#go-team').addEventListener('click', function () { RB.app.go('ceo-team'); });
 
       host.querySelectorAll('[data-stat]').forEach(function (b) {
         b.addEventListener('click', function () {
@@ -198,24 +198,39 @@ RB.viewsCEO = (function () {
           if (k === 'coverage') drill('Never contacted', rows.filter(function (r) { return !M.isApproached(r); }));
           if (k === 'open') drill('Open pipeline', rows.filter(M.isOpen));
           if (k === 'won') drill('Won', rows.filter(M.isWon));
-          if (k === 'stalled') drill('Gone quiet', s.stalled);
         });
       });
-
-      // funnel drill
-      var funnelSvg = host.querySelectorAll('.card')[1];
-      host.querySelectorAll('[data-key]').forEach(function (g) {
-        g.addEventListener('click', function () {
-          var key = g.getAttribute('data-key');
-          var stageStep = f.filter(function (x) { return x.key === key; })[0];
-          if (stageStep) return drill('Reached ' + key, stageStep.rows);
-          var reg = byRegion.filter(function (x) { return x.key === key; })[0];
-          if (reg) return drill('Region: ' + key, reg.rows);
-          var ow = byOwner.filter(function (x) { return x.key === key; })[0];
-          if (ow) return drill('Owner: ' + key, ow.rows);
+      host.querySelectorAll('[data-go]').forEach(function (b) {
+        b.addEventListener('click', function () {
+          var v = b.getAttribute('data-go').split(':');
+          if (v[0] === 'school') return UI.schoolDetail(v[1]);
+          var bl = topBlockers(rows).filter(function (x) { return x.key === v.slice(1).join(':'); })[0];
+          if (bl) drill('Blocker: ' + bl.key, bl.rows);
         });
       });
     }
+  }
+
+  function insightCard(title, sub, body) {
+    return '<div class="card"><div class="card-head"><h3>' + U.esc(title) + '</h3></div>' +
+      '<p class="small muted" style="margin:-8px 0 10px">' + U.esc(sub) + '</p>' + body + '</div>';
+  }
+
+  function listRow(name, value, sub, go) {
+    // Name and detail stack, so a long blocker label never pushes the row to
+    // two different heights from its neighbours.
+    return '<button class="ql-row" data-go="' + U.esc(go) + '">' +
+      '<span class="stack" style="gap:1px;min-width:0"><strong>' + U.esc(C.truncate(name, 28)) + '</strong>' +
+      (sub ? '<span class="small muted">' + U.esc(C.truncate(sub, 34)) + '</span>' : '') + '</span>' +
+      '<span class="tnum small nowrap">' + U.esc(value) + '</span></button>';
+  }
+
+  function topBlockers(rows) {
+    return U.sortBy(Object.keys(M.BLOCKER_LABEL).map(function (tag) {
+      var list = rows.filter(function (r) { return r.blockerTags.indexOf(tag) !== -1; });
+      return { key: M.BLOCKER_LABEL[tag], tag: tag, rows: list, n: list.length,
+               value: U.sum(list.filter(M.isOpen), M.dealSize) };
+    }).filter(function (b) { return b.n; }), function (b) { return b.value || b.n; }, 'desc');
   }
 
   function rateDialog() {
@@ -461,11 +476,35 @@ RB.viewsCEO = (function () {
       var users = RB.store.users();
       var cards = M.repScorecards(rows, users, opts());
       var withRows = cards.filter(function (c) { return c.schools; });
+      var s2 = M.summarise(rows, opts());
+
+      var updatedToday = M.updatesOn(rows, U.iso(U.today()));
+      var idle = cards.filter(function (c) { return c.schools && !c.updatesToday; });
 
       host.innerHTML =
         head('Team performance', 'Effort against outcome, per person. Click a bar to open that rep\'s accounts.') +
         filterBar() +
-        '<div class="grid grid-2">' +
+        UI.statRow([
+          UI.stat({ label: 'Updated data today', value: U.count(updatedToday), small: true,
+                    tone: updatedToday ? 'good' : 'warning',
+                    foot: '<span class="sec">' + (idle.length ? idle.map(function (c) { return c.user.name; }).join(', ') + ' yet to log' : 'everyone has logged something') + '</span>' }),
+          UI.stat({ label: 'Team potential revenue', value: U.money(s2.potentialRevenue), small: true }),
+          UI.stat({ label: 'Revenue generated', value: U.money(s2.revenueGenerated), small: true,
+                    tone: s2.revenueGenerated ? 'good' : null }),
+          UI.stat({ label: 'Conversion', value: s2.conversion.toFixed(1) + '%', small: true,
+                    foot: '<span class="sec">closed ÷ approached</span>' }),
+          UI.stat({ label: 'Unassigned schools', value: U.count(rows.filter(function (r) { return !r.owners.length; }).length),
+                    small: true, tone: 'warning' })
+        ]) +
+        '<div class="card"><div class="card-head"><h3>This month against target</h3>' +
+          '<span class="card-sub">per person, current month</span></div>' +
+          '<div class="grid grid-3">' + cards.filter(function (c) { return c.schools; }).map(function (c) {
+            var t = M.scorecardVsTarget(c.rows, c.user, opts());
+            return '<div><div class="row" style="margin-bottom:6px"><strong>' + U.esc(c.user.name) + '</strong>' +
+              (t.placeholder ? '<span class="tag tag-warning" style="margin-left:auto">placeholder</span>' : '') + '</div>' +
+              RB.viewsSales.targetBars(t) + '</div>';
+          }).join('') + '</div></div>' +
+        '<div class="grid grid-2" style="margin-top:16px">' +
           card('Open pipeline by rep', 'Live value each person is carrying.',
                C.hbar({ data: U.sortBy(withRows, function (c) { return c.openValue; }, 'desc')
                           .map(function (c) { return { key: c.user.name, value: c.openValue }; }),
@@ -839,9 +878,19 @@ RB.viewsCEO = (function () {
           }));
       }
 
+      var f = M.funnel(rows);
+      var convSteps = M.conversion(rows);
+
       host.innerHTML =
-        head('Deep dive', 'Slice the pipeline any way you like, then open the schools behind any number.') +
+        head('Deep dive', 'The funnel, then any slice of the pipeline you want to take apart.') +
         filterBar() +
+        '<div class="grid grid-2">' +
+          card('Pipeline funnel', 'Cumulative — a school at Proposal counts at every stage below it. Click a stage to open it.',
+               C.funnel({ data: f, format: U.money, onClick: true })) +
+          card('Step-by-step conversion', 'Share getting through each step, and the value that stops there.',
+               conversionTable(convSteps)) +
+        '</div>' +
+        '<div class="section-title">Slice it your way</div>' +
         '<div class="filters">' +
           '<span class="filter-label">Group by</span>' +
           UI.select('dim', Object.keys(M.DIMENSIONS).map(function (k) { return { value: k, label: M.DIMENSIONS[k].label }; }), X.dim) +
@@ -894,6 +943,8 @@ RB.viewsCEO = (function () {
             var p = key.split('||');
             return drill(p[0] + ' × ' + p[1], cellRows(rows, p[0], p[1]));
           }
+          var step = f.filter(function (x) { return x.key === key; })[0];
+          if (step) return drill('Reached ' + key, step.rows);
           var grp = groups.filter(function (x) { return x.key === key; })[0];
           if (grp) drill(M.DIMENSIONS[X.dim].label + ': ' + key, grp.rows);
         });
@@ -936,7 +987,7 @@ RB.viewsCEO = (function () {
   }
 
   return {
-    commandCenter: commandCenter, funnelView: funnelView, market: market, team: team,
+    commandCentre: commandCentre, market: market, team: team,
     blockers: blockers, health: health, explorer: explorer, drill: drill
   };
 })();

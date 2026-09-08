@@ -169,6 +169,21 @@ def competitors(v):
     u = t.upper().strip()
     return [COMP_FIX.get(u, u)]
 
+# ------------------------------------------------------------- products
+# Robobox sells two main lines plus one-off workshops. The sheet never has a
+# product column, so the line is read from how the rep described the deal.
+PRODUCT_RULES = [
+    ('Bagless',    r'BAGLESS|BAGFLESS|BAGLES|POWERPACK'),
+    ('Curriculum', r'ROBOTIC|CURRICUL|COMPOSITE LAB|\bLAB\b|STEM|TINKER|\bATL\b|AFTER SCHOOL'),
+    ('Workshop',   r'WORKSHOP|\bWKS\b'),
+]
+
+def products(*fields):
+    blob = ' '.join(f for f in fields if f).upper()
+    if not blob:
+        return []
+    return [name for name, pat in PRODUCT_RULES if re.search(pat, blob)]
+
 # ---------------------------------------------------------------- stage
 # Evidence -> suggested stage. Ordered most-advanced first; first hit wins.
 STAGE_RULES = [
@@ -254,6 +269,7 @@ for i, r in enumerate(raw):
         'nextActionDate': None,
         'expectedClosure': None,
         'expectedClosureRaw': s(r['Expected Closure Date']),
+        'products': products(opportunity, remarks, s(r['Next Action'])),
         'blockers': s(r['Blockers']),
         'blockerTags': blocker_tags(r['Blockers']),
         'competitors': competitors(r['Competition']),
@@ -261,6 +277,9 @@ for i, r in enumerate(raw):
         'missingCount': int(num(r['Missing Critical Fields']) or 0),
         'duplicateFlag': s(r['Duplicate Check']) == 'Possible duplicate',
         'inActionQueue': (name.upper(), (loc or '').upper()) in action_keys,
+        'origin': 'import',
+        'addedAt': None,
+        'rejectedReason': None,
         'activities': [],
         'createdAt': None,
         'updatedAt': None,
@@ -274,12 +293,16 @@ meta = {
     'schools': len(schools),
 }
 
+def targets(revenue, approach, meetings, updates):
+    return {'revenue': revenue, 'schoolsApproached': approach,
+            'meetings': meetings, 'updates': updates, 'placeholder': True}
+
 users = [
-    {'id': 'parth',  'name': 'Parth',  'role': 'ceo',        'ownerKey': 'PARTH',  'email': 'parth@robobox.in',  'pin': 'parth'},
-    {'id': 'ayush',  'name': 'Ayush',  'role': 'sales_head', 'ownerKey': 'AYUSH',  'email': 'ayush@robobox.in',  'pin': 'ayush'},
-    {'id': 'sid',    'name': 'Sid',    'role': 'sales',      'ownerKey': 'SID',    'email': 'sid@robobox.in',    'pin': 'sid'},
-    {'id': 'vikas',  'name': 'Vikas',  'role': 'sales',      'ownerKey': 'VIKAS',  'email': 'vikas@robobox.in',  'pin': 'vikas'},
-    {'id': 'manish', 'name': 'Manish', 'role': 'sales',      'ownerKey': 'MANISH', 'email': 'manish@robobox.in', 'pin': 'manish'},
+    {'id': 'parth',  'name': 'Parth',  'role': 'ceo',        'ownerKey': 'PARTH',  'email': 'parth@robobox.in',  'pin': 'parth',  'targets': targets(5000000, 20, 30, 40)},
+    {'id': 'ayush',  'name': 'Ayush',  'role': 'sales_head', 'ownerKey': 'AYUSH',  'email': 'ayush@robobox.in',  'pin': 'ayush',  'targets': targets(5000000, 25, 35, 50)},
+    {'id': 'sid',    'name': 'Sid',    'role': 'sales',      'ownerKey': 'SID',    'email': 'sid@robobox.in',    'pin': 'sid',    'targets': targets(3000000, 20, 30, 40)},
+    {'id': 'vikas',  'name': 'Vikas',  'role': 'sales',      'ownerKey': 'VIKAS',  'email': 'vikas@robobox.in',  'pin': 'vikas',  'targets': targets(3000000, 20, 30, 40)},
+    {'id': 'manish', 'name': 'Manish', 'role': 'sales',      'ownerKey': 'MANISH', 'email': 'manish@robobox.in', 'pin': 'manish', 'targets': targets(2000000, 15, 25, 30)},
 ]
 
 payload = {'meta': meta, 'users': users, 'schools': schools}
@@ -296,4 +319,6 @@ print('source :', dict(collections.Counter(s_['leadSource'] for s_ in schools)))
 print('rates  :', dict(collections.Counter(s_['ratePerStudent'] for s_ in schools if s_['ratePerStudent'])))
 print('dates  :', dict(collections.Counter(s_['lastContactedPrecision'] for s_ in schools)))
 print('inAQ   :', sum(1 for s_ in schools if s_['inActionQueue']))
+print('product:', dict(collections.Counter(p for s_ in schools for p in s_['products'])))
+print('noprod :', sum(1 for s_ in schools if not s_['products']))
 print('bytes  :', len(js))

@@ -10,6 +10,7 @@ RB.viewsSales = (function () {
   var U = RB.util, M = RB.metrics, C = RB.charts, UI = RB.ui;
 
   function rows() { return RB.auth.visibleSchools(); }
+  function mine() { return RB.auth.mySchools(); }
   function settings() { return RB.store.settings(); }
   function opts() { return { tamRate: settings().tamRatePerStudent, stalledAfterDays: settings().stalledAfterDays }; }
 
@@ -30,55 +31,85 @@ RB.viewsSales = (function () {
     });
   }
 
-  /* =========================================================== MY DAY ==== */
+  /* ============================================================ TODAY ==== */
+  /* The screen a rep opens each morning and comes back to after every visit.
+   * Logging is the point, so it leads: one button, then the list of who is
+   * owed a follow-up, each with its own log shortcut. */
   function myDay(host) {
-    var mine = rows();
+    var mine = RB.auth.mySchools();
+    var me = RB.auth.user();
     var s = M.summarise(mine, opts());
     var limit = settings().stalledAfterDays;
-    var user = RB.auth.user();
+    var loggedToday = M.updatesOn(mine, U.iso(U.today()), me.id);
+    var target = M.scorecardVsTarget(mine, me, opts());
 
     var overdue = U.sortBy(mine.filter(M.isOverdue), function (r) { return r.nextActionDate; }, 'asc');
-    var dueSoon = U.sortBy(mine.filter(function (r) { return M.dueWithin(r, 7) && !M.isOverdue(r); }), function (r) { return r.nextActionDate; }, 'asc');
-    var quiet = U.sortBy(mine.filter(function (r) { return M.isStalled(r, limit) && !M.isOverdue(r); }), M.dealSize, 'desc');
+    var dueToday = mine.filter(M.isDueToday);
+    var dueSoon = U.sortBy(mine.filter(function (r) { return M.dueWithin(r, 7) && !M.isOverdue(r) && !M.isDueToday(r); }),
+                           function (r) { return r.nextActionDate; }, 'asc');
+    var quiet = U.sortBy(mine.filter(function (r) { return M.isSilent(r, limit) && !M.isOverdue(r); }), M.dealSize, 'desc');
     var noPlan = mine.filter(function (r) { return M.isOpen(r) && M.isWorking(r) && !r.nextAction; });
 
-    var acts30 = [];
-    mine.forEach(function (r) {
-      r.activities.forEach(function (a) { if (U.daysSince(a.date) <= 30) acts30.push(a); });
-    });
-
     host.innerHTML =
-      head('Good to see you, ' + user.name,
-           'Everything you owe someone a follow-up on, in one place.',
+      head('Today',
+           me.name + ' — ' + U.fmtDate(U.iso(U.today())) + '. Log what happened, and everything else updates itself.',
+           '<button class="btn btn-primary" id="quick-log">Log an update</button>' +
            '<button class="btn" data-new-school>+ Add a school</button>') +
 
-      UI.statRow([
-        UI.stat({ label: 'Open pipeline', value: U.money(s.openValue), foot: '<span class="sec">' + s.openCount + ' quantified deals of ' + s.openAll + ' open</span>' }),
-        UI.stat({ label: 'Weighted forecast', value: U.money(s.weighted), foot: '<span class="sec">stage-adjusted</span>' }),
-        UI.stat({ label: 'Overdue follow-ups', value: U.count(overdue.length), tone: overdue.length ? 'critical' : null,
-                  foot: '<span class="sec">' + U.money(U.sum(overdue, M.dealSize)) + ' at risk</span>' }),
-        UI.stat({ label: 'Gone quiet', value: U.count(s.stalled.length), tone: s.stalled.length ? 'serious' : null,
-                  foot: '<span class="sec">no contact in ' + limit + '+ days</span>' }),
-        UI.stat({ label: 'Updates logged (30d)', value: U.count(acts30.length),
-                  foot: '<span class="sec">' + acts30.filter(function (a) { return /Meeting|Visit|Demo/.test(a.type); }).length + ' were meetings</span>' })
-      ]) +
-
-      '<div class="grid grid-2">' +
-        listCard('Overdue — do these first', overdue, 'Nothing overdue. Good.', 'critical') +
-        listCard('Coming up this week', dueSoon, 'Nothing scheduled in the next 7 days.', 'accent') +
+      '<div class="card" style="border-left:3px solid ' + (loggedToday ? 'var(--good)' : 'var(--warning)') + '">' +
+        '<div class="row wrap" style="gap:14px">' +
+          '<div><div class="stat-label">Updates you logged today</div>' +
+            '<div class="stat-value" style="color:' + (loggedToday ? 'var(--good-text)' : 'var(--text-primary)') + '">' + U.count(loggedToday) + '</div></div>' +
+          '<div style="flex:1;min-width:230px" class="sec small">' +
+            (loggedToday
+              ? 'Every one of those has already moved the pipeline — stage, last contact and next step are current.'
+              : 'Nothing logged yet. Each update you log rewrites the pipeline for everyone, so the dashboards are only as fresh as this number.') +
+          '</div>' +
+          '<div class="row" style="gap:6px">' +
+            '<span class="tag">' + overdue.length + ' overdue</span>' +
+            '<span class="tag">' + dueToday.length + ' due today</span>' +
+            '<span class="tag">' + quiet.length + ' silent</span>' +
+          '</div>' +
+        '</div>' +
       '</div>' +
 
       '<div class="grid grid-2" style="margin-top:16px">' +
-        listCard('Gone quiet — biggest first', quiet, 'Everything has been touched recently.', 'serious') +
-        (noPlan.length
-          ? '<div class="card"><div class="card-head"><h3>No next step written down</h3>' +
-            '<span class="card-sub">' + noPlan.length + ' accounts</span></div>' +
-            '<p class="sec small" style="margin-top:0">These cannot be forecast until someone says what happens next.</p>' +
-            noPlan.slice(0, 10).map(schoolLine).join('') + '</div>'
-          : '<div class="card"><div class="card-head"><h3>Next steps</h3></div><div class="empty">Every live account has a next step. Nice.</div></div>') +
-      '</div>';
+        listCard('Overdue — do these first', overdue, 'Nothing overdue. Good.', 'critical') +
+        listCard('Due today', dueToday.concat(dueSoon), 'Nothing scheduled today or this week.', 'accent') +
+      '</div>' +
 
+      '<div class="grid grid-2" style="margin-top:16px">' +
+        listCard('Gone silent — biggest first', quiet, 'Everything has been touched recently.', 'serious') +
+        '<div class="card"><div class="card-head"><h3>This month against your target</h3>' +
+          (target.placeholder ? '<span class="tag tag-warning">placeholder targets</span>' : '') + '</div>' +
+          targetBars(target) +
+          (target.placeholder ? '<p class="small muted" style="margin:10px 0 0">These are stand-in numbers. Ayush or Parth can set the real ones in Settings.</p>' : '') +
+        '</div>' +
+      '</div>' +
+
+      (noPlan.length
+        ? '<div class="card"><div class="card-head"><h3>No next step written down</h3>' +
+          '<span class="card-sub">' + noPlan.length + ' accounts</span></div>' +
+          '<p class="sec small" style="margin-top:0">These cannot be forecast until someone says what happens next.</p>' +
+          noPlan.slice(0, 8).map(schoolLine).join('') + '</div>'
+        : '');
+
+    host.querySelector('#quick-log').addEventListener('click', UI.quickLog);
     bindCommon(host);
+  }
+
+  function targetBars(target) {
+    return '<div>' + target.rows.map(function (r) {
+      var pct = r.target ? Math.min(100, (r.actual / r.target) * 100) : 0;
+      var fmt = r.money ? U.money : U.count;
+      var cls = pct >= 100 ? 'hit' : pct < 40 ? 'low' : '';
+      return '<div class="tgt">' +
+        '<span class="tgt-label">' + U.esc(r.label) + '</span>' +
+        '<span class="tgt-track"><span class="tgt-fill ' + cls + '" style="width:' + pct.toFixed(0) + '%"></span></span>' +
+        '<span class="tgt-num"><strong>' + U.esc(fmt(r.actual)) + '</strong> <span class="muted">/ ' +
+          (r.target ? U.esc(fmt(r.target)) : '—') + '</span></span>' +
+      '</div>';
+    }).join('') + '</div>';
   }
 
   function listCard(title, list, emptyMsg, tone) {
@@ -246,47 +277,82 @@ RB.viewsSales = (function () {
     });
   }
 
-  /* ======================================================== MY PROGRESS === */
+  /* ==================================================== MY DASHBOARD ===== */
+  /* The rep's own numbers, laid out the way the team asked for them:
+   * how big the patch is, how much of it has been worked, what closed, and
+   * how that splits by region, by person and by product line. */
   function myProgress(host) {
-    var mine = rows();
+    var mine = RB.auth.mySchools();
     var me = RB.auth.user();
     var s = M.summarise(mine, opts());
     var limit = settings().stalledAfterDays;
+    var target = M.scorecardVsTarget(mine, me, opts());
 
     var acts = [];
     mine.forEach(function (r) { r.activities.forEach(function (a) { acts.push(a); }); });
     var series = M.activitySeries(acts, 6);
-    var f = M.funnel(mine);
-    var conv = M.conversion(mine);
 
-    var byStage = M.byDimension(mine, 'stage', opts());
     var byRegion = M.byDimension(mine, 'region', opts());
     var worked = mine.filter(M.isWorking);
-
+    var conv = M.conversion(mine);
     var weakest = U.sortBy(conv.filter(function (c) { return c.lost > 0; }), function (c) { return c.rate; }, 'asc')[0];
 
     host.innerHTML =
-      head('My progress', 'How your pipeline is moving, and where it is getting stuck.',
+      head('My dashboard',
+           'Your own accounts — ' + U.count(mine.length) + ' schools. Where they stand, and how they are converting.',
+           '<button class="btn btn-primary" id="dash-log">Log an update</button>' +
            '<button class="btn" id="export-progress">Download my data</button>') +
 
       UI.statRow([
-        UI.stat({ label: 'Accounts owned', value: U.count(mine.length),
+        UI.stat({ label: 'Total schools', value: U.count(mine.length), small: true,
                   foot: '<span class="sec">' + U.count(s.students) + ' students</span>' }),
-        UI.stat({ label: 'Open pipeline', value: U.money(s.openValue),
+        UI.stat({ label: 'Approached', value: U.count(s.approached), small: true,
+                  foot: '<span class="sec">' + Math.round(s.coverage) + '% of the patch</span>', onClick: 'approached' }),
+        UI.stat({ label: 'Silent', value: U.count(s.silent.length), small: true,
+                  tone: s.silent.length ? 'serious' : null,
+                  foot: '<span class="sec">no reply in ' + limit + '+ days</span>', onClick: 'silent' }),
+        UI.stat({ label: 'Rejected', value: U.count(s.rejected.length), small: true,
+                  tone: s.rejected.length ? 'critical' : null,
+                  foot: '<span class="sec">' + (s.rejected.length ? U.money(U.sum(s.rejected, M.dealSize)) + ' lost' : 'none marked yet') + '</span>',
+                  onClick: 'rejected' }),
+        UI.stat({ label: 'Closed', value: U.count(s.wonCount), small: true,
+                  tone: s.wonCount ? 'good' : null,
+                  foot: '<span class="sec">' + U.money(s.revenueGenerated) + ' generated</span>', onClick: 'won' })
+      ]) +
+
+      UI.statRow([
+        UI.stat({ label: 'Conversion', value: s.conversion.toFixed(s.conversion < 10 ? 1 : 0) + '%', small: true,
+                  foot: '<span class="sec">closed ÷ approached</span>' }),
+        UI.stat({ label: 'Potential revenue', value: U.money(s.potentialRevenue), small: true,
                   foot: '<span class="sec">' + s.openCount + ' quantified deals</span>' }),
-        UI.stat({ label: 'Weighted forecast', value: U.money(s.weighted),
-                  foot: '<span class="sec">avg deal ' + U.money(s.avgDeal) + '</span>' }),
-        UI.stat({ label: 'Won', value: U.money(s.wonValue),
-                  foot: '<span class="sec">' + s.wonCount + ' deals' + (s.winRate === null ? '' : ' · ' + Math.round(s.winRate) + '% win rate') + '</span>' }),
-        UI.stat({ label: 'Record completeness', value: Math.round(s.hygiene) + '%',
-                  tone: s.hygiene < 60 ? 'critical' : s.hygiene < 85 ? 'warning' : null,
-                  foot: '<span class="sec">' + worked.length + ' worked accounts</span>' })
+        UI.stat({ label: 'Revenue generated', value: U.money(s.revenueGenerated), small: true }),
+        UI.stat({ label: 'Avg deal size', value: U.money(s.avgDeal), small: true,
+                  foot: '<span class="sec">median ' + U.money(s.medianDeal) + '</span>' }),
+        UI.stat({ label: 'New schools added', value: U.count(s.newLast1), small: true,
+                  foot: '<span class="sec">' + s.newLast2 + ' in 2mo · ' + s.newLast3 + ' in 3mo</span>',
+                  title: 'Counts schools added in the app. The 343 that came from the master sheet are excluded.' })
       ]) +
 
       '<div class="grid grid-2">' +
-        card('Your funnel', 'Cumulative — an account at Proposal also counts at every stage below it.',
-             C.funnel({ data: f, format: U.money })) +
-        card('Updates you logged', 'Last six months, by outcome.',
+        '<div class="card"><div class="card-head"><h3>This month against target</h3>' +
+          (target.placeholder ? '<span class="tag tag-warning">placeholder targets</span>' : '') + '</div>' +
+          targetBars(target) +
+          (target.placeholder ? '<p class="small muted" style="margin:10px 0 0">Stand-in numbers until real targets are set in Settings.</p>' : '') +
+        '</div>' +
+        card('Closed deals by product line', 'What the team actually sells.',
+             productTable(s, mine)) +
+      '</div>' +
+
+      '<div class="grid grid-2" style="margin-top:16px">' +
+        card('Performance per region', 'Schools contacted against schools closed.',
+             perfTable(byRegion, 'Region')) +
+        card('Your patch by region', 'Schools you own in each cluster.',
+             C.hbar({ data: byRegion.map(function (g) { return { key: g.key, value: g.schools }; }),
+                      format: U.count, measureLabel: 'Schools' })) +
+      '</div>' +
+
+      '<div class="grid grid-2" style="margin-top:16px">' +
+        card('Updates logged', 'Last six months, by how the conversation went.',
              acts.length
                ? C.line({
                    labels: series.map(function (m) { return U.monthLabel(m.key); }),
@@ -294,43 +360,39 @@ RB.viewsSales = (function () {
                      { label: 'Positive', color: 'var(--series-1)', points: series.map(function (m) { return { y: m.Positive }; }) },
                      { label: 'Neutral', color: 'var(--series-2)', points: series.map(function (m) { return { y: m.Neutral }; }) },
                      { label: 'Negative', color: 'var(--series-3)', points: series.map(function (m) { return { y: m.Negative + m['No response'] }; }) }
-                   ],
-                   height: 230
+                   ], height: 230
                  })
                : '<div class="empty">Log your first update and this chart starts filling in.</div>') +
+        '<div class="card"><div class="card-head"><h3>What to fix</h3></div>' +
+          UI.insightList(personalInsights(mine, s, limit, weakest)) + '</div>' +
       '</div>' +
 
-      '<div class="grid grid-2" style="margin-top:16px">' +
-        card('Where your pipeline value sits', 'Open deal value by stage.',
-             C.hbar({ data: byStage.map(function (g) { return { key: g.key, value: g.openValue }; }),
-                      format: U.money, measureLabel: 'Open value',
-                      tipRows: function (d) { return [['Open value', U.money(d.value)]]; } })) +
-        card('Your accounts by region', 'Schools you own in each cluster.',
-             C.hbar({ data: byRegion.map(function (g) { return { key: g.key, value: g.schools }; }),
-                      format: U.count, measureLabel: 'Schools',
-                      tipRows: function (d) { return [['Schools', U.count(d.value)]]; } })) +
-      '</div>' +
-
-      '<div class="card" style="margin-top:16px"><div class="card-head"><h3>What to fix</h3>' +
-        '<span class="card-sub">based on your own accounts</span></div>' +
-        UI.insightList(personalInsights(mine, s, limit, weakest)) + '</div>' +
-
-      '<div class="card"><div class="card-head"><h3>Records missing information</h3>' +
-        '<span class="card-sub">' + s.workingCount + ' accounts you are actively working</span></div>' +
+      '<div class="card" style="margin-top:16px"><div class="card-head"><h3>Records missing information</h3>' +
+        '<span class="card-sub">' + s.workingCount + ' accounts being worked</span></div>' +
         '<div id="gap-table"></div></div>';
 
+    host.querySelector('#dash-log').addEventListener('click', UI.quickLog);
     host.querySelector('#export-progress').addEventListener('click', function () {
       UI.exportSchools(mine, 'robobox-' + me.id + '-' + U.iso(U.today()) + '.csv');
+    });
+    host.querySelectorAll('[data-stat]').forEach(function (b) {
+      b.addEventListener('click', function () {
+        var k = b.getAttribute('data-stat');
+        var map = {
+          approached: ['Approached', mine.filter(M.isApproached)],
+          silent: ['Silent', s.silent],
+          rejected: ['Rejected', s.rejected],
+          won: ['Closed', mine.filter(M.isWon)]
+        };
+        if (map[k]) drillList(map[k][0], map[k][1]);
+      });
     });
 
     var gaps = U.sortBy(worked.filter(function (r) { return M.missingFields(r).length; }), M.dealSize, 'desc');
     UI.table(host.querySelector('#gap-table'), {
-      rows: gaps,
-      rowId: function (r) { return r.id; },
-      sortKey: 'deal',
-      pageSize: 10,
+      rows: gaps, rowId: function (r) { return r.id; }, sortKey: 'deal', pageSize: 10,
       onRowClick: function (id) { UI.schoolDetail(id); },
-      empty: 'Every account you are working is complete. Rare and appreciated.',
+      empty: 'Every account being worked is complete. Rare and appreciated.',
       columns: [
         { key: 'name', label: 'School', get: function (r) { return r.name; },
           render: function (r) { return '<span class="strong">' + U.esc(r.name) + '</span>'; } },
@@ -347,6 +409,64 @@ RB.viewsSales = (function () {
     bindCommon(host.querySelector('#gap-table'));
   }
 
+  /* Contacted vs closed, the two columns the team asked for, per group. */
+  function perfTable(groups, label) {
+    if (!groups.length) return '<div class="empty">No data.</div>';
+    var anyClosed = groups.some(function (g) { return g.wonCount; });
+    return '<div class="table-wrap"><table class="data"><thead><tr>' +
+      '<th>' + U.esc(label) + '</th><th class="num">Contacted</th>' +
+      '<th class="num">Closed</th><th class="num">Conv.</th><th class="num">Revenue</th>' +
+      '</tr></thead><tbody>' +
+      groups.map(function (g) {
+        return '<tr><td class="strong">' + U.esc(g.key) +
+            '<div class="small muted">' + U.count(g.schools) + ' schools</div></td>' +
+          '<td class="num">' + U.count(g.approached) +
+            '<div class="small muted">' + Math.round(g.coverage) + '%</div></td>' +
+          '<td class="num">' + U.count(g.wonCount) + '</td>' +
+          '<td class="num">' + (g.approached ? U.pct(g.wonCount, g.approached) : '—') + '</td>' +
+          '<td class="num">' + (g.wonValue ? U.money(g.wonValue) : '<span class="muted">—</span>') + '</td></tr>';
+      }).join('') + '</tbody></table></div>' +
+      (anyClosed ? '' : '<p class="small muted" style="margin:10px 0 0">The imported sheet recorded no closed deals, ' +
+        'so every Closed column reads zero. It fills in as the team marks schools Won.</p>');
+  }
+
+  /* Curriculum vs Bagless vs Workshop — closed and still open. */
+  function productTable(s, mine) {
+    var any = M.PRODUCTS.some(function (p) { return s.openByProduct[p].length || s.wonByProduct[p].length; });
+    if (!any) return '<div class="empty">No product line recorded yet. The log form asks for it.</div>';
+    return '<div class="table-wrap"><table class="data"><thead><tr>' +
+      '<th>Product</th><th class="num">Schools closed</th><th class="num">Revenue</th>' +
+      '<th class="num">Still open</th><th class="num">Potential</th></tr></thead><tbody>' +
+      M.PRODUCTS.map(function (p) {
+        var won = s.wonByProduct[p], open = s.openByProduct[p];
+        return '<tr><td class="strong">' + U.esc(p) + '</td>' +
+          '<td class="num">' + U.count(won.length) + '</td>' +
+          '<td class="num">' + (U.sum(won, M.dealSize) ? U.money(U.sum(won, M.dealSize)) : '<span class="muted">—</span>') + '</td>' +
+          '<td class="num">' + U.count(open.length) + '</td>' +
+          '<td class="num">' + (U.sum(open, M.dealSize) ? U.money(U.sum(open, M.dealSize)) : '<span class="muted">—</span>') + '</td></tr>';
+      }).join('') +
+      '<tr><td class="muted">Not recorded</td><td class="num muted">—</td><td class="num muted">—</td>' +
+      '<td class="num muted">' + U.count(mine.filter(function (r) { return M.isOpen(r) && !r.products.length; }).length) + '</td>' +
+      '<td class="num muted">—</td></tr>' +
+      '</tbody></table></div>';
+  }
+
+  function drillList(title, list) {
+    var holder = document.createElement('div');
+    holder.innerHTML = '<div id="dl-table"></div>';
+    UI.modal(title + ' \u00b7 ' + list.length + ' schools', holder, {
+      wide: true,
+      onMount: function (h) {
+        UI.table(h.querySelector('#dl-table'), {
+          rows: list, rowId: function (r) { return r.id; }, sortKey: 'deal', pageSize: 15,
+          columns: UI.schoolColumns({ hide: ['next'] }),
+          onRowClick: function (id) { UI.schoolDetail(id); },
+          empty: 'Nothing here.'
+        });
+      }
+    });
+  }
+
   function personalInsights(mine, s, limit, weakest) {
     var out = [];
     if (s.overdue.length) {
@@ -354,7 +474,7 @@ RB.viewsSales = (function () {
         body: U.money(U.sum(s.overdue, M.dealSize)) + ' of your pipeline is sitting past the date you set for it.' });
     }
     if (s.stalled.length) {
-      out.push({ level: 'warn', icon: '⏳', title: s.stalled.length + ' accounts have gone quiet',
+      out.push({ level: 'warn', icon: '⏳', title: s.stalled.length + ' accounts have gone silent',
         body: 'No contact in over ' + limit + ' days on ' + U.money(U.sum(s.stalled, M.dealSize)) + ' of open value.' });
     }
     if (weakest && weakest.lost > 0) {
@@ -391,6 +511,9 @@ RB.viewsSales = (function () {
       head('Team roll-up', 'How the sales team is tracking. Click any rep to filter the pipeline.',
            '<button class="btn" id="export-team">Download team data</button>') +
       UI.statRow([
+        UI.stat({ label: 'Updated data today', value: U.count(M.updatesOn(all, U.iso(U.today()))),
+                  tone: M.updatesOn(all, U.iso(U.today())) ? 'good' : 'warning',
+                  foot: '<span class="sec">across the whole team</span>' }),
         UI.stat({ label: 'Team open pipeline', value: U.money(s.openValue), foot: '<span class="sec">' + s.openCount + ' quantified deals</span>' }),
         UI.stat({ label: 'Weighted forecast', value: U.money(s.weighted) }),
         UI.stat({ label: 'Accounts gone quiet', value: U.count(s.stalled.length), tone: s.stalled.length ? 'serious' : null,
@@ -419,32 +542,47 @@ RB.viewsSales = (function () {
     });
   }
 
+  /* The spec's team-performance columns: accounts, whether they updated
+   * anything today, approached, conversion, potential and generated revenue,
+   * average deal size. */
   function repColumns() {
     return [
-      { key: 'name', label: 'Rep', get: function (c) { return c.user.name; },
-        render: function (c) { return '<span class="strong">' + U.esc(c.user.name) + '</span><div class="small muted">' + U.esc(RB.auth.roleLabel(c.user.role)) + '</div>'; } },
-      { key: 'accounts', label: 'Accounts', num: true, get: function (c) { return c.schools; },
+      { key: 'name', label: 'Sales person', get: function (c) { return c.user.name; },
+        render: function (c) {
+          return '<span class="strong">' + U.esc(c.user.name) + '</span><div class="small muted">' +
+            U.esc(RB.auth.roleLabel(c.user.role)) + '</div>';
+        } },
+      { key: 'accounts', label: 'Total accounts', num: true, get: function (c) { return c.schools; },
         render: function (c) { return U.count(c.schools); } },
-      { key: 'open', label: 'Open pipeline', num: true, get: function (c) { return c.openValue; },
-        render: function (c) { return U.money(c.openValue); } },
-      { key: 'weighted', label: 'Weighted', num: true, get: function (c) { return c.weighted; },
-        render: function (c) { return U.money(c.weighted); } },
-      { key: 'avg', label: 'Avg deal', num: true, get: function (c) { return c.avgDeal; },
+      { key: 'today', label: 'Updated today', num: true, get: function (c) { return c.updatesToday; },
+        render: function (c) {
+          return c.updatesToday
+            ? '<span class="tag tag-good">' + U.count(c.updatesToday) + '</span>'
+            : '<span class="tag tag-warning">none</span>';
+        } },
+      { key: 'approached', label: 'Approached', num: true, get: function (c) { return c.approached; },
+        render: function (c) { return U.count(c.approached) + '<div class="small muted">' + Math.round(c.coverage) + '% of patch</div>'; } },
+      { key: 'conv', label: 'Conversion', num: true, get: function (c) { return c.conversion; },
+        render: function (c) { return c.conversion.toFixed(c.conversion < 10 ? 1 : 0) + '%' +
+          '<div class="small muted">' + c.wonCount + ' closed</div>'; } },
+      { key: 'potential', label: 'Potential revenue', num: true, get: function (c) { return c.potentialRevenue; },
+        render: function (c) { return U.money(c.potentialRevenue); } },
+      { key: 'generated', label: 'Revenue generated', num: true, get: function (c) { return c.revenueGenerated; },
+        render: function (c) { return c.revenueGenerated ? U.money(c.revenueGenerated) : '<span class="muted">—</span>'; } },
+      { key: 'avg', label: 'Avg deal size', num: true, get: function (c) { return c.avgDeal; },
         render: function (c) { return U.money(c.avgDeal); } },
-      { key: 'acts', label: 'Updates', num: true, get: function (c) { return c.activityCount; },
-        render: function (c) { return U.count(c.activityCount) + '<div class="small muted">' + c.meetingCount + ' meetings</div>'; } },
-      { key: 'stalled', label: 'Gone quiet', num: true, get: function (c) { return c.stalledPct; },
-        render: function (c) { return '<span class="' + (c.stalledPct > 50 ? 'delta-down' : '') + '">' + Math.round(c.stalledPct) + '%</span>' +
-          '<div class="small muted">' + c.stalled.length + ' accounts</div>'; } },
-      { key: 'hygiene', label: 'Data quality', num: true, get: function (c) { return c.hygiene; },
-        render: function (c) { return UI.meter(c.hygiene / 100); } },
-      { key: 'last', label: 'Last update', num: true, get: function (c) { return c.lastActivity ? -U.daysSince(c.lastActivity) : -99999; },
+      { key: 'silent', label: 'Silent', num: true, get: function (c) { return c.silent.length; },
+        render: function (c) { return '<span class="' + (c.stalledPct > 50 ? 'delta-down' : '') + '">' +
+          U.count(c.silent.length) + '</span>'; } },
+      { key: 'last', label: 'Last update', num: true,
+        get: function (c) { return c.lastActivity ? -U.daysSince(c.lastActivity) : -99999; },
         render: function (c) { return c.lastActivity ? U.esc(U.relative(c.lastActivity)) : '<span class="muted">never</span>'; } }
     ];
   }
 
   return {
     myDay: myDay, myPipeline: myPipeline, myActivity: myActivity, myProgress: myProgress,
-    teamRollup: teamRollup, card: card, head: head, repColumns: repColumns, bindCommon: bindCommon
+    teamRollup: teamRollup, card: card, head: head, repColumns: repColumns, bindCommon: bindCommon,
+    perfTable: perfTable, targetBars: targetBars, drillList: drillList
   };
 })();

@@ -82,7 +82,14 @@ RB.store = (function () {
     s.settings = s.settings || {};
     if (s.settings.tamRatePerStudent == null) s.settings.tamRatePerStudent = 1700;
     if (s.settings.stalledAfterDays == null) s.settings.stalledAfterDays = 30;
-    s.schools.forEach(function (sc) { if (!sc.activities) sc.activities = []; });
+    s.schools.forEach(function (sc) {
+      if (!sc.activities) sc.activities = [];
+      if (!sc.products) sc.products = [];
+      if (!sc.origin) sc.origin = 'import';
+    });
+    s.users.forEach(function (u) {
+      if (!u.targets) u.targets = { revenue: 0, schoolsApproached: 0, meetings: 0, updates: 0, placeholder: true };
+    });
     return s;
   }
 
@@ -151,7 +158,9 @@ RB.store = (function () {
       nextAction: null, nextActionDate: null,
       expectedClosure: null, expectedClosureRaw: null,
       blockers: null, blockerTags: [], competitors: [], remarks: null,
+      products: [], rejectedReason: null,
       missingCount: 0, duplicateFlag: false, inActionQueue: false,
+      origin: 'app', addedAt: U.iso(U.today()),
       activities: [], createdBy: userId, createdAt: now, updatedAt: now
     }, fields);
     recomputeDerived(s);
@@ -183,7 +192,9 @@ RB.store = (function () {
       dealSize: act.dealSize == null ? null : Number(act.dealSize),
       expectedClosure: act.expectedClosure || null,
       blockers: act.blockers || null,
-      competitors: act.competitors || null
+      competitors: act.competitors || null,
+      products: act.products || null,
+      rejectedReason: act.rejectedReason || null
     };
     s.activities.push(entry);
 
@@ -209,6 +220,14 @@ RB.store = (function () {
     }
     if (entry.competitors) {
       s.competitors = String(entry.competitors).split(/\s*,\s*/).filter(Boolean);
+    }
+    if (entry.products) s.products = entry.products;
+    if (entry.stageTo === 'Lost') s.rejectedReason = entry.rejectedReason || s.rejectedReason;
+    if (entry.stageTo && entry.stageTo !== 'Lost') s.rejectedReason = null;
+    // A product line is also inferred from what the rep just wrote, so the
+    // Curriculum / Bagless split stays current without a second form field.
+    if (!s.products.length) {
+      s.products = RB.metrics.tagProducts([entry.notes, entry.nextAction].filter(Boolean).join(' '));
     }
     if (s.opportunityStatus === 'Needs qualification' && (entry.stageTo || entry.dealSize)) {
       s.opportunityStatus = 'Opportunity identified';
@@ -246,6 +265,14 @@ RB.store = (function () {
     if (s.dealSize && s.students) s.ratePerStudent = Math.round(s.dealSize / s.students);
   }
 
+  function updateTargets(userId, targets) {
+    var u = userById(userId);
+    if (!u) return null;
+    u.targets = Object.assign({}, u.targets, targets, { placeholder: false });
+    commit();
+    return u;
+  }
+
   function updateSettings(patch) {
     Object.assign(state.settings, patch);
     commit();
@@ -276,7 +303,7 @@ RB.store = (function () {
     load: load, all: all, byId: byId, users: users, userById: userById,
     settings: settings, meta: meta, updateSchool: updateSchool, createSchool: createSchool,
     logActivity: logActivity, deleteActivity: deleteActivity, activities: activities,
-    updateSettings: updateSettings, resetDemo: resetDemo, exportState: exportState,
+    updateSettings: updateSettings, updateTargets: updateTargets, resetDemo: resetDemo, exportState: exportState,
     importState: importState, subscribe: subscribe, commit: commit,
     get adapter() { return adapter; },
     set adapter(a) { adapter = a; },

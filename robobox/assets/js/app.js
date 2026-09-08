@@ -8,19 +8,21 @@ RB.app = (function () {
   var current = null;
 
   var ROUTES = {
-    'my-day':    { label: 'My day',          icon: '◎', group: 'Sales', render: function (h) { RB.viewsSales.myDay(h); } },
+    'my-day':    { label: 'Today',           icon: '◎', group: 'Sales', render: function (h) { RB.viewsSales.myDay(h); } },
+    'progress':  { label: 'My dashboard',    icon: '◔', group: 'Sales', render: function (h) { RB.viewsSales.myProgress(h); } },
     'pipeline':  { label: 'My pipeline',     icon: '▤', group: 'Sales', render: function (h) { RB.viewsSales.myPipeline(h); } },
     'activity':  { label: 'Activity log',    icon: '✎', group: 'Sales', render: function (h) { RB.viewsSales.myActivity(h); } },
-    'progress':  { label: 'My progress',     icon: '◔', group: 'Sales', render: function (h) { RB.viewsSales.myProgress(h); } },
-    'team':      { label: 'Team roll-up',    icon: '⛭', group: 'Sales', need: 'teamRollup', render: function (h) { RB.viewsSales.teamRollup(h); } },
+    // The CEO gets the fuller version of this under Leadership, so it is not
+    // repeated in the Sales group for him.
+    'team':      { label: 'Team performance', icon: '⚇', group: 'Sales', need: 'teamRollup',
+                   hideFor: 'ceoDashboard', render: function (h) { RB.viewsSales.teamRollup(h); } },
 
-    'ceo':       { label: 'Command centre',  icon: '◆', group: 'Leadership', need: 'ceoDashboard', render: function (h) { RB.viewsCEO.commandCenter(h); } },
-    'ceo-funnel':{ label: 'Funnel',          icon: '▽', group: 'Leadership', need: 'ceoDashboard', render: function (h) { RB.viewsCEO.funnelView(h); } },
+    'ceo':       { label: 'Command centre',  icon: '◆', group: 'Leadership', need: 'ceoDashboard', render: function (h) { RB.viewsCEO.commandCentre(h); } },
+    'ceo-team':  { label: 'Team performance', icon: '⚇', group: 'Leadership', need: 'ceoDashboard', render: function (h) { RB.viewsCEO.team(h); } },
     'ceo-market':{ label: 'Market',          icon: '⬡', group: 'Leadership', need: 'ceoDashboard', render: function (h) { RB.viewsCEO.market(h); } },
-    'ceo-team':  { label: 'Team',            icon: '⚇', group: 'Leadership', need: 'ceoDashboard', render: function (h) { RB.viewsCEO.team(h); } },
     'ceo-blocks':{ label: 'Blockers',        icon: '⚑', group: 'Leadership', need: 'ceoDashboard', render: function (h) { RB.viewsCEO.blockers(h); } },
-    'ceo-health':{ label: 'Pipeline health', icon: '✚', group: 'Leadership', need: 'ceoDashboard', render: function (h) { RB.viewsCEO.health(h); } },
     'ceo-deep':  { label: 'Deep dive',       icon: '⌗', group: 'Leadership', need: 'ceoDashboard', render: function (h) { RB.viewsCEO.explorer(h); } },
+    'ceo-health':{ label: 'Data health',     icon: '✚', group: 'Leadership', need: 'ceoDashboard', render: function (h) { RB.viewsCEO.health(h); } },
 
     'settings':  { label: 'Settings',        icon: '⚙', group: 'Account', render: settings }
   };
@@ -28,7 +30,9 @@ RB.app = (function () {
   function allowed(key) {
     var r = ROUTES[key];
     if (!r) return false;
-    return !r.need || RB.auth.can(r.need);
+    if (r.need && !RB.auth.can(r.need)) return false;
+    if (r.hideFor && RB.auth.can(r.hideFor)) return false;
+    return true;
   }
 
   function defaultRoute() {
@@ -121,6 +125,24 @@ RB.app = (function () {
         }).join('') + '</div>' +
       '</div></div>' +
 
+      (RB.auth.can('teamRollup')
+        ? '<div class="card"><div class="card-head"><h3>Monthly targets</h3>' +
+          '<span class="card-sub">what each person is measured against, per month</span></div>' +
+          '<form id="targets-form"><div class="table-wrap"><table class="data"><thead><tr>' +
+          '<th>Sales person</th><th class="num">Revenue (₹)</th><th class="num">Schools approached</th>' +
+          '<th class="num">Meetings</th><th class="num">Updates logged</th></tr></thead><tbody>' +
+          RB.store.users().map(function (u) {
+            var t = u.targets || {};
+            return '<tr><td class="strong">' + U.esc(u.name) +
+              (t.placeholder ? ' <span class="tag tag-warning">placeholder</span>' : '') + '</td>' +
+              ['revenue', 'schoolsApproached', 'meetings', 'updates'].map(function (k) {
+                return '<td class="num"><input class="input" style="max-width:130px" type="number" min="0" name="' +
+                  u.id + '.' + k + '" value="' + (t[k] || 0) + '"></td>';
+              }).join('') + '</tr>';
+          }).join('') + '</tbody></table></div>' +
+          '<button class="btn btn-primary" type="submit" style="margin-top:12px">Save targets</button></form></div>'
+        : '') +
+
       '<div class="card"><div class="card-head"><h3>Data source</h3></div><dl class="kv">' +
         '<dt>Imported from</dt><dd>' + U.esc(meta.source) + '</dd>' +
         '<dt>Rows in source</dt><dd>' + U.count(meta.rowsInSource) + '</dd>' +
@@ -144,6 +166,20 @@ RB.app = (function () {
         stalledAfterDays: Number(v.stalledAfterDays) || 30
       });
       UI.toast('Saved.');
+      refresh();
+    });
+
+    var tf = host.querySelector('#targets-form');
+    if (tf) tf.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var v = UI.formValues(this);
+      var byUser = {};
+      Object.keys(v).forEach(function (k) {
+        var p = k.split('.');
+        (byUser[p[0]] = byUser[p[0]] || {})[p[1]] = Number(v[k]) || 0;
+      });
+      Object.keys(byUser).forEach(function (id) { RB.store.updateTargets(id, byUser[id]); });
+      UI.toast('Targets saved.');
       refresh();
     });
 
@@ -269,6 +305,8 @@ RB.app = (function () {
       current = null;
       showLogin();
     });
+
+    document.getElementById('top-log').addEventListener('click', function () { UI.quickLog(); });
 
     document.getElementById('nav-toggle').addEventListener('click', function () {
       document.getElementById('shell').classList.toggle('nav-open');
