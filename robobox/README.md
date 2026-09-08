@@ -65,9 +65,29 @@ The scorecard has no company target. It measures **activity, opportunity,
 pipeline, conversion, closure, realisation and loss as separate things** —
 Connect count is effort, not performance.
 
-**Leadership** — Business pulse (sales funnel, commercial funnel, needs
-attention) · Team · Stalled · Offerings · Intelligence (blockers, loss reasons,
-offerings, geography, competitors, lead sources).
+**Leadership** — Business pulse · **Team day** · Team · Stalled · Offerings ·
+Intelligence (blockers, loss reasons, offerings, geography, competitors, lead
+sources).
+
+**Team day** answers "what did the team set out to do, and what did they
+actually do" for any date. Both sides come out of the connect list — a connect
+whose next action falls on the date is a plan made for it, one logged on the
+date is work done — so it works for past days, which a live task list could not.
+It shows plans kept, connects logged, meetings held, and who logged nothing.
+
+## Filters and export
+
+Every data screen carries the same filter bar: **region, school type, salesperson,
+offering, stage, existing lab, lead source, competitor, interest, blocker**. The
+predicates are the same getters used to group by a dimension, so adding a filter
+is one line in `DIMENSIONS`. Options are built from the data, so a filter never
+offers an empty result.
+
+**Export Excel** on every screen writes a real `.xlsx` — multiple sheets, sized
+columns, autofilter on the header row, numbers numeric and dates as dates with
+`#,##0` and `dd mmm yyyy` formats. The export always reflects exactly what is on
+screen, and the filter set is written into the sheet header so the file explains
+itself later.
 
 Every number drills to the opportunities behind it, and every opportunity opens
 its school's full Connect timeline.

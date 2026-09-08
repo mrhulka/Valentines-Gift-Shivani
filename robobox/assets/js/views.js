@@ -6,6 +6,26 @@ RB.views = (function () {
 
   var U = RB.util, M = RB.model, UI = RB.ui, C = RB.charts, V = RB.model.V;
 
+  var F = RB.filters;
+
+  /* Every data screen gets the same filter bar and the same export button.
+   * `scope` returns the views the screen is about; the export always reflects
+   * exactly what is on screen, filters included. */
+  function toolbar(views, exportId) {
+    return F.bar(views) +
+      '<div class="filters" style="margin-top:-6px">' +
+      '<button class="btn btn-sm" id="' + exportId + '">↓ Export Excel</button>' +
+      '<span class="small muted">' + U.esc(F.describe()) + '</span></div>';
+  }
+
+  function bindToolbar(host, exportId, redraw, buildSheets, filename) {
+    F.bind(host, redraw);
+    var b = host.querySelector('#' + exportId);
+    if (b) b.addEventListener('click', function () {
+      RB.excel.download(filename, buildSheets(), { filters: F.describe() });
+    });
+  }
+
   function me() { return RB.auth.user(); }
   function myKey() { return me().ownerKey; }
   function scopeKey() { return me().role === 'sales' ? myKey() : null; }
@@ -150,11 +170,12 @@ RB.views = (function () {
 
   function myScorecard(host) {
     var key = myKey();
-    var sc = M.scorecard({ ownerKey: key, range: M.RANGES()[scoreRange] });
-    var life = M.scorecard({ ownerKey: key });
+    var sc = M.scorecard({ ownerKey: key, range: M.RANGES()[scoreRange], filter: F.apply });
+    var life = M.scorecard({ ownerKey: key, filter: F.apply });
 
     host.innerHTML = UI.head('My scorecard', 'Effort, opportunity, pipeline and closure — kept separate on purpose.') +
       rangeBar(scoreRange) +
+      toolbar(M.views().filter(function (v) { return v.owner === key; }), 'x2') +
 
       '<div class="section-title">Activity</div>' +
       UI.stats([
@@ -192,6 +213,10 @@ RB.views = (function () {
       '<div class="card">' + C.funnel({ data: M.funnel(life.views), format: U.money, highlightLast: true, onClick: true }) + '</div>';
 
     bindRange(host, function (r) { scoreRange = r; myScorecard(host); });
+    bindToolbar(host, 'x2', function () { myScorecard(host); }, function () {
+      return [RB.excel.opportunitySheet('Opportunities', life.views),
+              RB.excel.connectSheet('Connects — ' + scoreRange, sc.connects)];
+    }, 'robobox-' + me().id + '-scorecard');
     bindStats(host, { open: ['Active pipeline', life.open], won: ['Won', life.won], lost: ['Lost', life.lost] });
     host.querySelectorAll('[data-key]').forEach(function (g) {
       g.addEventListener('click', function () {
@@ -230,18 +255,21 @@ RB.views = (function () {
   /* ======================================================== MY SCHOOLS ==== */
   function mySchools(host) {
     var key = scopeKey();
-    var vs = M.views().filter(function (v) { return !key || v.owner === key; });
+    var all = M.views().filter(function (v) { return !key || v.owner === key; });
+    var vs = F.apply(all);
 
     host.innerHTML = UI.head(key ? 'My schools' : 'All schools',
-      'Every opportunity you are working. Click a row for the full history.',
+      U.count(vs.length) + ' of ' + U.count(all.length) + ' opportunities. Click a row for the full history.',
       '<button class="btn btn-primary top-log" id="log">+ Log Connect</button>') +
-      '<div id="t"></div>';
+      toolbar(all, 'x1') + '<div id="t"></div>';
 
     host.querySelector('#log').addEventListener('click', function () { RB.connectForm.open(); });
+    bindToolbar(host, 'x1', function () { mySchools(host); },
+      function () { return [RB.excel.opportunitySheet('Opportunities', vs)]; }, 'robobox-schools');
     UI.table(host.querySelector('#t'), {
       rows: vs, rowId: function (v) { return v.opp.schoolId; }, sortKey: 'value', pageSize: 25,
       columns: UI.oppColumns(key ? { hide: ['owner'] } : {}),
-      onRowClick: school, empty: 'No opportunities yet. Log a New Connect.'
+      onRowClick: school, empty: 'Nothing matches these filters.'
     });
   }
 
@@ -346,13 +374,13 @@ RB.views = (function () {
   var ceoRange = 'This month';
 
   function pulse(host) {
-    var sc = M.scorecard({ range: M.RANGES()[ceoRange] });
-    var life = M.scorecard({});
-    var today = M.scorecard({ range: M.RANGES()['Today'] });
-    var acts = M.attention();
+    var sc = M.scorecard({ range: M.RANGES()[ceoRange], filter: F.apply });
+    var life = M.scorecard({ filter: F.apply });
+    var today = M.scorecard({ range: M.RANGES()['Today'], filter: F.apply });
+    var acts = M.attention(F.apply);
 
     host.innerHTML = UI.head('Business pulse', 'How much is being created, moving, closing — and where it is stuck.') +
-      rangeBar(ceoRange) +
+      rangeBar(ceoRange) + toolbar(M.views(), 'x3') +
       UI.stats([
         UI.stat({ cls: 'stat-brand', label: 'Connects today', value: U.count(today.totalConnects),
                   foot: today.newConnects + ' new · ' + today.reconnects + ' reconnect' }),
@@ -390,6 +418,16 @@ RB.views = (function () {
       '</div>';
 
     bindRange(host, function (r) { ceoRange = r; pulse(host); });
+    bindToolbar(host, 'x3', function () { pulse(host); }, function () {
+      // The opportunity sheets are all-time; only connects follow the range
+      // picker, so the sheet name carries it.
+      return [RB.excel.opportunitySheet('Opportunities', life.views),
+              RB.excel.connectSheet('Connects — ' + ceoRange, sc.connects),
+              RB.excel.groupSheet('By salesperson', 'Salesperson', M.groupBy(life.views, 'owner')),
+              RB.excel.groupSheet('By offering', 'Offering', M.groupBy(life.views, 'offering')),
+              RB.excel.groupSheet('By region', 'Region', M.groupBy(life.views, 'region')),
+              RB.excel.groupSheet('By school type', 'School type', M.groupBy(life.views, 'board'))];
+    }, 'robobox-business-pulse');
     bindStats(host, { open: ['Active pipeline', life.open], won: ['Won', life.won], lost: ['Lost', life.lost] });
     host.querySelectorAll('[data-act]').forEach(function (b) {
       b.addEventListener('click', function () {
@@ -405,19 +443,120 @@ RB.views = (function () {
     });
   }
 
+  /* ==================================================== CEO: TEAM DAY ===== */
+  /* What the team set out to do on a given day, and what they actually did.
+   * Defaults to today; the date input is native, so no picker to own. */
+  var dayDate = null;
+
+  function teamDay(host) {
+    var date = dayDate || U.iso(U.today());
+    var rows = M.dayActivity(date, F.apply);
+    var totals = rows.reduce(function (a, r) {
+      a.planned += r.planned.length; a.done += r.done.length; a.kept += r.kept;
+      a.newC += r.newConnects; a.re += r.reconnects; a.meetings += r.meetings;
+      return a;
+    }, { planned: 0, done: 0, kept: 0, newC: 0, re: 0, meetings: 0 });
+
+    host.innerHTML = UI.head('Team day',
+      'What each person planned for the day, and what they logged.',
+      '<label class="row" style="gap:8px"><span class="small muted">Date</span>' +
+      '<input class="input" type="date" id="day-date" value="' + date + '" max="' + U.iso(U.today()) + '" style="width:auto"></label>') +
+      toolbar(M.views(), 'x8') +
+
+      UI.stats([
+        UI.stat({ cls: 'stat-brand', label: 'Connects logged', value: U.count(totals.done),
+                  foot: totals.newC + ' new · ' + totals.re + ' reconnect' }),
+        UI.stat({ label: 'Planned for the day', value: U.count(totals.planned),
+                  foot: totals.kept + ' of them actioned' }),
+        UI.stat({ label: 'Plans kept', value: totals.planned ? Math.round(totals.kept / totals.planned * 100) + '%' : '—',
+                  footBad: totals.planned > 0 && totals.kept < totals.planned / 2 }),
+        UI.stat({ label: 'Meetings & visits', value: U.count(totals.meetings) }),
+        UI.stat({ label: 'Nobody logged', value: U.count(rows.filter(function (r) { return !r.done.length; }).length),
+                  foot: rows.filter(function (r) { return !r.done.length; }).map(function (r) { return r.user.name; }).join(', ') || '—' })
+      ]) +
+
+      rows.map(function (r) {
+        return '<div class="card"><div class="card-head">' +
+          '<h3>' + U.esc(r.user.name) + '</h3>' +
+          '<span class="card-sub">' + U.esc(RB.auth.roleLabel(r.user.role)) + '</span>' +
+          '<span class="spacer"></span>' +
+          '<span class="tag' + (r.done.length ? ' tag-dark' : ' tag-red') + '">' +
+            r.done.length + ' logged</span>' +
+          '<span class="tag">' + r.planned.length + ' planned</span></div>' +
+          '<div class="grid grid-2">' +
+            '<div><div class="section-title" style="margin-top:0">Agenda</div>' +
+              (r.planned.length ? r.planned.map(dayRow).join('')
+                : '<div class="cal-empty">Nothing was scheduled for this day.</div>') + '</div>' +
+            '<div><div class="section-title" style="margin-top:0">Done</div>' +
+              (r.done.length ? r.done.map(doneRow).join('')
+                : '<div class="cal-empty">No connects logged.</div>') + '</div>' +
+          '</div></div>';
+      }).join('');
+
+    host.querySelector('#day-date').addEventListener('change', function () {
+      dayDate = this.value; teamDay(host);
+    });
+    bindToolbar(host, 'x8', function () { teamDay(host); }, function () {
+      var planned = [], done = [];
+      rows.forEach(function (r) { planned = planned.concat(r.planned); done = done.concat(r.done); });
+      return [
+        { name: 'Day summary', rows: rows, columns: [
+            { label: 'Salesperson', get: function (r) { return r.user.name; } },
+            { label: 'Planned', type: 'number', get: function (r) { return r.planned.length; } },
+            { label: 'Actioned', type: 'number', get: function (r) { return r.kept; } },
+            { label: 'Connects logged', type: 'number', get: function (r) { return r.done.length; } },
+            { label: 'New connects', type: 'number', get: function (r) { return r.newConnects; } },
+            { label: 'Reconnects', type: 'number', get: function (r) { return r.reconnects; } },
+            { label: 'Meetings & visits', type: 'number', get: function (r) { return r.meetings; } },
+            { label: 'Quoted on the day', type: 'money', get: function (r) { return r.quoted; } }
+          ] },
+        RB.excel.connectSheet('Done ' + date, done),
+        RB.excel.connectSheet('Agenda ' + date, planned)
+      ];
+    }, 'robobox-team-day-' + date);
+
+    host.querySelectorAll('[data-school]').forEach(function (b) {
+      b.addEventListener('click', function () { school(b.getAttribute('data-school')); });
+    });
+  }
+
+  function dayRow(c) {
+    var s = RB.store.schoolById(c.schoolId);
+    var o = c.opportunityId && RB.store.opportunityById(c.opportunityId);
+    return '<button type="button" class="pick" data-school="' + U.esc(c.schoolId) + '" style="margin-bottom:6px">' +
+      '<span class="pick-main"><strong>' + U.esc(c.nextAction || 'Follow up') + ' — ' + U.esc(s ? s.name : '') + '</strong>' +
+      '<small>' + U.esc([o && o.offering, c.nextActionAt ? c.nextActionAt.slice(11, 16) : null].filter(Boolean).join(' · ')) + '</small></span>' +
+      '</button>';
+  }
+
+  function doneRow(c) {
+    var s = RB.store.schoolById(c.schoolId);
+    return '<button type="button" class="pick" data-school="' + U.esc(c.schoolId) + '" style="margin-bottom:6px">' +
+      '<span class="pick-main"><strong>' + U.esc(c.mode || 'Connect') + ' — ' + U.esc(s ? s.name : '') + '</strong>' +
+      '<small>' + U.esc([c.response, c.kind === 'New' ? 'New connect' : 'Reconnect',
+                         c.at ? c.at.slice(11, 16) : null].filter(Boolean).join(' · ')) + '</small></span>' +
+      '<span class="pick-right small muted">' +
+        (c.commercial && c.commercial.quoted ? U.esc(U.money(c.commercial.quoted)) : '') + '</span>' +
+      '</button>';
+  }
+
   /* ======================================================= CEO: TEAM ====== */
   function team(host) {
     var range = M.RANGES()[ceoRange];
     var rows = RB.store.users().filter(function (u) { return u.ownerKey; }).map(function (u) {
-      var sc = M.scorecard({ ownerKey: u.ownerKey, range: range });
-      var life = M.scorecard({ ownerKey: u.ownerKey });
+      var sc = M.scorecard({ ownerKey: u.ownerKey, range: range, filter: F.apply });
+      var life = M.scorecard({ ownerKey: u.ownerKey, filter: F.apply });
       return { user: u, sc: sc, life: life };
     });
 
     host.innerHTML = UI.head('Team performance', 'Click a salesperson for their full scorecard.') +
-      rangeBar(ceoRange) + '<div id="t"></div>';
+      rangeBar(ceoRange) + toolbar(M.views(), 'x4') + '<div id="t"></div>';
 
     bindRange(host, function (r) { ceoRange = r; team(host); });
+    bindToolbar(host, 'x4', function () { team(host); }, function () {
+      return [RB.excel.groupSheet('By salesperson', 'Salesperson', M.groupBy(F.apply(M.views()), 'owner')),
+              RB.excel.opportunitySheet('Opportunities', F.apply(M.views()))];
+    }, 'robobox-team');
     UI.table(host.querySelector('#t'), {
       rows: rows, rowId: function (r) { return r.user.id; }, sortKey: 'pipeline', pageSize: 20,
       onRowClick: function (id) { personDetail(id); },
@@ -472,17 +611,21 @@ RB.views = (function () {
 
   /* ==================================================== CEO: STALLED ====== */
   function stalled(host) {
-    var vs = M.views().filter(function (v) { return v.status === 'Open' && v.stalled; });
+    var vs = F.apply(M.views()).filter(function (v) { return v.status === 'Open' && v.stalled; });
     vs = U.sortBy(vs, function (v) { return v.current || 0; }, 'desc');
 
     host.innerHTML = UI.head('Stalled pipeline',
       'Flagged when the next action is overdue, there is none, or nothing has moved for 7 / 14 days. Highest value first.') +
+      toolbar(M.views(), 'x5') +
       UI.stats([
         UI.stat({ cls: 'stat-hero', label: 'Stalled value', value: U.money(U.sum(vs, function (v) { return v.current || 0; })) }),
         UI.stat({ label: 'Opportunities', value: U.count(vs.length) }),
         UI.stat({ label: 'Overdue next action', value: U.count(vs.filter(function (v) { return v.overdue; }).length), footBad: true }),
         UI.stat({ label: 'No next action', value: U.count(vs.filter(function (v) { return !v.nextAction; }).length) })
       ]) + '<div id="t"></div>';
+
+    bindToolbar(host, 'x5', function () { stalled(host); },
+      function () { return [RB.excel.opportunitySheet('Stalled', vs)]; }, 'robobox-stalled');
 
     UI.table(host.querySelector('#t'), {
       rows: vs, rowId: function (v) { return v.opp.schoolId; }, sortKey: 'value', pageSize: 25,
@@ -501,7 +644,7 @@ RB.views = (function () {
   var intelDim = 'blocker';
 
   function intel(host) {
-    var vs = M.views();
+    var vs = F.apply(M.views());
     var dims = { blocker: 'Blockers', lossReason: 'Loss reasons', offering: 'Offerings',
                  region: 'Geography', competitor: 'Competitors', leadSource: 'Lead sources' };
     var pool = intelDim === 'lossReason' ? vs.filter(function (v) { return v.status === 'Lost'; }) : vs;
@@ -512,7 +655,7 @@ RB.views = (function () {
       Object.keys(dims).map(function (k) {
         return '<button type="button" data-dim="' + k + '" aria-pressed="' + (k === intelDim) + '">' +
           U.esc(dims[k]) + '</button>';
-      }).join('') + '</div></div>' +
+      }).join('') + '</div></div>' + toolbar(M.views(), 'x6') +
 
       (intelDim === 'lossReason'
         ? UI.stats([
@@ -531,6 +674,11 @@ RB.views = (function () {
       '</div>' +
 
       '<div class="section-title">' + U.esc(dims[intelDim]) + ' in full</div><div id="t"></div>';
+
+    bindToolbar(host, 'x6', function () { intel(host); }, function () {
+      return [RB.excel.groupSheet(dims[intelDim], M.DIMENSIONS[intelDim].label, groups),
+              RB.excel.opportunitySheet('Opportunities', pool)];
+    }, 'robobox-' + intelDim);
 
     host.querySelectorAll('[data-dim]').forEach(function (b) {
       b.addEventListener('click', function () { intelDim = b.getAttribute('data-dim'); intel(host); });
@@ -581,7 +729,7 @@ RB.views = (function () {
 
   /* ==================================================== CEO: OFFERINGS ==== */
   function offerings(host) {
-    var vs = M.views();
+    var vs = F.apply(M.views());
     var groups = V.coreOfferings.map(function (o) {
       return M.rollup(o, vs.filter(function (v) { return v.opp.offering === o; }));
     }).filter(function (g) { return g.count; });
@@ -590,6 +738,7 @@ RB.views = (function () {
 
     host.innerHTML = UI.head('Offering performance',
       'Which products create opportunities, and which actually convert to revenue.') +
+      toolbar(M.views(), 'x7') +
       '<div class="grid grid-2">' +
         UI.card('Pipeline by offering', 'Open value',
           C.hbar({ data: groups.map(function (g) { return { key: g.key, value: g.pipeline }; }),
@@ -599,6 +748,10 @@ RB.views = (function () {
                    format: U.money, measureLabel: 'Potential', labelW: 175, onClick: true })) +
       '</div>' +
       '<div class="section-title">All offerings</div><div id="t"></div>';
+
+    bindToolbar(host, 'x7', function () { offerings(host); },
+      function () { return [RB.excel.groupSheet('Offerings', 'Offering', groups),
+                            RB.excel.opportunitySheet('Opportunities', vs)]; }, 'robobox-offerings');
 
     host.querySelectorAll('[data-key]').forEach(function (g) {
       g.addEventListener('click', function () {
@@ -619,6 +772,7 @@ RB.views = (function () {
   return {
     myDay: myDay, myTasks: myTasks, myCalendar: myCalendar, myScorecard: myScorecard,
     mySchools: mySchools, school: school,
-    pulse: pulse, team: team, stalled: stalled, intel: intel, offerings: offerings
+    pulse: pulse, team: team, stalled: stalled, intel: intel, offerings: offerings,
+    teamDay: teamDay
   };
 })();

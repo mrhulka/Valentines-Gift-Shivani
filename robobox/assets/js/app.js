@@ -15,6 +15,7 @@ RB.app = (function () {
     'scorecard': { label: 'My scorecard',  icon: '◑', group: 'Sell',       render: RB.views.myScorecard },
 
     'pulse':     { label: 'Business pulse', icon: '◆', group: 'Leadership', need: 'ceo', render: RB.views.pulse },
+    'day-team':  { label: 'Team day',       icon: '☀', group: 'Leadership', need: 'ceo', render: RB.views.teamDay },
     'team':      { label: 'Team',           icon: '⚇', group: 'Leadership', need: 'ceo', render: RB.views.team },
     'stalled':   { label: 'Stalled',        icon: '◷', group: 'Leadership', need: 'ceo', render: RB.views.stalled },
     'offerings': { label: 'Offerings',      icon: '▤', group: 'Leadership', need: 'ceo', render: RB.views.offerings },

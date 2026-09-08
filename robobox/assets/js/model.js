@@ -291,15 +291,17 @@ RB.model = (function () {
     var range = opts.range || RANGES()['All time'];
     var ownerKey = opts.ownerKey || null;
 
-    var vs = views().filter(function (v) {
-      if (ownerKey && v.owner !== ownerKey) return false;
-      if (opts.offering && v.opp.offering !== opts.offering) return false;
-      if (opts.region && v.school && v.school.region !== opts.region) return false;
-      return true;
+    var vs = (opts.filter ? opts.filter(views()) : views()).filter(function (v) {
+      return !ownerKey || v.owner === ownerKey;
     });
+    var keep = {};
+    vs.forEach(function (v) { keep[v.opp.id] = true; });
 
+    // Connects follow the same filter as the opportunities they belong to, so
+    // activity and pipeline on a filtered screen describe the same slice.
     var cs = RB.store.connects().filter(function (c) {
       if (!inRange(c.at, range)) return false;
+      if (c.opportunityId && !keep[c.opportunityId]) return false;
       if (!ownerKey) return true;
       var u = RB.store.userById(c.by);
       return u && u.ownerKey === ownerKey;
@@ -394,7 +396,9 @@ RB.model = (function () {
     lossReason: { label: 'Loss reason', get: function (v) { return v.opp.lossReason || '—'; } },
     leadSource: { label: 'Lead source', get: function (v) { return v.school && v.school.leadSource || 'Not recorded'; } },
     competitor: { label: 'Competitor',  get: function (v) { return v.school && v.school.competitor || 'None'; } },
-    interest:   { label: 'Interest',    get: function (v) { return v.interest || '—'; } }
+    interest:   { label: 'Interest',    get: function (v) { return v.interest || '—'; } },
+    existingLab:{ label: 'Existing lab', get: function (v) { return v.school && v.school.existingLab || '—'; } },
+    board:      { label: 'School type',  get: function (v) { return v.school && v.school.board || '—'; } }
   };
 
   function groupBy(vs, dim) {
@@ -433,11 +437,54 @@ RB.model = (function () {
     };
   }
 
+  /* ============================================================== a day ==== */
+  /* What a salesperson planned for a date and what they actually logged on it.
+   * Both come out of the connect list: a connect whose next action falls on the
+   * date is a plan made for it, and one logged on the date is work done. That
+   * holds for past days too, which a live task list could not do. */
+  function dayActivity(dateISO, filter) {
+    var vs = filter ? filter(views()) : views();
+    var keep = {};
+    vs.forEach(function (v) { keep[v.opp.id] = true; });
+
+    var all = RB.store.connects().filter(function (c) {
+      return !c.opportunityId || keep[c.opportunityId];
+    });
+
+    return RB.store.users().filter(function (u) { return u.ownerKey; }).map(function (u) {
+      var planned = all.filter(function (c) {
+        return c.nextActionAt && c.nextActionAt.slice(0, 10) === dateISO &&
+               ownerOf(c) === u.ownerKey && c.nextAction !== 'No Further Action';
+      });
+      var done = all.filter(function (c) {
+        return c.at && c.at.slice(0, 10) === dateISO && c.by === u.id;
+      });
+      // A plan counts as kept once a later connect exists on that opportunity.
+      var keptIds = {};
+      done.forEach(function (c) { keptIds[c.opportunityId] = true; });
+      return {
+        user: u, planned: planned, done: done,
+        kept: planned.filter(function (c) { return keptIds[c.opportunityId]; }).length,
+        newConnects: done.filter(function (c) { return c.kind === 'New'; }).length,
+        reconnects: done.filter(function (c) { return c.kind === 'Reconnect'; }).length,
+        meetings: done.filter(function (c) { return /Meeting|Visit|Demo/.test(c.mode || ''); }).length,
+        quoted: U.sum(done, function (c) { return (c.commercial && c.commercial.quoted) || 0; })
+      };
+    });
+  }
+
+  function ownerOf(c) {
+    var o = c.opportunityId && RB.store.opportunityById(c.opportunityId);
+    if (o && o.ownerKey) return o.ownerKey;
+    var s = RB.store.schoolById(c.schoolId);
+    return s && s.ownerKey;
+  }
+
   /* =========================================================== attention ==== */
   /* The CEO's action centre. Each item resolves to a list of opportunities. */
 
-  function attention() {
-    var vs = views();
+  function attention(filter) {
+    var vs = filter ? filter(views()) : views();
     var open = vs.filter(function (v) { return v.status === 'Open'; });
     var out = [];
 
@@ -491,6 +538,6 @@ RB.model = (function () {
     connectsFor: connectsFor, view: view, views: views, invalidate: invalidate,
     tasks: tasks, calendar: calendar, scorecard: scorecard, RANGES: RANGES,
     funnel: funnel, commercialFunnel: commercialFunnel, groupBy: groupBy, rollup: rollup,
-    attention: attention, inRange: inRange
+    attention: attention, inRange: inRange, dayActivity: dayActivity, ownerOf: ownerOf
   };
 })();

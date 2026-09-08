@@ -23,11 +23,16 @@ body = re.sub(r'<script src="[^"]+"></script>\s*', '', body).strip()
 
 # Load order matters: each module reads the ones above it at definition time.
 SCRIPTS = ['seed-data.js', 'util.js', 'model.js', 'store.js', 'auth.js',
-           'charts.js', 'ui.js', 'connect-form.js', 'views.js', 'app.js']
+           'charts.js', 'ui.js', 'filters.js', 'excel.js', 'connect-form.js',
+           'views.js', 'app.js']
 
 parts = [
     '<title>Robobox Connect</title>',
     '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">',
+    # The vendored copy has non-UTF-8 bytes in its codepage tables, so the
+    # single-file build loads SheetJS from the CDN instead of inlining it.
+    # index.html keeps the local copy, which works offline.
+    '<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>',
     '<style>\n' + read('assets', 'css', 'app.css') + '\n</style>',
     body,
     '<script>window.RB = { PREVIEW: true };</script>',
