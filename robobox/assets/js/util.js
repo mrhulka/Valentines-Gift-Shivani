@@ -204,6 +204,24 @@ RB.util = (function () {
   }
 
   function download(filename, text, mime) {
+    // Sandboxed previews block a page from starting its own download, so there
+    // the file is handed over as selectable text instead of failing silently.
+    if (window.RB && RB.PREVIEW && RB.ui && RB.ui.modal) {
+      RB.ui.modal(filename, '<p class="sec" style="margin-top:0">This preview runs in a sandbox that blocks downloads. ' +
+        'The file is below \u2014 select all and copy it into a <code>' + esc(filename.split('.').pop()) +
+        '</code> file. In the hosted app the button downloads directly.</p>' +
+        '<textarea class="input" readonly style="min-height:320px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px">' +
+        esc(text) + '</textarea>' +
+        '<div class="modal-actions"><button class="btn btn-primary" data-close="1">Done</button></div>', {
+        wide: true,
+        onMount: function (host) {
+          var ta = host.querySelector('textarea');
+          ta.focus();
+          ta.setSelectionRange(0, ta.value.length);
+        }
+      });
+      return;
+    }
     var blob = new Blob(['﻿' + text], { type: (mime || 'text/csv') + ';charset=utf-8;' });
     var url = URL.createObjectURL(blob);
     var a = document.createElement('a');

@@ -234,8 +234,10 @@ RB.app = (function () {
   function initTheme() {
     var stored = null;
     try { stored = localStorage.getItem('robobox.theme'); } catch (e) {}
+    // Only stamp a theme we were actually asked for. With nothing stored we
+    // leave the attribute alone, so a host page that has already set one
+    // (or the OS setting, via prefers-color-scheme) still decides.
     if (stored) document.documentElement.setAttribute('data-theme', stored);
-    else document.documentElement.removeAttribute('data-theme');
 
     document.getElementById('theme-toggle').addEventListener('click', function () {
       var isDark = document.documentElement.getAttribute('data-theme') === 'dark' ||

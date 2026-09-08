@@ -156,6 +156,20 @@ the `app_user` table. Nothing else needs to change.
 
 ---
 
+## Shareable preview
+
+`tools/build_single_file.py` bundles the whole app into one self-contained HTML
+file for hosts that take a single page:
+
+```bash
+python3 tools/build_single_file.py            # -> dist/robobox-sales-os.html
+```
+
+The bundle sets `RB.PREVIEW`, which reroutes CSV exports to an on-screen
+copyable panel, because sandboxed preview hosts block a page from starting its
+own download. It also relies on the host supplying `<meta charset="utf-8">`; for
+local use, serve the normal multi-file `index.html`, which declares its own.
+
 ## Layout
 
 ```
@@ -175,7 +189,9 @@ robobox/
 │       ├── views-ceo.js         the CEO dashboard
 │       └── app.js               routing and boot
 ├── supabase/schema.sql          production tables, triggers, RLS
-└── tools/import_master_workbook.py
+└── tools/
+    ├── import_master_workbook.py    regenerates seed-data.js from the xlsx
+    └── build_single_file.py         one-file bundle for preview hosts
 ```
 
 Charts are hand-rolled SVG on a colourblind-safe eight-hue palette, with a
