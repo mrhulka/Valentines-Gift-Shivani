@@ -27,6 +27,9 @@ create type activity_outcome as enum ('Positive', 'Neutral', 'Negative', 'No res
 
 create type date_precision as enum ('exact', 'day', 'month', 'none');
 
+-- What Robobox sells. A school can be in play for more than one line at once.
+create type product_line as enum ('Curriculum', 'Bagless', 'Workshop');
+
 -- ---------------------------------------------------------------------- users
 -- Mirrors auth.users; the host site's existing login populates this.
 create table app_user (
@@ -36,6 +39,8 @@ create table app_user (
   role        sales_role not null default 'sales',
   owner_key   text unique,            -- the name used in the imported sheet, e.g. 'AYUSH'
   active      boolean not null default true,
+  -- {revenue, schoolsApproached, meetings, updates, placeholder} per month
+  targets     jsonb not null default '{"placeholder": true}'::jsonb,
   created_at  timestamptz not null default now()
 );
 
@@ -81,9 +86,17 @@ create table school (
   blockers                  text,
   blocker_tags              text[] not null default '{}',
   competitors               text[] not null default '{}',
+  products                  product_line[] not null default '{}',
+  -- Set only when someone marks the school Lost, never inferred from silence.
+  rejected_reason           text,
   remarks                   text,
 
   duplicate_flag            boolean not null default false,
+  -- 'import' for the rows that came from the master workbook, 'app' for
+  -- schools the team adds, so "new schools added" counts only the latter.
+  origin                    text not null default 'app',
+  added_at                  date,
+  closed_at                 date,
   created_by                uuid references app_user (id),
   created_at                timestamptz not null default now(),
   updated_at                timestamptz not null default now()
@@ -93,6 +106,7 @@ create index school_region_idx        on school (region);
 create index school_stage_idx         on school (stage);
 create index school_last_contacted_ix on school (last_contacted);
 create index school_next_action_ix    on school (next_action_date);
+create index school_products_idx      on school using gin (products);
 create index school_name_trgm         on school using gin (to_tsvector('simple', name));
 
 -- A school can be shared between reps, exactly as the sheet's "AYUSH & PARTH" rows were.
@@ -122,6 +136,8 @@ create table activity (
   deal_size         numeric(14,2),
   expected_closure  date,
   blockers          text,
+  products          product_line[],
+  rejected_reason   text,
   constraint activity_not_future check (happened_on <= current_date)
 );
 create index activity_school_idx on activity (school_id, happened_on desc);
@@ -157,6 +173,16 @@ begin
     deal_size                = coalesce(new.deal_size, s.deal_size),
     expected_closure         = coalesce(new.expected_closure, s.expected_closure),
     blockers                 = coalesce(new.blockers, s.blockers),
+    products                 = coalesce(new.products, s.products),
+    rejected_reason          = case
+                                 when new.stage_to = 'Lost' then coalesce(new.rejected_reason, s.rejected_reason)
+                                 when new.stage_to is not null then null
+                                 else s.rejected_reason
+                               end,
+    closed_at                = case
+                                 when new.stage_to in ('Won', 'Lost') then new.happened_on
+                                 else s.closed_at
+                               end,
     opportunity_status       = case
                                  when new.stage_to is not null or new.deal_size is not null
                                    then 'Opportunity identified'

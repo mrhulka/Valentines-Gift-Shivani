@@ -136,26 +136,31 @@ To re-run the import against a newer workbook, edit and run
 
 ## Wiring it into the existing website
 
+**Step-by-step instructions are in [DEPLOYMENT.md](DEPLOYMENT.md).** The short
+version follows.
+
 Two things are stubbed for the pilot and are the only things that change:
 
-**1. Storage.** `assets/js/store.js` writes through a single adapter object with
-`read` / `write` / `clear`. The default keeps everything in `localStorage`, which
-is why the app runs with no server — but it also means each browser holds its own
-copy. For a shared, multi-user deployment, replace `RB.store.adapter` with one
-that talks to your API. Nothing above that layer changes.
+**1. Storage.** `assets/js/store.js` writes through a single adapter object. The
+default keeps everything in `localStorage`, which is why the app runs with no
+server — but it also means each browser holds its own copy.
+`assets/js/store-supabase.js` is the shared-database adapter: it writes one row
+at a time, so two reps working at once never overwrite each other. Swapping it
+in is one `RB.supabase.connect({ url, anonKey })` call.
 
 `supabase/schema.sql` is the production shape: tables for schools, owners,
 activities, users and settings; a trigger that rolls each logged activity into
 its school row (the same automation the client does, enforced server-side); and
 row-level security policies that are the database twin of the permission map in
 `assets/js/auth.js` — a rep can only read their own rows even if they call the
-API directly.
+API directly. `tools/seed_supabase.mjs` loads the workbook into it once.
 
 **2. Login.** `assets/js/auth.js` checks the access code in the browser, which is
-fine for a pilot and not for production. Point `RB.auth.signIn` / `restore` at
-the host site's existing session instead and keep the rest of the module: the
-`PERMISSIONS` map, `visibleSchools()` and `can()` are what every screen reads,
-and they carry over unchanged.
+fine for a pilot and not for production. `store-supabase.js` replaces it with
+real Supabase sessions; if the host site already has a login, point
+`RB.auth.signIn` / `restore` / `setUser` at that instead. Either way the rest of
+the module is untouched: the `PERMISSIONS` map, `visibleSchools()` and `can()`
+are what every screen reads, and they carry over unchanged.
 
 Everything else — `index.html`, `assets/css`, `assets/js` — can be dropped into
 a subdirectory of the existing site as-is, or embedded in a page shell. There is
@@ -199,6 +204,7 @@ robobox/
 │   ├── css/app.css              design tokens, light + dark
 │   └── js/
 │       ├── seed-data.js         the imported workbook (generated)
+│       ├── store-supabase.js    shared-database adapter + real auth
 │       ├── util.js              formatting, dates, CSV
 │       ├── store.js             state + the storage adapter to swap
 │       ├── auth.js              roles and the permission map
@@ -208,9 +214,11 @@ robobox/
 │       ├── views-sales.js       the sales team's screens
 │       ├── views-ceo.js         the CEO dashboard
 │       └── app.js               routing and boot
+├── DEPLOYMENT.md                how to put it on the client's site
 ├── supabase/schema.sql          production tables, triggers, RLS
 └── tools/
     ├── import_master_workbook.py    regenerates seed-data.js from the xlsx
+    ├── seed_supabase.mjs            loads the workbook into Supabase, once
     └── build_single_file.py         one-file bundle for preview hosts
 ```
 

@@ -75,6 +75,10 @@ RB.auth = (function () {
     try { sessionStorage.removeItem(SESSION_KEY); } catch (e) {}
   }
 
+  /* Lets a replacement auth module (store-supabase.js, or the host site's own
+   * session) hand the app a signed-in user without going through signIn. */
+  function setUser(u) { current = u || null; return current; }
+
   function user() { return current; }
   function role() { return current ? current.role : null; }
   function roleLabel(r) { return ROLE_LABEL[r || role()] || r; }
@@ -115,7 +119,7 @@ RB.auth = (function () {
   }
 
   return {
-    signIn: signIn, restore: restore, signOut: signOut, user: user, role: role,
+    signIn: signIn, restore: restore, signOut: signOut, user: user, setUser: setUser, role: role,
     roleLabel: roleLabel, can: can, scope: scope, visibleSchools: visibleSchools, mySchools: mySchools,
     ownsRow: ownsRow, PERMISSIONS: PERMISSIONS
   };

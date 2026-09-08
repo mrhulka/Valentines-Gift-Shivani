@@ -285,25 +285,41 @@ RB.app = (function () {
   }
 
   function init() {
-    RB.store.load();
     RB.charts.initTooltip();
     initTheme();
+
+    RB.store.load().then(start).catch(function (err) {
+      document.body.innerHTML = '<div class="login"><div class="login-card">' +
+        '<h2>Could not load the pipeline</h2>' +
+        '<p class="login-sub">' + U.esc(err.message || 'The data source did not respond.') + '</p>' +
+        '<p class="login-hint">Check the database settings, then reload.</p></div></div>';
+    });
+  }
+
+  function start() {
     initSearch();
 
     document.getElementById('login-form').addEventListener('submit', function (e) {
       e.preventDefault();
       var err = document.getElementById('login-error');
-      var res = RB.auth.signIn(document.getElementById('login-user').value, document.getElementById('login-pin').value);
-      if (!res.ok) { err.textContent = res.error; err.hidden = false; return; }
-      err.hidden = true;
-      document.getElementById('login-pin').value = '';
-      showShell();
+      // signIn is synchronous in the demo build and a promise once a real auth
+      // module replaces it, so treat both the same.
+      Promise.resolve(RB.auth.signIn(
+        document.getElementById('login-user').value,
+        document.getElementById('login-pin').value
+      )).then(function (res) {
+        if (!res.ok) { err.textContent = res.error; err.hidden = false; return; }
+        err.hidden = true;
+        document.getElementById('login-pin').value = '';
+        showShell();
+      });
     });
 
     document.getElementById('logout').addEventListener('click', function () {
-      RB.auth.signOut();
-      current = null;
-      showLogin();
+      Promise.resolve(RB.auth.signOut()).then(function () {
+        current = null;
+        showLogin();
+      });
     });
 
     document.getElementById('top-log').addEventListener('click', function () { UI.quickLog(); });
@@ -326,7 +342,9 @@ RB.app = (function () {
       if (RB.auth.user() && h && h !== current) go(h);
     });
 
-    if (RB.auth.restore()) showShell(); else showLogin();
+    Promise.resolve(RB.auth.restore()).then(function (user) {
+      if (user) showShell(); else showLogin();
+    });
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);

@@ -2,9 +2,16 @@
  *
  * The store hides where the data lives. Today it is the browser (so the app
  * runs as a self-contained pilot with the real pipeline in it); in production
- * swap `RB.store.adapter` for the REST adapter at the bottom of this file and
- * point it at the Supabase/Postgres schema in ../../supabase/schema.sql.
- * Nothing above this layer changes.
+ * swap `RB.store.adapter` for the Supabase one in store-supabase.js, which
+ * talks to the schema in ../../supabase/schema.sql. Nothing above this layer
+ * changes.
+ *
+ * Adapters come in two shapes. A whole-document adapter (localStorage) just
+ * implements read/write/clear. A shared-database adapter also implements the
+ * granular hooks - saveSchool, saveActivity, saveUser, saveSettings - and every
+ * mutation below tells commit() what actually changed, so two reps working at
+ * once write their own rows instead of overwriting each other's copy of the
+ * whole state.
  */
 window.RB = window.RB || {};
 
@@ -66,15 +73,20 @@ RB.store = (function () {
     };
   }
 
+  /* Returns a promise so a database adapter can fetch before the first paint.
+   * The localStorage adapter resolves immediately. */
   function load() {
-    var stored = adapter.read();
-    if (stored && stored.schools && stored.schools.length) {
-      state = migrate(stored);
-    } else {
-      state = seed();
-      persist();
-    }
-    return state;
+    return Promise.resolve(adapter.read()).then(function (stored) {
+      if (stored && stored.schools && stored.schools.length) {
+        state = migrate(stored);
+      } else {
+        state = seed();
+        // Only a single-writer adapter seeds itself; a shared database is
+        // seeded once by tools/seed_supabase.mjs, never by whoever logs in first.
+        if (!adapter.saveSchool) persist();
+      }
+      return state;
+    });
   }
 
   function migrate(s) {
@@ -103,9 +115,32 @@ RB.store = (function () {
     listeners.forEach(function (fn) { fn(state); });
   }
 
-  function commit() {
-    persist();
+  /* change: {type: 'school'|'activity'|'user'|'settings'|'all', ...payload}
+   * A granular adapter writes just that; a whole-document adapter ignores it
+   * and rewrites everything, which is correct when there is only one writer. */
+  function commit(change) {
+    if (adapter.saveSchool || adapter.saveActivity) {
+      writeGranular(change || { type: 'all' });
+    } else {
+      persist();
+    }
     emit();
+  }
+
+  function writeGranular(change) {
+    var done;
+    switch (change.type) {
+      case 'school':   done = adapter.saveSchool && adapter.saveSchool(change.school); break;
+      case 'activity': done = adapter.saveActivity && adapter.saveActivity(change.activity, change.school); break;
+      case 'user':     done = adapter.saveUser && adapter.saveUser(change.user); break;
+      case 'settings': done = adapter.saveSettings && adapter.saveSettings(state.settings); break;
+      default:         done = adapter.write && adapter.write(state);
+    }
+    if (done && typeof done.catch === 'function') {
+      done.catch(function (err) {
+        if (RB.ui && RB.ui.toast) RB.ui.toast('Could not save: ' + (err.message || 'the server refused the write.'));
+      });
+    }
   }
 
   /* --------------------------------------------------------------- reads */
@@ -137,7 +172,7 @@ RB.store = (function () {
     Object.keys(patch).forEach(function (k) { s[k] = patch[k]; });
     s.updatedAt = new Date().toISOString();
     recomputeDerived(s);
-    commit();
+    commit({ type: 'school', school: s });
     return s;
   }
 
@@ -165,7 +200,7 @@ RB.store = (function () {
     }, fields);
     recomputeDerived(s);
     state.schools.push(s);
-    commit();
+    commit({ type: 'school', school: s });
     return s;
   }
 
@@ -238,7 +273,7 @@ RB.store = (function () {
     }
     s.updatedAt = new Date().toISOString();
     recomputeDerived(s);
-    commit();
+    commit({ type: 'activity', activity: entry, school: s });
     return entry;
   }
 
@@ -247,7 +282,7 @@ RB.store = (function () {
     if (!s) return;
     s.activities = s.activities.filter(function (a) { return a.id !== activityId; });
     recomputeDerived(s);
-    commit();
+    commit({ type: 'school', school: s });
   }
 
   function activities(filterFn) {
@@ -269,13 +304,13 @@ RB.store = (function () {
     var u = userById(userId);
     if (!u) return null;
     u.targets = Object.assign({}, u.targets, targets, { placeholder: false });
-    commit();
+    commit({ type: 'user', user: u });
     return u;
   }
 
   function updateSettings(patch) {
     Object.assign(state.settings, patch);
-    commit();
+    commit({ type: 'settings' });
   }
 
   function resetDemo() {
