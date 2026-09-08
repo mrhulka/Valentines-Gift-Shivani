@@ -1,0 +1,23 @@
+# Netlify: the site is plain static files, so there is nothing to build.
+[build]
+  publish = "."
+  command = ""
+
+# Keep the client's pipeline out of search results.
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Robots-Tag = "noindex, nofollow, noarchive"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "same-origin"
+
+# The app and its data are one build; never serve a stale seed against new code.
+[[headers]]
+  for = "/assets/js/*"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+
+[[headers]]
+  for = "/vendor/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
