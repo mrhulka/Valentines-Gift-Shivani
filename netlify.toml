@@ -1,0 +1,6 @@
+# Publish only the assembled static site, never the repo root — the source,
+# docs and tooling must not be reachable by URL.
+# Regenerate with: python3 robobox/tools/make_site.py
+[build]
+  publish = "deploy"
+  command = ""
