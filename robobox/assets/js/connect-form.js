@@ -60,7 +60,7 @@ RB.connectForm = (function () {
       '<div class="field-row">' +
         UI.field('Sales region', UI.select('region', V.region, null, { placeholder: 'Select', required: true })) +
         UI.field('Board', UI.select('board', V.board, null, { placeholder: 'Select', required: true })) +
-        UI.field('Student count', '<input class="input" type="number" name="students" min="0" inputmode="numeric">') +
+        UI.field('Student count', '<input class="input" type="number" name="students" min="0" step="1" inputmode="numeric">') +
       '</div>' +
       '<div id="dupe"></div>' +
       '<div class="modal-actions"><button type="submit" class="btn btn-primary btn-lg btn-block">Continue</button></div>' +
@@ -120,7 +120,7 @@ RB.connectForm = (function () {
       UI.field('Competition name', UI.select('competitor', V.competitor2, null, { placeholder: 'Select', required: true })) +
       '<div class="field-row">' +
         UI.field('Type of lab', UI.select('labType', V.labType, null, { placeholder: 'Select' })) +
-        UI.field('Spend on existing lab (₹)', '<input class="input" type="number" name="labSpend" min="0" step="1000" inputmode="numeric">') +
+        UI.field('Spend on existing lab (₹)', '<input class="input" type="number" name="labSpend" min="0" step="any" inputmode="decimal">') +
       '</div>' +
       '<div class="modal-actions"><button type="submit" class="btn btn-primary btn-lg btn-block">Continue</button></div>' +
       '</form>',
@@ -147,7 +147,7 @@ RB.connectForm = (function () {
         return { value: o, label: o, sub: V.offeringDetail[o] };
       }), null) + '</div>' +
       UI.field('Opportunity size (₹)',
-        '<input class="input" type="number" name="initialPotential" min="0" step="1000" inputmode="numeric" required>',
+        '<input class="input" type="number" name="initialPotential" min="0" step="any" inputmode="decimal" required>',
         'Locked once saved, so realisation can be measured against it later.') +
       '<div class="modal-actions"><button type="submit" class="btn btn-primary btn-lg btn-block">Continue</button></div>' +
       '</form>',
@@ -317,7 +317,7 @@ RB.connectForm = (function () {
 
       '<div class="cx-step"><h3>Expected deal size &amp; closure</h3>' +
       '<div class="field-row">' +
-        UI.field('Expected deal size (₹)', '<input class="input" type="number" name="expectedValue" min="0" step="1000" inputmode="numeric" value="' +
+        UI.field('Expected deal size (₹)', '<input class="input" type="number" name="expectedValue" min="0" step="any" inputmode="decimal" value="' +
           (v && v.current != null ? v.current : (d.opportunity ? d.opportunity.initialPotential : '')) + '">') +
         UI.field('Expected closure date', '<input class="input" type="date" name="expectedClosure" value="' +
           U.esc(v && v.expectedClosure ? v.expectedClosure : '') + '">') +
