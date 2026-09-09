@@ -12,10 +12,15 @@ RB.views = (function () {
    * `scope` returns the views the screen is about; the export always reflects
    * exactly what is on screen, filters included. */
   function toolbar(views, exportId) {
-    return F.bar(views) +
-      '<div class="filters" style="margin-top:-6px">' +
+    var on = F.active().length;
+    return '<div class="toolbar">' +
+      '<details class="filter-drop"' + (on ? ' open' : '') + '>' +
+        '<summary>Filters' + (on ? ' <span class="filter-count">' + on + '</span>' : '') + '</summary>' +
+        F.bar(views) +
+      '</details>' +
       '<button class="btn btn-sm" id="' + exportId + '">↓ Export Excel</button>' +
-      '<span class="small muted">' + U.esc(F.describe()) + '</span></div>';
+      (on ? '<span class="small muted">' + U.esc(F.describe()) + '</span>' : '') +
+    '</div>';
   }
 
   function bindToolbar(host, exportId, redraw, buildSheets, filename) {
@@ -48,11 +53,11 @@ RB.views = (function () {
         UI.stat({ cls: 'stat-brand', label: 'Connects today', value: U.count(sc.totalConnects),
                   foot: sc.newConnects + ' new · ' + sc.reconnects + ' reconnect' }),
         UI.stat({ label: 'Overdue', value: U.count(buckets.Overdue.length),
-                  cls: buckets.Overdue.length ? '' : '', footBad: !!buckets.Overdue.length,
+                  cls: buckets.Overdue.length ? 'stat-red' : '', footBad: !!buckets.Overdue.length,
                   foot: buckets.Overdue.length ? 'needs attention today' : 'all clear',
                   onClick: 'overdue' }),
         UI.stat({ label: 'Due today', value: U.count(buckets.Today.length), onClick: 'today' }),
-        UI.stat({ label: 'Active pipeline', value: U.money(all.activePipeline),
+        UI.stat({ cls: 'stat-hero', label: 'Active pipeline', value: U.money(all.activePipeline),
                   foot: all.activeCount + ' opportunities' }),
         UI.stat({ label: 'Closed revenue', value: U.money(all.closedRevenue),
                   foot: all.wonCount + ' won' })
@@ -194,8 +199,8 @@ RB.views = (function () {
         UI.stat({ label: 'Negotiated', value: U.money(life.negotiatedValue) }),
         UI.stat({ cls: 'stat-brand', label: 'Closed revenue', value: U.money(sc.closedRevenue),
                   foot: sc.wonCount + ' won', onClick: 'won' }),
-        UI.stat({ label: 'Lost value', value: U.money(sc.lostValue),
-                  foot: sc.lostCount + ' lost', footBad: true, onClick: 'lost' })
+        UI.stat({ cls: 'stat-red', label: 'Lost value', value: U.money(sc.lostValue),
+                  foot: sc.lostCount + ' lost', onClick: 'lost' })
       ]) +
 
       '<div class="grid grid-2">' +
@@ -389,10 +394,9 @@ RB.views = (function () {
         UI.stat({ label: 'Potential created', value: U.money(sc.potentialCreated) }),
         UI.stat({ cls: 'stat-hero', label: 'Active pipeline', value: U.money(life.activePipeline),
                   foot: life.activeCount + ' open', onClick: 'open' }),
-        UI.stat({ label: 'Quoted value', value: U.money(life.quotedValue) }),
         UI.stat({ label: 'Closed revenue', value: U.money(sc.closedRevenue),
                   foot: sc.wonCount + ' won', onClick: 'won' }),
-        UI.stat({ label: 'Lost value', value: U.money(sc.lostValue), footBad: true,
+        UI.stat({ cls: 'stat-red', label: 'Lost value', value: U.money(sc.lostValue),
                   foot: sc.lostCount + ' lost', onClick: 'lost' })
       ]) +
 
@@ -618,7 +622,7 @@ RB.views = (function () {
       'Flagged when the next action is overdue, there is none, or nothing has moved for 7 / 14 days. Highest value first.') +
       toolbar(M.views(), 'x5') +
       UI.stats([
-        UI.stat({ cls: 'stat-hero', label: 'Stalled value', value: U.money(U.sum(vs, function (v) { return v.current || 0; })) }),
+        UI.stat({ cls: 'stat-red', label: 'Stalled value', value: U.money(U.sum(vs, function (v) { return v.current || 0; })) }),
         UI.stat({ label: 'Opportunities', value: U.count(vs.length) }),
         UI.stat({ label: 'Overdue next action', value: U.count(vs.filter(function (v) { return v.overdue; }).length), footBad: true }),
         UI.stat({ label: 'No next action', value: U.count(vs.filter(function (v) { return !v.nextAction; }).length) })
@@ -651,11 +655,11 @@ RB.views = (function () {
     var groups = M.groupBy(pool, intelDim).filter(function (g) { return g.key !== 'None' || intelDim !== 'blocker'; });
 
     host.innerHTML = UI.head('Intelligence', 'Where opportunities stick, why they are lost, and what actually converts.') +
-      '<div class="filters"><div class="seg">' +
+      '<div class="tabs">' +
       Object.keys(dims).map(function (k) {
         return '<button type="button" data-dim="' + k + '" aria-pressed="' + (k === intelDim) + '">' +
           U.esc(dims[k]) + '</button>';
-      }).join('') + '</div></div>' + toolbar(M.views(), 'x6') +
+      }).join('') + '</div>' + toolbar(M.views(), 'x6') +
 
       (intelDim === 'lossReason'
         ? UI.stats([

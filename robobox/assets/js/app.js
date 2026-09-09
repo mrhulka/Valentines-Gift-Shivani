@@ -43,8 +43,11 @@ RB.app = (function () {
       (groups[ROUTES[k].group] = groups[ROUTES[k].group] || []).push(k);
     });
 
+    var u = RB.auth.user();
     var host = document.getElementById('sidebar');
-    host.innerHTML = Object.keys(groups).map(function (g) {
+    host.innerHTML =
+      '<div class="rail-brand"><span class="logo">R</span><span>Robobox<small>Connect</small></span></div>' +
+      Object.keys(groups).map(function (g) {
       return '<div class="nav-group"><h4>' + U.esc(g) + '</h4>' + groups[g].map(function (k) {
         var r = ROUTES[k], b = badges[k];
         return '<button class="nav-item" data-route="' + k + '"' +
@@ -53,7 +56,10 @@ RB.app = (function () {
           (b ? '<span class="badge' + (k === 'day' ? ' alarm' : '') + '">' + U.count(b) + '</span>' : '') +
           '</button>';
       }).join('') + '</div>';
-    }).join('');
+    }).join('') +
+      '<div class="rail-user"><span class="avatar">' + U.esc(U.initials(u.name)) + '</span>' +
+      '<span class="rail-user-meta"><strong>' + U.esc(u.name) + '</strong>' +
+      '<small>' + U.esc(u.email || RB.auth.roleLabel(u.role)) + '</small></span></div>';
 
     host.querySelectorAll('[data-route]').forEach(function (b) {
       b.addEventListener('click', function () {
@@ -158,10 +164,6 @@ RB.app = (function () {
   function showShell() {
     document.getElementById('login').hidden = true;
     document.getElementById('shell').hidden = false;
-    var u = RB.auth.user();
-    document.getElementById('user-name').textContent = u.name;
-    document.getElementById('user-role').textContent = RB.auth.roleLabel(u.role);
-    document.getElementById('user-avatar').textContent = U.initials(u.name);
     var h = (location.hash || '').replace('#/', '');
     go(allowed(h) ? h : defaultRoute());
   }
@@ -214,6 +216,7 @@ RB.app = (function () {
     });
     document.addEventListener('keydown', function (e) { if (e.key === 'Escape') UI.closeModal(); });
     document.getElementById('fab').addEventListener('click', function () { RB.connectForm.open(); });
+    document.getElementById('top-log').addEventListener('click', function () { RB.connectForm.open(); });
     window.addEventListener('hashchange', function () {
       var h = (location.hash || '').replace('#/', '');
       if (RB.auth.user() && h && h !== current) go(h);

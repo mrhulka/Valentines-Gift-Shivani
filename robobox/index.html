@@ -31,22 +31,23 @@
 </div>
 
 <div id="shell" class="shell" hidden>
-  <header class="topbar">
-    <button class="icon-btn nav-toggle" id="nav-toggle" aria-label="Menu">&#9776;</button>
-    <div class="brand"><span class="logo">R</span> <span class="brand-word">Robobox <small>Connect</small></span></div>
-    <div class="topbar-search" style="position:relative;flex:1;max-width:400px">
-      <input id="global-search" class="input" type="search" placeholder="Search schools…" autocomplete="off">
-      <div id="search-results" hidden style="position:absolute;top:calc(100% + 6px);left:0;right:0;background:var(--surface);border:1px solid var(--line);border-radius:var(--r-md);box-shadow:var(--shadow-2);z-index:60;max-height:380px;overflow:auto"></div>
-    </div>
-    <div class="topbar-right">
-      <button class="icon-btn" id="theme-toggle" title="Switch theme" aria-label="Switch theme">&#9681;</button>
-      <span class="avatar" id="user-avatar"></span>
-      <span class="user-meta"><strong id="user-name"></strong><em id="user-role"></em></span>
-      <button class="btn btn-ghost btn-sm" id="logout">Sign out</button>
-    </div>
-  </header>
   <nav class="sidebar" id="sidebar"></nav>
-  <main class="main" id="main" tabindex="-1"></main>
+  <div class="col">
+    <header class="topbar">
+      <button class="icon-btn nav-toggle" id="nav-toggle" aria-label="Menu">&#9776;</button>
+      <div class="topbar-search">
+        <span class="search-ico" aria-hidden="true">&#9906;</span>
+        <input id="global-search" type="search" placeholder="Search schools, contacts&hellip;" autocomplete="off">
+        <div id="search-results" hidden></div>
+      </div>
+      <div class="topbar-right">
+        <button class="btn btn-primary btn-sm top-log" id="top-log">+ Log Connect</button>
+        <button class="icon-btn ring" id="theme-toggle" title="Switch theme" aria-label="Switch theme">&#9681;</button>
+        <button class="icon-btn solid" id="logout" title="Sign out" aria-label="Sign out">&#9099;</button>
+      </div>
+    </header>
+    <main class="main" id="main" tabindex="-1"></main>
+  </div>
   <button class="fab" id="fab">+ Log Connect</button>
 </div>
 

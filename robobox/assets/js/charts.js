@@ -17,7 +17,7 @@ RB.charts = (function () {
    * Charcoal, magnitude uses the single-hue grey->charcoal ramp, and Yellow is
    * a highlight that always sits beside a direct value label (it is 1.6:1 on
    * Paper and can never carry meaning on its own). Red means lost or overdue. */
-  var INK = 'var(--charcoal)';
+  var INK = 'var(--ramp-5)';   // softer than full charcoal; direct labels carry the values
   var ORDINAL = ['var(--ramp-1)', 'var(--ramp-2)', 'var(--ramp-3)',
                  'var(--ramp-4)', 'var(--ramp-5)', 'var(--ramp-6)'];
   var SEQ = ORDINAL;
