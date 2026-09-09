@@ -127,6 +127,7 @@ RB.ceo = (function () {
     var fit = M.fitModel(vs);
     var att = M.needsAttention(vs, fit);
     var c30 = b.closure[30];
+    var list = M.listValue(b.open);
 
     host.innerHTML = frame('business', 'Business',
       'How much market Robobox has tapped, how much of it is real, and what has closed.') +
@@ -170,6 +171,12 @@ RB.ceo = (function () {
                   foot: 'confirmed untapped', onClick: 'untapped' }),
         UI.stat({ label: 'Students represented', value: U.count(b.students),
                   foot: 'counted once per school' }),
+        UI.stat({ label: 'Open pipeline at list price', value: list.value ? U.money(list.value) : '—',
+                  onClick: 'list',
+                  foot: list.value
+                    ? list.rows.length + ' priced off the rate card · ' + list.unpriced.length + ' not priceable yet'
+                    : 'set the rate card in Settings',
+                  title: 'Rate-card price × (school students ÷ base students), for open opportunities. What the book is worth before any negotiation.' }),
         UI.stat({ cls: b.untapped.length ? 'stat-brand' : '', label: 'Market whitespace',
                   value: b.untapped.length ? U.money(b.whitespace) : '—',
                   foot: b.untapped.length
@@ -264,7 +271,8 @@ RB.ceo = (function () {
     var map = {
       pot: ['Potential revenue', b.identified], qual: ['Qualified pipeline', b.qualifiedRows],
       weighted: ['Weighted pipeline', b.open], won: ['Closed won', b.won], lost: ['Lost', b.lost],
-      c30: ['Expected to close in 30 days', c30.rows], stale: ['Stale pipeline', b.stale]
+      c30: ['Expected to close in 30 days', c30.rows], stale: ['Stale pipeline', b.stale],
+      list: ['Priced off the rate card', list.rows.map(function (r) { return r.v; })]
     };
     board.exits.forEach(function (e) { map['exit-' + e.key] = [e.key, e.rows]; });
     drillOn(host, map);
@@ -331,7 +339,7 @@ RB.ceo = (function () {
 
   /* ========================================================= 2. SALES ===== */
   var perfDim = 'owner';
-  var dayDate = null;
+  var dayDate = null, dayMonth = null;
 
   function sales(host) {
     var s = slice(), vs = s.vs, range = s.range;
@@ -339,9 +347,18 @@ RB.ceo = (function () {
     var groups = M.performance(vs, perfDim, range);
     var date = dayDate || U.iso(U.today());
     var day = M.dayActivity(date, F.apply);
-    var lastActive = U.sortBy(RB.store.connects().filter(function (c) { return c.at; }),
-                              function (c) { return c.at; }, 'desc')[0];
-    lastActive = lastActive ? lastActive.at.slice(0, 10) : null;
+    /* How many connects were logged on each day, so the calendar shows where
+     * the activity actually is instead of making the CEO guess a date. */
+    var keep = {};
+    vs.forEach(function (v) { keep[v.opp.id] = true; });
+    var perDay = {}, lastActive = null;
+    RB.store.connects().forEach(function (c) {
+      if (!c.at || (c.opportunityId && !keep[c.opportunityId])) return;
+      var d = c.at.slice(0, 10);
+      perDay[d] = (perDay[d] || 0) + 1;
+      if (!lastActive || d > lastActive) lastActive = d;
+    });
+    var month = dayMonth || date.slice(0, 7);
     var fit = M.fitModel(vs);
     var att = M.needsAttention(vs, fit);
     var offer = M.performance(vs, 'offering', range);
@@ -369,12 +386,33 @@ RB.ceo = (function () {
       '<div id="perf"></div>' +
 
       '<div class="section-title">Sales team day</div>' +
-      '<div class="toolbar"><label class="row" style="gap:8px"><span class="small muted">Date</span>' +
-      '<input class="input" type="date" id="day-date" value="' + date + '" max="' + U.iso(U.today()) + '" style="width:auto"></label>' +
-      (lastActive && lastActive !== date
-        ? '<button class="btn btn-sm" id="day-last">Last active day: ' + U.esc(U.fmtDate(lastActive)) + '</button>'
-        : '') +
-      '<span class="small muted">Click a person for their day in order.</span></div>' +
+      '<div class="grid grid-2">' +
+        UI.card('Pick a day', 'The number on a day is how many connects were logged on it',
+          UI.monthGrid({ month: month, selected: date, max: U.iso(U.today()),
+            get: function (iso) {
+              var n = perDay[iso] || 0;
+              return { n: n, title: n ? n + ' connect' + (n === 1 ? '' : 's') + ' logged' : 'Nothing logged' };
+            } }) +
+          (lastActive && lastActive !== date
+            ? '<div class="row" style="margin-top:12px"><button class="btn btn-sm" id="day-last">' +
+              'Jump to the last active day — ' + U.esc(U.fmtDate(lastActive)) + '</button></div>'
+            : '')) +
+        UI.card(U.fmtDate(date) + (date === U.iso(U.today()) ? ' · today' : ''),
+          U.count(U.sum(day, function (r) { return r.done.length; })) + ' connects logged by the team',
+          UI.stats([
+            UI.stat({ small: true, cls: 'stat-brand', label: 'Connects',
+                      value: U.count(U.sum(day, function (r) { return r.done.length; })) }),
+            UI.stat({ small: true, label: 'Opps created',
+                      value: U.count(U.sum(day, function (r) { return r.createdCount; })) }),
+            UI.stat({ small: true, label: 'Pipeline moved',
+                      value: U.money(U.sum(day, function (r) { return r.movedValue; })) }),
+            UI.stat({ small: true, label: 'Nobody logged',
+                      value: U.count(day.filter(function (r) { return !r.done.length; }).length),
+                      foot: day.filter(function (r) { return !r.done.length; })
+                               .map(function (r) { return r.user.name; }).join(', ') || '—' })
+          ])) +
+      '</div>' +
+      '<p class="small muted">Click a person for their day in order.</p>' +
       '<div id="day"></div>' +
 
       '<div class="section-title">Opportunity type</div><div id="offer"></div>';
@@ -392,9 +430,13 @@ RB.ceo = (function () {
     host.querySelectorAll('[data-dim]').forEach(function (b) {
       b.addEventListener('click', function () { perfDim = b.getAttribute('data-dim'); sales(host); });
     });
-    host.querySelector('#day-date').addEventListener('change', function () { dayDate = this.value; sales(host); });
+    UI.bindMonthGrid(host,
+      function (d) { dayDate = d; dayMonth = d.slice(0, 7); sales(host); },
+      function (n) { dayMonth = U.shiftMonth(month, n); sales(host); });
     var lastBtn = host.querySelector('#day-last');
-    if (lastBtn) lastBtn.addEventListener('click', function () { dayDate = lastActive; sales(host); });
+    if (lastBtn) lastBtn.addEventListener('click', function () {
+      dayDate = lastActive; dayMonth = lastActive.slice(0, 7); sales(host);
+    });
     var strip = host.querySelector('#att-strip');
     if (strip) strip.addEventListener('click', function () { UI.drill('Needs attention', att.map(function (i) { return i.v; })); });
     host.querySelectorAll('.viz [data-key]').forEach(function (g) {

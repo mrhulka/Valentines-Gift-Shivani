@@ -121,10 +121,16 @@ RB.app = (function () {
         '<button class="btn" id="backup">Download backup</button>' +
         (RB.auth.can('ceoDashboard') ? '<button class="btn btn-danger" id="reset">Reset to imported data</button>' : '') +
         '</div>') +
-      (RB.auth.can('ceoDashboard') ? assumptionsCard() : '') +
-      '</div>';
+      '</div>' +
+      (RB.auth.can('ceoDashboard')
+        ? '<div class="section-title">Price list</div>' + pricingCard() +
+          '<div class="section-title">Sales team</div>' + teamCard() +
+          '<div class="section-title">Dashboard assumptions</div>' + assumptionsCard()
+        : '');
 
     if (RB.auth.can('ceoDashboard')) {
+      bindPricing(host);
+      bindTeam(host);
       host.querySelector('#assume').addEventListener('submit', function (e) {
         e.preventDefault();
         var v = UI.values(this);
@@ -153,6 +159,96 @@ RB.app = (function () {
               RB.store.resetDemo(); UI.closeModal(); UI.toast('Reset.'); refresh();
             });
           } });
+    });
+  }
+
+  /* ----------------------------------------------------------- price list */
+  /* The rate card. A slab has a price and the student count that price buys;
+   * a school with a different roll is charged pro rata, so a potential deal
+   * value falls out of the student count without anyone typing one. */
+  function pricingCard() {
+    var lines = M.priceLines(), p = M.prices();
+    var group = null, rows = '';
+    lines.forEach(function (l) {
+      if (l.group && l.group !== group) {
+        group = l.group;
+        rows += '<div class="price-group"><h4>' + U.esc(group) + '</h4></div>';
+      }
+      if (!l.group) group = null;
+      var v = p[l.id] || {};
+      rows += '<div class="price-row" data-price="' + U.esc(l.id) + '">' +
+        '<span class="price-name">' + U.esc(l.label) +
+          (l.legacy ? '<small>already used by live opportunities</small>' : '') + '</span>' +
+        '<input class="input" type="number" min="0" step="any" inputmode="decimal" data-f="price" ' +
+          'placeholder="Price ₹" value="' + U.esc(v.price != null ? v.price : '') + '">' +
+        '<input class="input" type="number" min="1" step="1" inputmode="numeric" data-f="base" ' +
+          'placeholder="Base students" value="' + U.esc(v.base != null ? v.base : '') + '">' +
+        '<span class="price-out">' + U.esc(priceNote(v)) + '</span>' +
+      '</div>';
+    });
+
+    return UI.card('Rate card',
+      'Price × (school students ÷ base students). Leave a row blank and it simply will not auto-calculate.',
+      '<div class="price-head"><span>Offering</span><span>Price (₹)</span>' +
+      '<span>Base students</span><span></span></div>' + rows +
+      '<p class="field-hint" style="margin-top:14px">Saved as you type. A priced slab pre-fills the ' +
+      'opportunity size on a new connect, so potential revenue is tracked before any negotiation.</p>');
+  }
+
+  function priceNote(v) {
+    if (!v.price) return 'not priced';
+    if (!v.base) return U.money(v.price) + ' flat';
+    return U.money(v.price / v.base) + ' per student';
+  }
+
+  function bindPricing(host) {
+    host.querySelectorAll('.price-row').forEach(function (row) {
+      row.querySelectorAll('input').forEach(function (i) {
+        i.addEventListener('change', function () {
+          var get = function (f) {
+            var el = row.querySelector('[data-f="' + f + '"]');
+            return el.value === '' ? null : Number(el.value);
+          };
+          var price = get('price'), base = get('base');
+          M.setPrice(row.getAttribute('data-price'), price, base);
+          row.querySelector('.price-out').textContent = priceNote({ price: price, base: base });
+          UI.toast('Price saved.');
+        });
+      });
+    });
+  }
+
+  /* ---------------------------------------------------------- sales team */
+  function teamCard() {
+    var users = RB.store.users();
+    return UI.card('People', users.length + ' on the team',
+      users.map(function (u) {
+        return '<div class="person"><span class="avatar">' + U.esc(U.initials(u.name)) + '</span>' +
+          '<span class="person-meta"><strong>' + U.esc(u.name) + '</strong><small>' +
+          U.esc([u.designation || RB.auth.roleLabel(u.role), u.region, u.ownerKey]
+                  .filter(Boolean).join(' · ')) + '</small></span>' +
+          '<span class="spacer"></span>' +
+          '<span class="tag">' + U.esc(RB.auth.roleLabel(u.role)) + '</span></div>';
+      }).join('') +
+      '<form id="add-person" style="margin-top:16px">' +
+      '<div class="field-row">' +
+        UI.field('Name', '<input class="input" name="name" required placeholder="Full name">') +
+        UI.field('Designation', '<input class="input" name="designation" placeholder="e.g. Sales Executive">') +
+        UI.field('Region', UI.select('region', M.V.region, null, { placeholder: 'Select' })) +
+      '</div>' +
+      '<div class="row wrap"><button class="btn btn-primary" type="submit">Add salesperson</button>' +
+      '<span class="field-hint">They sign in with their first name in lower case as the access code, ' +
+      'and see only their own schools.</span></div></form>');
+  }
+
+  function bindTeam(host) {
+    host.querySelector('#add-person').addEventListener('submit', function (e) {
+      e.preventDefault();
+      var v = UI.values(this);
+      if (!v.name) return UI.toast('Name is required.');
+      var u = RB.store.addUser({ name: v.name, designation: v.designation, region: v.region });
+      UI.toast(u.name + ' added — access code "' + u.pin + '".');
+      refresh();
     });
   }
 

@@ -205,14 +205,20 @@ textarea.input { min-height: 84px; resize: vertical; }
 .field-hint { display: block; font-size: 12px; color: var(--ink-muted); margin-top: 5px; }
 .field-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px,1fr)); gap: 0 16px; }
 
-.card { background: var(--surface); border-radius: var(--r-lg); box-shadow: var(--shadow-1);
-  padding: 20px 22px; }
+.card { background: var(--surface); border-radius: var(--r-lg); border: 1px solid var(--line);
+  box-shadow: var(--shadow-1); padding: 20px 22px; }
+.card-head { border-bottom: 1px solid var(--line); padding-bottom: 12px; }
 .card + .card { margin-top: 16px; }
+/* ...but inside a grid the gap already spaces them, and the margin was
+   pushing every second card 16px below its neighbour. */
+.grid > .card + .card, .stats > .stat + .stat { margin-top: 0; }
 .card-head { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
 .card-head h3 { font-size: 15.5px; }
 .card-sub { font-size: 12.5px; color: var(--ink-muted); }
 .card-head .spacer { margin-left: auto; }
-.grid { display: grid; gap: 16px; align-items: start; }
+.grid { display: grid; gap: 16px; align-items: stretch; }
+.grid > .card { display: flex; flex-direction: column; }
+.grid > .card > .table-wrap, .grid > .card > .viz { margin-top: auto; }
 .grid-2 { grid-template-columns: repeat(auto-fit, minmax(340px,1fr)); }
 .grid-3 { grid-template-columns: repeat(auto-fit, minmax(250px,1fr)); }
 
@@ -229,11 +235,25 @@ textarea.input { min-height: 84px; resize: vertical; }
 /* ------------------------------------------------------------ KPI tiles */
 /* The reference's signature: pale tinted cards, label small, number large. */
 /* Three-up on desktop, like the reference — big tiles, tidy rows. */
-.stats { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(300px,1fr)); margin-bottom: 18px; }
-.stat { background: var(--surface); border-radius: var(--r-lg); padding: 18px 20px;
-  box-shadow: var(--shadow-1); position: relative; }
+/* Flex, not grid: the last row grows to fill, so there is never a lone
+   narrow tile stranded at the end of a row. */
+.stats { display: flex; flex-wrap: wrap; gap: 16px; margin-bottom: 18px; }
+.stat { flex: 1 1 232px; min-width: 0; }
+.card .stats { margin-bottom: 0; }
+.card .stats + .section-title { margin-top: 18px; }
+.stat { background: var(--surface); border-radius: var(--r-lg); padding: 17px 19px;
+  border: 1px solid var(--line); box-shadow: none; position: relative; overflow: hidden;
+  transition: border-color .15s ease, box-shadow .15s ease, transform .15s ease; }
+/* A hairline of colour along the top edge is what separates the KPI row from
+   a wall of plain boxes - cheaper than an icon set, and it survives dark mode. */
+.stat::before { content: ""; position: absolute; inset: 0 0 auto; height: 3px;
+  background: var(--line-strong); }
+.stat-hero::before  { background: var(--charcoal); }
+.stat-brand::before { background: var(--brand); }
+.stat-red::before   { background: var(--red); }
 .stat.clickable { cursor: pointer; }
-.stat.clickable:hover { box-shadow: var(--shadow-2); }
+.stat.clickable:hover { box-shadow: var(--shadow-1); border-color: var(--line-strong);
+  transform: translateY(-2px); }
 .stat-hero  { background: var(--tint-ink); box-shadow: none; border: 1px solid var(--tint-ink-line); }
 .stat-brand { background: var(--tint-yellow); box-shadow: none; border: 1px solid var(--tint-yellow-line); }
 .stat-red   { background: var(--tint-red); box-shadow: none; border: 1px solid var(--tint-red-line); }
@@ -256,7 +276,8 @@ textarea.input { min-height: 84px; resize: vertical; }
 
 /* ---------------------------------------------------------------- tables */
 .table-wrap { overflow-x: auto; border-radius: var(--r-lg); background: var(--surface);
-  box-shadow: var(--shadow-1); }
+  border: 1px solid var(--line); box-shadow: var(--shadow-1); }
+.card > .table-wrap { border: 0; box-shadow: none; border-radius: 0; }
 table.data { width: 100%; border-collapse: collapse; font-size: 13.5px; }
 table.data th { text-align: left; font-size: 11.5px; color: var(--ink-muted); font-weight: 600;
   padding: 14px 16px; border-bottom: 1px solid var(--line); white-space: nowrap;
@@ -265,7 +286,9 @@ table.data th.sortable { cursor: pointer; user-select: none; }
 table.data th.sortable:hover { color: var(--ink); }
 table.data td { padding: 14px 16px; border-bottom: 1px solid var(--line); vertical-align: middle; }
 table.data tbody tr:last-child td { border-bottom: 0; }
+table.data tbody tr { transition: background .12s ease; }
 table.data tbody tr:hover { background: var(--surface-2); }
+table.data tbody tr.row-link:hover td:first-child { box-shadow: inset 3px 0 0 var(--brand); }
 table.data tbody tr.row-link { cursor: pointer; }
 table.data .num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
 table.data .strong { font-weight: 650; }
@@ -435,7 +458,8 @@ table.data .strong { font-weight: 650; }
 .wrap { flex-wrap: wrap; }
 .stack { display: flex; flex-direction: column; gap: 4px; }
 .small { font-size: 12.5px; }
-.section-title { font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .1em;
+.section-title { display: flex; align-items: center; gap: 12px;
+  font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .1em;
   color: var(--ink-muted); margin: 28px 0 14px; }
 .empty { padding: 38px; text-align: center; color: var(--ink-muted);
   background: var(--surface-2); border-radius: var(--r-lg); }
@@ -463,3 +487,58 @@ table.data .strong { font-weight: 650; }
     font-weight: 750; font-size: 16px; box-shadow: var(--shadow-2); cursor: pointer; }
 }
 @media (min-width: 981px) { .nav-toggle { display: none; } }
+
+/* -------------------------------------------------------------- calendar */
+/* One month grid, shared by the rep's calendar and the CEO's day picker. */
+.cal-head { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+.cal-head .spacer { margin-left: auto; }
+.cal-head strong { font-size: 14.5px; min-width: 78px; text-align: center; }
+.cal-week { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; margin-bottom: 6px; }
+.cal-week span { font-size: 10.5px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
+  color: var(--ink-muted); text-align: center; }
+.cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+.cal-cell { position: relative; min-height: 52px; padding: 6px 4px; font: inherit; cursor: pointer;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
+  background: var(--surface); color: var(--ink);
+  border: 1px solid var(--line); border-radius: var(--r-sm);
+  transition: background .12s ease, border-color .12s ease; }
+.cal-cell:hover:not(:disabled) { background: var(--surface-2); border-color: var(--line-strong); }
+.cal-cell.is-out { color: var(--ink-muted); background: var(--surface-2); }
+.cal-cell.is-today { border-color: var(--charcoal); font-weight: 700; }
+.cal-cell[aria-pressed="true"] { background: var(--charcoal); border-color: var(--charcoal); color: #fff; }
+.cal-cell:disabled { opacity: .32; cursor: default; }
+.cal-num { font-size: 13px; font-weight: 600; line-height: 1; }
+.cal-dot { font-size: 10.5px; font-weight: 700; line-height: 1; padding: 3px 7px;
+  border-radius: var(--r-pill); background: var(--brand); color: var(--brand-ink); }
+
+/* ------------------------------------------------------------ price list */
+/* A price row is a label, a rate and the student count that rate buys. */
+.price-row { display: grid; grid-template-columns: 1fr 150px 150px auto; gap: 12px;
+  align-items: center; padding: 11px 0; border-bottom: 1px solid var(--line); }
+.price-row:last-of-type { border-bottom: 0; }
+.price-row .input { min-height: 40px; padding: 8px 12px; }
+.price-name { font-weight: 650; font-size: 13.5px; }
+.price-name small { display: block; font-weight: 500; font-size: 12px; color: var(--ink-muted); }
+.price-out { font-size: 12.5px; color: var(--ink-muted); text-align: right; white-space: nowrap; }
+.price-head { display: grid; grid-template-columns: 1fr 150px 150px auto; gap: 12px;
+  font-size: 10.5px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
+  color: var(--ink-muted); padding-bottom: 8px; border-bottom: 1px solid var(--line-strong); }
+.price-group { margin-top: 18px; }
+.price-group > h4 { font-size: 11.5px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
+  color: var(--ink-2); margin: 0 0 6px; }
+@media (max-width: 720px) {
+  .price-row, .price-head { grid-template-columns: 1fr 1fr; }
+  .price-head { display: none; }
+  .price-row .price-name { grid-column: 1 / -1; }
+  .price-out { grid-column: 1 / -1; text-align: left; }
+}
+
+/* ----------------------------------------------------------------- people */
+.person { display: flex; align-items: center; gap: 12px; padding: 12px 0;
+  border-bottom: 1px solid var(--line); }
+.person:last-child { border-bottom: 0; }
+.person .avatar { width: 36px; height: 36px; flex: none; }
+.person-meta { min-width: 0; }
+.person-meta strong { display: block; font-size: 13.5px; }
+.person-meta small { color: var(--ink-muted); font-size: 12px; }
+.person .spacer { margin-left: auto; }

@@ -96,6 +96,11 @@ RB.util = (function () {
     return MONTH_SHORT[+p[1] - 1] + " '" + String(p[0]).slice(2);
   }
 
+  function shiftMonth(key, n) {
+    var d = new Date(+String(key).slice(0, 4), +String(key).slice(5, 7) - 1 + n, 1);
+    return d.getFullYear() + '-' + pad(d.getMonth() + 1);
+  }
+
   function daysBetween(a, b) {
     var da = parseISO(a), db = parseISO(b);
     if (!da || !db) return null;
@@ -253,7 +258,7 @@ RB.util = (function () {
   return {
     esc: esc, money: money, count: count, pct: pct, pctVal: pctVal, inGroup: inGroup,
     today: today, iso: iso, parseISO: parseISO, fmtDate: fmtDate, monthKey: monthKey,
-    monthLabel: monthLabel, daysBetween: daysBetween, daysSince: daysSince, addDays: addDays,
+    monthLabel: monthLabel, shiftMonth: shiftMonth, daysBetween: daysBetween, daysSince: daysSince, addDays: addDays,
     relative: relative, groupBy: groupBy, tally: tally, sortBy: sortBy, sum: sum, uniq: uniq,
     median: median, uid: uid, initials: initials, toCSV: toCSV, download: download, el: el,
     debounce: debounce, MONTH_SHORT: MONTH_SHORT

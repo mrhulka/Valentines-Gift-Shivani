@@ -93,8 +93,9 @@ RB.charts = (function () {
     var W = 720;
     var H = data.length * rowH + 8;
     var plotW = W - labelW - valueW - 12;
-    var max = niceMax(Math.max.apply(null, data.map(function (d) { return d.value || 0; })));
-    if (!max) return '<p class="empty">' + esc(opts.empty || 'Nothing recorded yet.') + '</p>';
+    var peak = Math.max.apply(null, data.map(function (d) { return d.value || 0; }));
+    if (!peak) return '<p class="empty">' + esc(opts.empty || 'Nothing recorded yet.') + '</p>';
+    var max = niceMax(peak);
     var colorFn = opts.color || function () { return INK; };
 
     var marks = data.map(function (d, i) {

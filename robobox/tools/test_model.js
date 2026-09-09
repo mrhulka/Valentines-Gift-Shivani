@@ -178,4 +178,39 @@ assert.ok(att.some(i => i.v.opp.id === 'O4'), 'O4: large deal, stuck, no next ac
 assert.ok(att.every(i => i.problem && i.action), 'every item names a problem and an action');
 M.setConfig({ highValue: null });
 
-console.log('model: all ' + 34 + ' assertions passed');
+/* --- the rate card: pro rata on the roll -------------------------------- */
+// Unpriced means unpriced. No default rate card is ever assumed.
+assert.strictEqual(M.priceFor('STEM Lab', null, 2000), null, 'no price set yet');
+assert.strictEqual(M.listValue(vs).value, 0);
+
+M.setPrice('STEM Lab', 500000, 1000);          // 5L buys 1,000 students
+// S1 has 2,000 students -> twice the base -> twice the price.
+assert.strictEqual(M.priceFor('STEM Lab', null, 2000).value, 1000000, 'pro rata up');
+assert.strictEqual(M.priceFor('STEM Lab', null, 500).value, 250000, 'pro rata down');
+assert.strictEqual(M.priceFor('STEM Lab', null, null).value, null, 'no student count, no quote');
+
+// A bagless activity is priced on its own line, not on the parent slab.
+assert.strictEqual(M.priceFor('Bagless', 'Pottery', 900), null, 'activity not priced');
+M.setPrice('Bagless · Pottery', 60000, 300);
+assert.strictEqual(M.priceFor('Bagless', 'Pottery', 900).value, 180000, 'activity pro rata');
+assert.strictEqual(M.priceFor('Bagless', 'Hydroponics', 900), null, 'other activities unaffected');
+
+// A price with no base student count is a flat rate, not a divide-by-zero.
+M.setPrice('Kit Class', 75000, null);
+assert.strictEqual(M.priceFor('Kit Class', null, 4000).value, 75000, 'flat rate');
+
+// Two STEM Lab opportunities at S1 (2,000 students): O1 is won, so only the
+// open one counts; the Bagless and Workshop rows stay unpriceable.
+var lv = M.listValue(vs.filter(v => v.status === 'Open'));
+assert.strictEqual(lv.value, 1000000, 'open pipeline at list price');
+assert.strictEqual(lv.unpriced.length, 1, 'the unpriced Workshop is reported, not hidden');
+
+// Every catalogue line the CEO can price, including anything already in the
+// data that the catalogue does not name.
+var lines = M.priceLines();
+assert.strictEqual(lines.filter(l => l.activity).length, 6, 'six bagless activities');
+assert.ok(lines.some(l => l.id === 'Advanced Lab Pro'));
+assert.ok(lines.some(l => l.legacy && l.id === 'Workshop'), 'live offerings outside the catalogue are priceable');
+M.setConfig({ pricing: {} });
+
+console.log('model: all ' + 47 + ' assertions passed');

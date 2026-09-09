@@ -34,22 +34,27 @@ RB.model = (function () {
     leadSource: ['Cold', 'Eldrocks', '91 Media', 'BNI', 'Referral', 'Existing Relationship',
                  'Internal', 'Event / Exhibition', 'Other'],
 
-    /* Opportunity type, as the Connect flow names them. */
-    offering: ['STEM Lab', 'Advanced Lab', 'Bagless', 'Workshop'],
+    /* Opportunity type. The stored value stays what it has always been so the
+     * imported opportunities keep resolving; only the label changed. */
+    offering: ['Advanced Lab Pro', 'Advanced Lab', 'STEM Lab', 'Kit Class', 'Bagless', 'Workshop'],
 
-    coreOfferings: ['STEM Lab', 'Advanced Lab', 'Bagless', 'Workshop'],
+    coreOfferings: ['Advanced Lab Pro', 'Advanced Lab', 'STEM Lab', 'Kit Class', 'Bagless'],
+
+    offeringLabel: { 'Bagless': 'Bagless Skills' },
 
     /* What each offering includes - shown under the picker so the rep chooses
      * the right one without a price list open. */
     offeringDetail: {
-      'STEM Lab':      'STEM lab with teachers · curriculum',
+      'Advanced Lab Pro': 'Top slab — lab, teachers, kits, curriculum',
       'Advanced Lab':  'Lab with teachers · kits · curriculum',
+      'STEM Lab':      'STEM lab with teachers · curriculum',
+      'Kit Class':     'Kits and classes, no lab build',
       'Bagless':       'Bagless skills, sold per activity',
       'Workshop':      'Paid workshops run for the school'
     },
 
-    baglessActivity: ['Robotics', 'Coding', 'Drone', '3D Printing', 'AI / ML',
-                      'Electronics', 'Astronomy', 'Other'],
+    baglessActivity: ['Hydroponics', 'Planetarium', 'Bank in School', 'Pottery',
+                      'Animal Bonding', 'Industry 4.0'],
 
     workshopType: ['One-day Robotics', 'Multi-day Bootcamp', 'Competition Prep',
                    'Teacher Training', 'Exhibition / Demo Day', 'Other'],
@@ -628,7 +633,8 @@ RB.model = (function () {
   var cfg = readConfig();
 
   function readConfig() {
-    var d = { avgLabValue: null, staleDays: 14, highValue: null, minWinSample: 10, target: null };
+    var d = { avgLabValue: null, staleDays: 14, highValue: null, minWinSample: 10,
+             target: null, pricing: {} };
     try { return Object.assign(d, JSON.parse(window.localStorage.getItem(CFG_KEY) || '{}')); }
     catch (e) { return d; }
   }
@@ -663,6 +669,86 @@ RB.model = (function () {
   function highValue() {
     if (cfg.highValue) return cfg.highValue;
     return percentile(views().map(function (v) { return v.current; }).filter(Boolean), 75) || 0;
+  }
+
+  /* ====================================================== price list ==== */
+  /* The CEO's rate card. A slab carries a price and the student count that
+   * price buys; a school with a different roll is charged pro rata. This is
+   * what turns a school's student count into a potential deal value without
+   * anyone typing a number.
+   *
+   * Prices start empty on purpose - inventing a rate card would put made-up
+   * revenue on the CEO's dashboard. Until a slab is priced it simply does not
+   * auto-calculate, and the Settings screen says so.
+   *
+   * `stored` is the value already on record for that offering, so renaming a
+   * label never orphans the 169 imported opportunities.
+   */
+  var CATALOGUE = [
+    { key: 'Advanced Lab Pro', label: 'Advanced Lab Pro' },
+    { key: 'Advanced Lab',     label: 'Advanced Lab' },
+    { key: 'STEM Lab',         label: 'Stem Lab' },
+    { key: 'Kit Class',        label: 'Kit Class' },
+    { key: 'Bagless',          label: 'Bagless Skills', activities: [
+        'Hydroponics', 'Planetarium', 'Bank in School', 'Pottery', 'Animal Bonding', 'Industry 4.0'
+      ] }
+  ];
+
+  /* Every priceable line: the four labs plus one row per bagless activity,
+   * plus anything already in the data that the catalogue does not name, so no
+   * live opportunity is left unpriceable. */
+  function priceLines() {
+    var lines = [];
+    CATALOGUE.forEach(function (c) {
+      if (!c.activities) return lines.push({ id: c.key, offering: c.key, label: c.label });
+      c.activities.forEach(function (a) {
+        lines.push({ id: c.key + ' · ' + a, offering: c.key, activity: a, label: a, group: c.label });
+      });
+    });
+    var named = {};
+    CATALOGUE.forEach(function (c) { named[c.key] = true; });
+    U.uniq(RB.store.opportunities().map(function (o) { return o.offering; }))
+      .filter(function (o) { return !named[o]; })
+      .forEach(function (o) { lines.push({ id: o, offering: o, label: o, legacy: true }); });
+    return lines;
+  }
+
+  function prices() { return cfg.pricing || (cfg.pricing = {}); }
+
+  function setPrice(id, price, baseStudents) {
+    var p = prices();
+    if (price == null && baseStudents == null) delete p[id];
+    else p[id] = { price: price, base: baseStudents };
+    setConfig({ pricing: p });
+  }
+
+  /* What one opportunity is worth at list price, pro rata on the roll.
+   * Returns null - never a guess - when the slab is unpriced or the school's
+   * student count is unknown. */
+  function priceFor(offering, activity, students) {
+    var row = prices()[activity ? offering + ' · ' + activity : offering];
+    if (!row || !row.price) return null;
+    var base = row.base;
+    if (!base) return { value: row.price, price: row.price, base: null, students: students,
+                        note: 'flat rate — no base student count set' };
+    if (!students) return { value: null, price: row.price, base: base, students: null,
+                            note: 'student count not recorded for this school' };
+    return { value: row.price * (students / base), price: row.price, base: base, students: students,
+             note: U.money(row.price) + ' per ' + U.count(base) + ' students, pro rata on ' +
+                   U.count(students) };
+  }
+
+  /* List-price value of a set of opportunities, and how much of it could not
+   * be priced. The CEO's "potential revenue before negotiation". */
+  function listValue(vs) {
+    var priced = [], unpriced = [];
+    vs.forEach(function (v) {
+      var q = priceFor(v.opp.offering, v.opp.variant, v.school && v.school.students);
+      if (q && q.value) priced.push({ v: v, value: q.value, quote: q });
+      else unpriced.push(v);
+    });
+    return { rows: priced, unpriced: unpriced,
+             value: U.sum(priced, function (r) { return r.value; }) };
   }
 
   /* ==================================================== qualification ==== */
@@ -1139,6 +1225,8 @@ RB.model = (function () {
     attention: attention, inRange: inRange, dayActivity: dayActivity, ownerOf: ownerOf,
     QUAL: QUAL, FIT: FIT, config: config, setConfig: setConfig, percentile: percentile,
     avgLabValue: avgLabValue, highValue: highValue, qualificationGap: qualificationGap,
+    CATALOGUE: CATALOGUE, priceLines: priceLines, prices: prices, setPrice: setPrice,
+    priceFor: priceFor, listValue: listValue,
     business: business, stageBoard: stageBoard, performance: performance, advancedIn: advancedIn,
     blockerRisk: blockerRisk, needsAttention: needsAttention, competitors: competitors,
     leadSources: leadSources, segments: segments, salesSpeed: salesSpeed,

@@ -143,27 +143,75 @@ RB.connectForm = (function () {
       });
   }
 
-  /* 2b / 3. The opportunity. */
+  /* 2b / 3. The opportunity.
+   *
+   * The size is quoted off the CEO's rate card - price x (this school's
+   * students / the base count that price buys) - so potential revenue is
+   * tracked before any negotiation. It stays editable: the rate card is the
+   * list price, not the deal. */
   function stepOpportunity() {
-    var name = d.school ? d.school.name : (RB.store.schoolById(d.schoolId) || {}).name;
-    shell(name + ' · opportunity',
+    var school = d.school || RB.store.schoolById(d.schoolId) || {};
+    shell(school.name + ' · opportunity',
       '<form id="f">' +
       '<div class="cx-step"><h3>Opportunity type</h3>' +
       UI.choice('offering', V.offering.map(function (o) {
-        return { value: o, label: o, sub: V.offeringDetail[o] };
+        return { value: o, label: V.offeringLabel[o] || o, sub: V.offeringDetail[o] };
       }), null) + '</div>' +
+      '<div id="activity" hidden></div>' +
       UI.field('Opportunity size (₹)',
         '<input class="input" type="number" name="initialPotential" min="0" step="any" inputmode="decimal" required>',
         'Locked once saved, so realisation can be measured against it later.') +
+      '<div id="quote" class="field-hint" style="margin:-10px 0 16px"></div>' +
       '<div class="modal-actions"><button type="submit" class="btn btn-primary btn-lg btn-block">Continue</button></div>' +
       '</form>',
       function (host) {
-        UI.bindChoices(host);
+        var box = host.querySelector('#activity');
+        var note = host.querySelector('#quote');
+        var size = host.querySelector('[name=initialPotential]');
+        var picked = { offering: null, activity: null };
+
+        function quote() {
+          var q = M.priceFor(picked.offering, picked.activity, school.students);
+          if (!q) {
+            note.textContent = picked.offering
+              ? 'No rate card price for this yet — type the size in.' : '';
+            return;
+          }
+          note.textContent = q.value
+            ? 'Rate card: ' + q.note + '. Edit it if this deal is sized differently.'
+            : 'Rate card: ' + q.note + '.';
+          // Never overwrite a number the rep has typed over the quote.
+          if (q.value && (!size.value || size.dataset.auto === '1')) {
+            size.value = Math.round(q.value);
+            size.dataset.auto = '1';
+          }
+        }
+        size.addEventListener('input', function () { size.dataset.auto = '0'; });
+
+        UI.bindChoices(host, function (name, v) {
+          if (name === 'offering') {
+            picked.offering = v; picked.activity = null;
+            var acts = (M.CATALOGUE.filter(function (c) { return c.key === v; })[0] || {}).activities;
+            box.hidden = !acts;
+            if (acts) {
+              box.innerHTML = '<div class="cx-step"><h3>Which activity?</h3>' +
+                UI.choice('variant', acts, null, { tight: true }) + '</div>';
+              UI.bindChoices(box, function (_, a) { picked.activity = a; quote(); });
+            } else {
+              box.innerHTML = '';
+            }
+          }
+          quote();
+        });
+
         host.querySelector('#f').addEventListener('submit', function (e) {
           e.preventDefault();
           var v = UI.values(this);
           if (!v.offering) return UI.toast('Pick an opportunity type.');
-          d.opportunity = { offering: v.offering, initialPotential: Number(v.initialPotential) || null };
+          var acts = (M.CATALOGUE.filter(function (c) { return c.key === v.offering; })[0] || {}).activities;
+          if (acts && !v.variant) return UI.toast('Pick a bagless activity.');
+          d.opportunity = { offering: v.offering, variant: v.variant || null,
+                            initialPotential: Number(v.initialPotential) || null };
           stepConnect();
         });
       });

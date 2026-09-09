@@ -141,31 +141,40 @@ RB.views = (function () {
   }
 
   /* ========================================================== CALENDAR ==== */
+  /* A month, not a scroll of 21 days. The badge on a day is how many next
+   * actions fall on it, so the busy days are visible before you click one. */
+  var calMonth = null, calDay = null;
+
   function myCalendar(host) {
-    var days = M.calendar(me().id, U.iso(U.today()), 21);
     var today = U.iso(U.today());
+    var month = calMonth || today.slice(0, 7);
+    var day = calDay || today;
+    var byDay = {};
+    M.tasks(me().id).forEach(function (t) {
+      if (!t.due) return;
+      var d = t.due.slice(0, 10);
+      (byDay[d] = byDay[d] || []).push(t);
+    });
+    var items = byDay[day] || [];
+
     host.innerHTML = UI.head('My calendar', 'Built from the next action on every Connect. Nothing to add by hand.',
       '<button class="btn btn-primary top-log" id="log">+ Log Connect</button>') +
-      '<div class="card">' + days.map(function (day) {
-        var dt = U.parseISO(day.date);
-        return '<div class="cal-day"><div class="cal-date' + (day.date === today ? ' is-today' : '') + '">' +
-          U.esc(U.fmtDate(day.date)) + '<small>' +
-          ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][dt.getDay()] +
-          (day.date === today ? ' · today' : '') + '</small></div><div>' +
-          (day.items.length
-            ? day.items.map(function (t) {
-                return '<div class="row wrap" style="padding:5px 0">' +
-                  '<span class="tag tag-dark">' + U.esc(t.due.slice(11, 16)) + '</span>' +
-                  '<strong class="small">' + U.esc(t.title) + '</strong>' +
-                  '<span class="small muted">' + U.esc(U.money(t.value)) + '</span>' +
-                  '<button class="btn btn-sm" style="margin-left:auto" data-log-opp="' + U.esc(t.opportunityId) + '">Connect</button>' +
-                  '</div>';
-              }).join('')
-            : '<div class="cal-empty">—</div>') +
-          '</div></div>';
-      }).join('') + '</div>';
+      '<div class="grid grid-2">' +
+        UI.card('Month', 'The number on a day is how many follow-ups fall on it',
+          UI.monthGrid({ month: month, selected: day,
+            get: function (iso) {
+              var n = (byDay[iso] || []).length;
+              return { n: n, title: n ? n + ' follow-up' + (n === 1 ? '' : 's') : '' };
+            } })) +
+        UI.card(U.fmtDate(day) + (day === today ? ' · today' : ''),
+          items.length + ' follow-up' + (items.length === 1 ? '' : 's'),
+          items.length ? taskList(items) : '<div class="cal-empty">Nothing due on this day.</div>') +
+      '</div>';
 
     host.querySelector('#log').addEventListener('click', function () { RB.connectForm.open(); });
+    UI.bindMonthGrid(host,
+      function (d) { calDay = d; calMonth = d.slice(0, 7); myCalendar(host); },
+      function (n) { calMonth = U.shiftMonth(month, n); myCalendar(host); });
     bindTasks(host);
   }
 

@@ -120,6 +120,58 @@ RB.ui = (function () {
     return out;
   }
 
+  /* ------------------------------------------------------------- calendar */
+  /* One month grid. The rep's calendar and the CEO's day picker are the same
+   * thing - a month, a count per day, one selected day - so there is one of
+   * them. `get(iso)` returns { n, title } for a day; a day with nothing on it
+   * is left plain, which is how you spot the days that have something. */
+  var WEEKDAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+
+  function monthGrid(o) {
+    var y = +o.month.slice(0, 4), m = +o.month.slice(5, 7);
+    var lead = (new Date(y, m - 1, 1).getDay() + 6) % 7;      // Monday-first
+    var weeks = Math.ceil((lead + new Date(y, m, 0).getDate()) / 7);
+    var todayISO = U.iso(U.today());
+
+    var cells = '';
+    for (var i = 0; i < weeks * 7; i++) {
+      var d = new Date(y, m - 1, 1 - lead + i);
+      var iso = U.iso(d);
+      var info = (o.get && o.get(iso)) || {};
+      cells += '<button type="button" class="cal-cell' +
+        (d.getMonth() !== m - 1 ? ' is-out' : '') +
+        (iso === todayISO ? ' is-today' : '') + '"' +
+        ' data-day="' + iso + '"' +
+        (iso === o.selected ? ' aria-pressed="true"' : '') +
+        (o.max && iso > o.max ? ' disabled' : '') +
+        (info.title ? ' title="' + U.esc(info.title) + '"' : '') + '>' +
+        '<span class="cal-num">' + d.getDate() + '</span>' +
+        (info.n ? '<span class="cal-dot">' + U.esc(U.count(info.n)) + '</span>' : '') +
+        '</button>';
+    }
+
+    return '<div class="cal">' +
+      '<div class="cal-head">' +
+        '<button type="button" class="icon-btn" data-mon="-1" aria-label="Previous month">‹</button>' +
+        '<strong>' + U.esc(U.monthLabel(o.month)) + '</strong>' +
+        '<button type="button" class="icon-btn" data-mon="1" aria-label="Next month">›</button>' +
+        '<span class="spacer"></span>' +
+        (o.legend ? '<span class="small muted">' + U.esc(o.legend) + '</span>' : '') +
+        '<button type="button" class="btn btn-sm" data-day="' + todayISO + '">Today</button>' +
+      '</div>' +
+      '<div class="cal-week">' + WEEKDAYS.map(function (w) { return '<span>' + w + '</span>'; }).join('') + '</div>' +
+      '<div class="cal-grid">' + cells + '</div></div>';
+  }
+
+  function bindMonthGrid(host, onPick, onMonth) {
+    host.querySelectorAll('.cal [data-day]').forEach(function (b) {
+      b.addEventListener('click', function () { onPick(b.getAttribute('data-day')); });
+    });
+    host.querySelectorAll('.cal [data-mon]').forEach(function (b) {
+      b.addEventListener('click', function () { onMonth(+b.getAttribute('data-mon')); });
+    });
+  }
+
   /* Sortable, paged table. */
   function table(container, cfg) {
     var st = { key: cfg.sortKey || null, dir: cfg.sortDir || 'desc', page: 0, size: cfg.pageSize || 20 };
@@ -239,6 +291,7 @@ RB.ui = (function () {
     toast: toast, modal: modal, closeModal: closeModal, stat: stat, stats: stats,
     head: head, card: card, stageTag: stageTag, interestTag: interestTag,
     select: select, field: field, choice: choice, bindChoices: bindChoices,
-    values: values, table: table, oppColumns: oppColumns, drill: drill
+    values: values, table: table, oppColumns: oppColumns, drill: drill,
+    monthGrid: monthGrid, bindMonthGrid: bindMonthGrid
   };
 })();

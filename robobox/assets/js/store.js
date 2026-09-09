@@ -110,6 +110,32 @@ RB.store = (function () {
 
   /* ------------------------------------------------------------ writes */
 
+  /* A salesperson. The owner key is how every opportunity, school and connect
+   * already refers to a person, so it is derived from the name rather than
+   * asked for - and kept unique. */
+  function addUser(fields) {
+    var name = String(fields.name || '').trim();
+    var base = name.split(/\s+/)[0].toUpperCase().replace(/[^A-Z0-9]/g, '') || 'USER';
+    var key = base, n = 2;
+    while (state.users.some(function (u) { return u.ownerKey === key; })) key = base + n++;
+    var id = key.toLowerCase();
+    var u = {
+      id: id, name: name, role: fields.role || 'sales', ownerKey: key,
+      designation: fields.designation || null, region: fields.region || null,
+      email: fields.email || (id + '@robobox.in'),
+      pin: fields.pin || id, origin: 'app'
+    };
+    state.users.push(u);
+    commit({ type: 'user', user: u });
+    return u;
+  }
+
+  function updateUser(id, patch) {
+    var u = userById(id);
+    if (u) { Object.assign(u, patch); commit({ type: 'user', user: u }); }
+    return u;
+  }
+
   function addSchool(fields) {
     var s = Object.assign({
       id: U.uid('SCH'), name: '', location: null, region: 'Central', cluster: null,
@@ -209,6 +235,7 @@ RB.store = (function () {
     schoolById: schoolById, opportunityById: opportunityById, contactById: contactById,
     userById: userById, contactsFor: contactsFor, opportunitiesFor: opportunitiesFor,
     connectsForSchool: connectsForSchool, findSchool: findSchool,
+    addUser: addUser, updateUser: updateUser,
     addSchool: addSchool, addContact: addContact, addOpportunity: addOpportunity,
     logConnect: logConnect, updateSchool: updateSchool, updateOpportunity: updateOpportunity,
     resetDemo: resetDemo, exportState: exportState,
