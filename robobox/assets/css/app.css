@@ -140,6 +140,11 @@ button, input, select, textarea { font: inherit; }
 .rail-user-meta strong { display: block; font-size: 13.5px; color: #fff; }
 .rail-user-meta small { color: rgba(255,255,255,.5); font-size: 11.5px; }
 
+.rail-signout { margin-top: 10px; width: 100%; min-height: 40px; border-radius: var(--r-md);
+  border: 1px solid rgba(255,255,255,.18); background: none; color: rgba(255,255,255,.8);
+  font-weight: 600; font-size: 13.5px; cursor: pointer; }
+.rail-signout:hover { background: rgba(255,255,255,.10); color: #fff; }
+
 .topbar { display: flex; align-items: center; gap: 12px; padding: 6px 4px 16px 22px; }
 .topbar-search { position: relative; flex: 1; max-width: 430px; }
 .topbar-search input { width: 100%; padding: 11px 14px 11px 40px; min-height: 44px;

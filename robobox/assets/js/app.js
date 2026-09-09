@@ -59,7 +59,8 @@ RB.app = (function () {
     }).join('') +
       '<div class="rail-user"><span class="avatar">' + U.esc(U.initials(u.name)) + '</span>' +
       '<span class="rail-user-meta"><strong>' + U.esc(u.name) + '</strong>' +
-      '<small>' + U.esc(u.email || RB.auth.roleLabel(u.role)) + '</small></span></div>';
+      '<small>' + U.esc(RB.auth.roleLabel(u.role)) + '</small></span></div>' +
+      '<button class="rail-signout" id="rail-signout">Sign out</button>';
 
     host.querySelectorAll('[data-route]').forEach(function (b) {
       b.addEventListener('click', function () {
@@ -67,6 +68,7 @@ RB.app = (function () {
         document.getElementById('shell').classList.remove('nav-open');
       });
     });
+    host.querySelector('#rail-signout').addEventListener('click', signOut);
   }
 
   function go(route) {
@@ -81,6 +83,20 @@ RB.app = (function () {
   }
 
   function refresh() { if (current) go(current); }
+
+  function signOut() {
+    UI.modal('Sign out?',
+      '<p class="sec" style="margin-top:0">You will be returned to the sign-in screen. ' +
+      'Anything you have logged stays saved.</p>' +
+      '<div class="modal-actions"><button class="btn" data-close="1">Stay signed in</button>' +
+      '<button class="btn btn-dark" id="so-yes">Sign out</button></div>',
+      { onMount: function (h) {
+          h.querySelector('#so-yes').addEventListener('click', function () {
+            UI.closeModal();
+            Promise.resolve(RB.auth.signOut()).then(function () { current = null; showLogin(); });
+          });
+        } });
+  }
 
   /* -------------------------------------------------------------- settings */
   function settings(host) {
@@ -205,9 +221,7 @@ RB.app = (function () {
       });
     });
 
-    document.getElementById('logout').addEventListener('click', function () {
-      Promise.resolve(RB.auth.signOut()).then(function () { current = null; showLogin(); });
-    });
+    document.getElementById('logout').addEventListener('click', signOut);
     document.getElementById('nav-toggle').addEventListener('click', function () {
       document.getElementById('shell').classList.toggle('nav-open');
     });

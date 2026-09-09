@@ -1,8 +1,13 @@
-/* Robobox Connect - the one form.
+/* Robobox Connect - the one form, two entries.
  *
- * New Connect and Reconnect are the same flow with different depth, not two
- * workflows. Steps appear as they become relevant, and date, time and
- * salesperson are never asked for.
+ * NEW SCHOOL CONNECT   create a lead, branch on whether a STEM lab exists,
+ *                      then capture the connect.
+ * EXISTING SCHOOL      find the school, pick or add an opportunity, then
+ *                      capture the connect.
+ *
+ * Both converge on the same connect block: mode, response, blockers, next
+ * action, stage, expected closure. One connect = one actionable update, and
+ * it is not complete until action + owner + follow-up date are captured.
  */
 window.RB = window.RB || {};
 
@@ -10,57 +15,167 @@ RB.connectForm = (function () {
   'use strict';
 
   var U = RB.util, M = RB.model, UI = RB.ui, V = RB.model.V;
-
-  /* Draft carried across the steps of one Connect. */
-  var d = null;
+  var d = null;   // draft carried across the steps of one connect
 
   function open(preset) {
-    d = Object.assign({
-      kind: null, schoolId: null, opportunityId: null, contactId: null,
-      newSchool: null, newContact: null
-    }, preset || {});
-    if (d.opportunityId) {
-      var o = RB.store.opportunityById(d.opportunityId);
-      d.schoolId = o.schoolId; d.kind = 'Reconnect';
-      return stepDetail();
-    }
+    d = Object.assign({ kind: null, schoolId: null, opportunityId: null, contactId: null },
+                      preset || {});
+    if (d.opportunityId) { d.kind = 'Existing'; return stepConnect(); }
+    if (d.schoolId) { d.kind = 'Existing'; return stepPickOpportunity(); }
     stepKind();
   }
 
-  function shell(title, body, onMount) {
-    return UI.modal(title, body, { wide: false, onMount: onMount });
+  function shell(title, body, onMount) { return UI.modal(title, body, { onMount: onMount }); }
+
+  function owners() {
+    return RB.store.users().filter(function (u) { return u.ownerKey; })
+      .map(function (u) { return { value: u.ownerKey, label: u.name }; });
   }
 
-  /* ------------------------------------------------------------- step 1 */
+  /* ------------------------------------------------------------- entry */
   function stepKind() {
     shell('Log a Connect',
-      '<div class="cx-step"><h3>Connect type</h3>' +
+      '<div class="cx-step"><h3>Which is it?</h3>' +
       UI.choice('kind', [
-        { value: 'New Connect', label: 'New Connect', sub: 'A school or opportunity we have not worked before' },
-        { value: 'Reconnect', label: 'Reconnect', sub: 'An update on something already in play' }
+        { value: 'New', label: 'New School Connect', sub: 'Create and convert a new school lead' },
+        { value: 'Existing', label: 'Existing School Connect', sub: 'Grow an opportunity at a school we know' }
       ], d.kind) + '</div>',
       function (host) {
         UI.bindChoices(host, function (_, v) {
           d.kind = v;
-          v === 'New Connect' ? stepNewSchool() : stepPickSchool();
+          v === 'New' ? stepNewLead() : stepSearchSchool();
         });
       });
   }
 
-  /* ------------------------------------------ step 2: which school */
-  function stepPickSchool() {
-    var recent = recentSchools();
-    shell('Reconnect · which school?',
-      '<input class="input" id="sch-q" type="search" placeholder="Search schools…" autocomplete="off" autofocus>' +
-      '<div class="section-title" id="sch-label">Recent</div>' +
-      '<div class="pick-list" id="sch-list"></div>',
+  /* ============================================ NEW SCHOOL CONNECT ==== */
+  /* 1. Create new school lead — the name is typed, not searched. */
+  function stepNewLead() {
+    shell('New school lead',
+      '<form id="f">' +
+      '<div class="field-row">' +
+        UI.field('School name', '<input class="input" name="name" required autofocus autocomplete="off">') +
+        UI.field('Location', '<input class="input" name="location" required>') +
+      '</div>' +
+      '<div class="field-row">' +
+        UI.field('Sales region', UI.select('region', V.region, null, { placeholder: 'Select', required: true })) +
+        UI.field('Board', UI.select('board', V.board, null, { placeholder: 'Select', required: true })) +
+        UI.field('Student count', '<input class="input" type="number" name="students" min="0" inputmode="numeric">') +
+      '</div>' +
+      '<div id="dupe"></div>' +
+      '<div class="modal-actions"><button type="submit" class="btn btn-primary btn-lg btn-block">Continue</button></div>' +
+      '</form>',
       function (host) {
-        var list = host.querySelector('#sch-list'), q = host.querySelector('#sch-q');
-        draw(recent);
-        q.focus();
+        var f = host.querySelector('#f'), dupe = host.querySelector('#dupe');
+        // A school exists once — warn before a second record is created.
+        f.querySelector('[name=name]').addEventListener('input', U.debounce(function () {
+          var t = this.value.trim();
+          var hit = t.length > 2 && RB.store.schools().filter(function (s) {
+            return s.name.toLowerCase().indexOf(t.toLowerCase()) !== -1;
+          })[0];
+          dupe.innerHTML = hit
+            ? '<div class="prev-connect"><div class="pc-label">Already on file</div>' +
+              U.esc(hit.name) + ' — ' + U.esc(hit.location || '') +
+              '. <button type="button" class="btn btn-sm" data-use="' + U.esc(hit.id) + '">Use that school</button></div>'
+            : '';
+          var b = dupe.querySelector('[data-use]');
+          if (b) b.addEventListener('click', function () {
+            d.schoolId = b.getAttribute('data-use'); d.kind = 'Existing'; stepPickOpportunity();
+          });
+        }, 200));
+
+        f.addEventListener('submit', function (e) {
+          e.preventDefault();
+          var v = UI.values(this);
+          d.school = {
+            name: v.name, location: v.location, region: v.region, board: v.board,
+            students: v.students ? Number(v.students) : null,
+            ownerKey: RB.auth.user().ownerKey
+          };
+          stepStemLab();
+        });
+      });
+  }
+
+  /* 2. Does a STEM lab already exist? */
+  function stepStemLab() {
+    shell(d.school.name + ' · existing lab',
+      '<div class="cx-step"><h3>Does a STEM lab already exist?</h3>' +
+      UI.choice('stemLab', [
+        { value: 'Yes', label: 'Yes', sub: 'Capture who runs it and what they spend' },
+        { value: 'No', label: 'No', sub: 'Straight to the opportunity' }
+      ], null) + '</div>',
+      function (host) {
+        UI.bindChoices(host, function (_, v) {
+          d.school.stemLab = v;
+          v === 'Yes' ? stepLabProfile() : stepOpportunity();
+        });
+      });
+  }
+
+  /* 2a. Existing lab profile. */
+  function stepLabProfile() {
+    shell(d.school.name + ' · existing lab profile',
+      '<form id="f">' +
+      UI.field('Competition name', UI.select('competitor', V.competitor2, null, { placeholder: 'Select', required: true })) +
+      '<div class="field-row">' +
+        UI.field('Type of lab', UI.select('labType', V.labType, null, { placeholder: 'Select' })) +
+        UI.field('Spend on existing lab (₹)', '<input class="input" type="number" name="labSpend" min="0" step="1000" inputmode="numeric">') +
+      '</div>' +
+      '<div class="modal-actions"><button type="submit" class="btn btn-primary btn-lg btn-block">Continue</button></div>' +
+      '</form>',
+      function (host) {
+        host.querySelector('#f').addEventListener('submit', function (e) {
+          e.preventDefault();
+          var v = UI.values(this);
+          d.school.competitor = v.competitor;
+          d.school.existingLab = 'Competitor';
+          d.school.labType = v.labType || null;
+          d.school.labSpend = v.labSpend ? Number(v.labSpend) : null;
+          stepOpportunity();
+        });
+      });
+  }
+
+  /* 2b / 3. The opportunity. */
+  function stepOpportunity() {
+    var name = d.school ? d.school.name : (RB.store.schoolById(d.schoolId) || {}).name;
+    shell(name + ' · opportunity',
+      '<form id="f">' +
+      '<div class="cx-step"><h3>Opportunity type</h3>' +
+      UI.choice('offering', V.offering.map(function (o) {
+        return { value: o, label: o, sub: V.offeringDetail[o] };
+      }), null) + '</div>' +
+      UI.field('Opportunity size (₹)',
+        '<input class="input" type="number" name="initialPotential" min="0" step="1000" inputmode="numeric" required>',
+        'Locked once saved, so realisation can be measured against it later.') +
+      '<div class="modal-actions"><button type="submit" class="btn btn-primary btn-lg btn-block">Continue</button></div>' +
+      '</form>',
+      function (host) {
+        UI.bindChoices(host);
+        host.querySelector('#f').addEventListener('submit', function (e) {
+          e.preventDefault();
+          var v = UI.values(this);
+          if (!v.offering) return UI.toast('Pick an opportunity type.');
+          d.opportunity = { offering: v.offering, initialPotential: Number(v.initialPotential) || null };
+          stepConnect();
+        });
+      });
+  }
+
+  /* ======================================= EXISTING SCHOOL CONNECT ==== */
+  /* 1. Search the school. */
+  function stepSearchSchool() {
+    var recent = recentSchools();
+    shell('Existing school',
+      '<input class="input" id="q" type="search" placeholder="Search school name…" autocomplete="off">' +
+      '<div class="section-title" id="lbl">Recent</div><div class="pick-list" id="list"></div>',
+      function (host) {
+        var list = host.querySelector('#list'), q = host.querySelector('#q');
+        draw(recent); q.focus();
         q.addEventListener('input', U.debounce(function () {
           var t = q.value.trim().toLowerCase();
-          host.querySelector('#sch-label').textContent = t ? 'Matches' : 'Recent';
+          host.querySelector('#lbl').textContent = t ? 'Matches' : 'Recent';
           draw(t ? RB.store.schools().filter(function (s) {
             return (s.name + ' ' + (s.location || '')).toLowerCase().indexOf(t) !== -1;
           }).slice(0, 20) : recent);
@@ -68,12 +183,12 @@ RB.connectForm = (function () {
 
         function draw(items) {
           list.innerHTML = items.length ? items.map(function (s) {
-            var opps = RB.store.opportunitiesFor(s.id).filter(function (o) { return o.status === 'Open'; });
+            var n = RB.store.opportunitiesFor(s.id).filter(function (o) { return o.status === 'Open'; }).length;
             return '<button type="button" class="pick" data-id="' + U.esc(s.id) + '">' +
-              '<span class="pick-main"><strong>' + U.esc(s.name) + '</strong>' +
-              '<small>' + U.esc([s.location, s.board].filter(Boolean).join(' · ')) + '</small></span>' +
-              '<span class="pick-right small muted">' + opps.length + ' open</span></button>';
-          }).join('') : '<div class="empty">No school matches. Log a New Connect to add one.</div>';
+              '<span class="pick-main"><strong>' + U.esc(s.name) + '</strong><small>' +
+              U.esc([s.location, s.region, s.board].filter(Boolean).join(' · ')) + '</small></span>' +
+              '<span class="pick-right small muted">' + n + ' open</span></button>';
+          }).join('') : '<div class="empty">No school matches. Start a New School Connect instead.</div>';
           list.querySelectorAll('[data-id]').forEach(function (b) {
             b.addEventListener('click', function () { d.schoolId = b.getAttribute('data-id'); stepPickOpportunity(); });
           });
@@ -82,391 +197,243 @@ RB.connectForm = (function () {
   }
 
   function recentSchools() {
-    var me = RB.auth.user();
-    var seen = [], out = [];
+    var me = RB.auth.user(), seen = [], out = [];
     RB.store.connects().slice().sort(function (a, b) {
       return String(b.at || '').localeCompare(String(a.at || ''));
     }).forEach(function (c) {
       if (out.length >= 8 || seen.indexOf(c.schoolId) !== -1) return;
       var s = RB.store.schoolById(c.schoolId);
-      if (!s) return;
-      if (me.role === 'sales' && s.ownerKey !== me.ownerKey) return;
+      if (!s || (me.role === 'sales' && s.ownerKey !== me.ownerKey)) return;
       seen.push(c.schoolId); out.push(s);
     });
     return out;
   }
 
-  /* -------------------------------- step 3: which opportunity (reconnect) */
+  /* 2. Existing opportunity, or a new one at the same school. */
   function stepPickOpportunity() {
     var school = RB.store.schoolById(d.schoolId);
     var opps = RB.store.opportunitiesFor(d.schoolId).map(M.view)
       .filter(function (v) { return v.status === 'Open'; });
 
     shell(school.name,
-      '<p class="sec small" style="margin-top:0">Which opportunity is this about?</p>' +
+      '<p class="sec small" style="margin-top:0">Existing opportunity, or a new one at this school?</p>' +
       '<div class="pick-list">' +
       opps.map(function (v) {
         return '<button type="button" class="pick" data-id="' + U.esc(v.opp.id) + '">' +
-          '<span class="pick-main"><strong>' + U.esc(v.opp.offering || 'Opportunity') + '</strong>' +
-          '<small>' + U.esc(v.stage) + (v.lastAt ? ' · last ' + U.fmtDate(v.lastAt) : '') + '</small></span>' +
+          '<span class="pick-main"><strong>' + U.esc(v.opp.offering || 'Opportunity') + '</strong><small>' +
+          U.esc(v.stage + (v.lastAt ? ' · last ' + U.fmtDate(v.lastAt) : '')) + '</small></span>' +
           '<span class="pick-right"><strong>' + U.esc(U.money(v.current)) + '</strong></span></button>';
       }).join('') +
       '<button type="button" class="pick" data-new="1"><span class="pick-main">' +
-      '<strong>+ New opportunity at this school</strong>' +
-      '<small>A different offering</small></span></button>' +
-      '</div>',
+      '<strong>+ New (additional opportunity)</strong><small>A different offering at this school</small>' +
+      '</span></button></div>',
       function (host) {
         host.querySelectorAll('[data-id]').forEach(function (b) {
-          b.addEventListener('click', function () { d.opportunityId = b.getAttribute('data-id'); stepDetail(); });
+          b.addEventListener('click', function () { d.opportunityId = b.getAttribute('data-id'); stepContext(); });
         });
-        host.querySelector('[data-new]').addEventListener('click', function () {
-          d.kind = 'New Connect'; stepOpportunity();
-        });
+        host.querySelector('[data-new]').addEventListener('click', stepOpportunity);
       });
   }
 
-  /* ----------------------------------- step 2N: school info (new connect) */
-  function stepNewSchool() {
-    shell('New Connect · school',
-      '<input class="input" id="sch-q" type="search" placeholder="Search — or type a new school name" autocomplete="off">' +
-      '<div id="sch-hits" class="pick-list" style="margin-top:10px"></div>' +
-      '<form id="f" style="margin-top:14px" hidden>' +
+  /* 3. Current opportunity + context. */
+  function stepContext() {
+    var v = M.view(RB.store.opportunityById(d.opportunityId));
+    shell(v.school.name + ' · context',
+      '<form id="f">' +
       '<div class="field-row">' +
-        UI.field('School name', '<input class="input" name="name" required>') +
-        UI.field('Location', '<input class="input" name="location" placeholder="e.g. Thane" required>') +
+        UI.field('Existing program / lab', '<input class="input" name="existingProgram" value="' +
+          U.esc(v.school.labType || (v.school.competitor !== 'None' ? v.school.competitor : '')) + '">') +
+        UI.field('Current need', '<input class="input" name="currentNeed" value="' + U.esc(v.opp.currentNeed || '') + '">') +
       '</div>' +
       '<div class="field-row">' +
-        UI.field('Region', UI.select('region', V.region, 'Mumbai', { required: true })) +
-        UI.field('Board', UI.select('board', V.board, null, { placeholder: 'Select', required: true })) +
-        UI.field('Approx. students', '<input class="input" type="number" name="students" min="0" inputmode="numeric">') +
-      '</div>' +
-      '<div class="field-row">' +
-        UI.field('Existing STEM / robotics lab', UI.select('existingLab', V.existingLab, "Don't Know")) +
-        UI.field('Existing competitor', UI.select('competitor', V.competitor, 'None')) +
-        UI.field('Lead source', UI.select('leadSource', V.leadSource, null, { placeholder: 'Select', required: true })) +
+        UI.field('Decision maker', '<input class="input" name="decisionMaker" value="' + U.esc(v.opp.decisionMaker || '') + '">') +
+        UI.field('Owner', UI.select('ownerKey', owners(), v.owner || RB.auth.user().ownerKey)) +
       '</div>' +
       '<div class="modal-actions"><button type="submit" class="btn btn-primary btn-lg btn-block">Continue</button></div>' +
       '</form>',
       function (host) {
-        var q = host.querySelector('#sch-q'), hits = host.querySelector('#sch-hits'), f = host.querySelector('#f');
-        q.focus();
-        q.addEventListener('input', U.debounce(function () {
-          var t = q.value.trim();
-          f.hidden = t.length < 2;
-          f.querySelector('[name=name]').value = t;
-          var found = t.length < 2 ? [] : RB.store.schools().filter(function (s) {
-            return s.name.toLowerCase().indexOf(t.toLowerCase()) !== -1;
-          }).slice(0, 5);
-          // A school exists once. If it is already here, use it.
-          hits.innerHTML = found.map(function (s) {
-            return '<button type="button" class="pick" data-id="' + U.esc(s.id) + '">' +
-              '<span class="pick-main"><strong>' + U.esc(s.name) + '</strong>' +
-              '<small>Already on file · ' + U.esc(s.location || '') + ' — use this one</small></span></button>';
-          }).join('');
-          hits.querySelectorAll('[data-id]').forEach(function (b) {
-            b.addEventListener('click', function () { d.schoolId = b.getAttribute('data-id'); stepOpportunity(); });
+        host.querySelector('#f').addEventListener('submit', function (e) {
+          e.preventDefault();
+          var f = UI.values(this);
+          RB.store.updateOpportunity(d.opportunityId, {
+            currentNeed: f.currentNeed || null,
+            decisionMaker: f.decisionMaker || null,
+            ownerKey: f.ownerKey || null
           });
-        }, 150));
-
-        f.addEventListener('submit', function (e) {
-          e.preventDefault();
-          var v = UI.values(this);
-          var existing = RB.store.findSchool(v.name, v.location);
-          d.schoolId = existing ? existing.id : RB.store.addSchool({
-            name: v.name, location: v.location, region: v.region, board: v.board,
-            students: v.students ? Number(v.students) : null,
-            existingLab: v.existingLab, competitor: v.competitor, leadSource: v.leadSource,
-            ownerKey: RB.auth.user().ownerKey
-          }).id;
-          stepOpportunity();
+          if (f.existingProgram) RB.store.updateSchool(d.schoolId, { labType: f.existingProgram });
+          stepConnect();
         });
       });
   }
 
-  /* --------------------------------------------- step 3N: the opportunity */
-  function stepOpportunity() {
-    var school = RB.store.schoolById(d.schoolId);
-    shell(school.name + ' · opportunity',
-      '<form id="f">' +
-      '<div class="cx-step"><h3>What are you connecting about?</h3>' +
-      UI.choice('offering', V.offering.map(function (o) {
-        return { value: o, label: o, sub: V.offeringDetail[o] };
-      }), null) + '</div>' +
-      '<div id="variant-wrap" hidden></div>' +
-      UI.field('Initial potential revenue (₹)',
-        '<input class="input" type="number" name="initialPotential" min="0" step="1000" inputmode="numeric" required>',
-        'Your best estimate today. It is locked once saved, so realisation can be measured against it later.') +
-      '<div class="modal-actions"><button type="submit" class="btn btn-primary btn-lg btn-block">Continue</button></div>' +
-      '</form>',
-      function (host) {
-        var wrap = host.querySelector('#variant-wrap');
-        UI.bindChoices(host, function (name, val) {
-          if (name !== 'offering') return;
-          if (val === 'Bagless Skills') {
-            wrap.hidden = false;
-            wrap.innerHTML = UI.field('Which activity?', UI.select('variant', V.baglessActivity, null, { placeholder: 'Select' }));
-          } else if (val === 'Robotics Workshop') {
-            wrap.hidden = false;
-            wrap.innerHTML = UI.field('Workshop type', UI.select('variant', V.workshopType, null, { placeholder: 'Select' }));
-          } else { wrap.hidden = true; wrap.innerHTML = ''; }
-        });
-        host.querySelector('#f').addEventListener('submit', function (e) {
-          e.preventDefault();
-          var v = UI.values(this);
-          if (!v.offering) return UI.toast('Pick what this is about.');
-          d.opportunityId = RB.store.addOpportunity({
-            schoolId: d.schoolId, offering: v.offering, variant: v.variant || null,
-            ownerKey: RB.auth.user().ownerKey,
-            initialPotential: Number(v.initialPotential) || null
-          }).id;
-          stepContact();
-        });
-      });
-  }
+  /* ================================= the connect itself (both flows) === */
+  function stepConnect() {
+    var isNew = d.kind === 'New';
+    var v = d.opportunityId ? M.view(RB.store.opportunityById(d.opportunityId)) : null;
+    var schoolName = v ? v.school.name : d.school.name;
+    var contacts = d.schoolId ? RB.store.contactsFor(d.schoolId) : [];
+    var prev = v && v.last;
+    var today = U.iso(U.today());
 
-  /* -------------------------------------------------- step 4N: the contact */
-  function stepContact() {
-    var existing = RB.store.contactsFor(d.schoolId);
-    shell('Who are you connecting with?',
-      (existing.length
-        ? '<div class="pick-list" style="margin-bottom:16px">' + existing.map(function (c) {
-            return '<button type="button" class="pick" data-id="' + U.esc(c.id) + '">' +
-              '<span class="pick-main"><strong>' + U.esc(c.name) + '</strong><small>' + U.esc(c.role || '') + '</small></span></button>';
-          }).join('') + '</div><div class="section-title">Or add someone new</div>'
-        : '') +
-      '<form id="f">' +
-      '<div class="cx-step"><h3>Role</h3>' + UI.choice('role', V.contactRole, null, { tight: true }) + '</div>' +
-      '<div class="field-row">' +
-        UI.field('Name', '<input class="input" name="name" required>') +
-        UI.field('Phone', '<input class="input" type="tel" name="phone" inputmode="tel">') +
-        UI.field('Email', '<input class="input" type="email" name="email">') +
-      '</div>' +
-      '<div class="modal-actions"><button type="submit" class="btn btn-primary btn-lg btn-block">Continue</button></div>' +
-      '</form>',
-      function (host) {
-        host.querySelectorAll('.pick[data-id]').forEach(function (b) {
-          b.addEventListener('click', function () { d.contactId = b.getAttribute('data-id'); stepDetail(); });
-        });
-        UI.bindChoices(host);
-        host.querySelector('#f').addEventListener('submit', function (e) {
-          e.preventDefault();
-          var v = UI.values(this);
-          if (!v.role) return UI.toast('Pick their role.');
-          d.contactId = RB.store.addContact({
-            schoolId: d.schoolId, name: v.name, role: v.role,
-            phone: v.phone || null, email: v.email || null
-          }).id;
-          stepDetail();
-        });
-      });
-  }
-
-  /* ---------------------------- final step: what happened, and what's next */
-  function stepDetail() {
-    var isNew = d.kind === 'New Connect';
-    var opp = RB.store.opportunityById(d.opportunityId);
-    var v = M.view(opp);
-    var school = RB.store.schoolById(d.schoolId);
-    var contacts = RB.store.contactsFor(d.schoolId);
-    var prev = v.last;
-
-    shell(school.name + ' · ' + (opp.offering || 'Connect'),
+    shell(schoolName + ' · connect',
       (prev
         ? '<div class="prev-connect"><div class="pc-label">Previous connect</div>' +
-          U.esc([prev.at ? U.fmtDate(prev.at.slice(0, 10)) : 'undated',
-                 contactName(prev.contactId), prev.response,
-                 prev.nextAction ? 'next: ' + prev.nextAction : null].filter(Boolean).join(' · ')) +
-          '</div>'
+          U.esc([prev.at ? U.fmtDate(prev.at.slice(0, 10)) : 'undated', prev.mode,
+                 prev.response, prev.nextAction ? 'next: ' + prev.nextAction : null]
+                .filter(Boolean).join(' · ')) + '</div>'
         : '') +
       '<form id="f">' +
 
-      '<div class="cx-step"><h3>How did you connect?</h3>' +
-      UI.choice('mode', isNew ? V.connectModeNew : V.connectModeRe, null, { tight: true }) + '</div>' +
+      '<div class="cx-step"><h3>Type of connect</h3>' +
+      UI.choice('mode', V.connectMode, null, { tight: true }) + '</div>' +
 
-      (contacts.length && !isNew
-        ? '<div class="cx-step"><h3>Who with?</h3>' +
-          UI.choice('contactId', contacts.map(function (c) {
-            return { value: c.id, label: c.name, sub: c.role };
-          }).concat([{ value: '__new', label: '+ New contact', sub: 'Someone we have not spoken to' }]),
-          d.contactId || (contacts[0] && contacts[0].id), { tight: true }) +
-          '<div id="new-contact" hidden style="margin-top:12px"></div></div>'
-        : '') +
+      '<div class="field-row">' +
+        UI.field('Date of connect', '<input class="input" type="date" name="date" value="' + today + '" max="' + today + '" required>') +
+        UI.field(isNew ? 'Contact person / decision maker' : 'Contact person',
+          contacts.length
+            ? UI.select('contactId', contacts.map(function (c) { return { value: c.id, label: c.name + (c.role ? ' — ' + c.role : '') }; })
+                .concat([{ value: '__new', label: '+ New contact' }]), contacts[0].id)
+            : '<input class="input" name="contactName" placeholder="Name">') +
+      '</div>' +
+      '<div id="new-contact" hidden></div>' +
 
-      '<div class="cx-step"><h3>What was the response?</h3>' +
-      UI.choice('response', isNew ? V.responseNew : V.responseRe, null, { tight: true }) + '</div>' +
+      '<div class="cx-step"><h3>Response / outcome</h3>' +
+      UI.choice('response', V.response, null, { tight: true }) + '</div>' +
 
-      '<div class="cx-step"><h3>Interest level</h3>' +
-      UI.choice('interest', V.interest, 'Warm', { tight: true }) + '</div>' +
-
-      (isNew ? '' :
-        '<div class="cx-step"><h3>What changed?</h3>' +
-        UI.choice('changed', V.changed, 'No Change', { tight: true }) + '</div>') +
-
-      '<div id="commercial" hidden></div>' +
-      '<div id="close-wrap" hidden></div>' +
-
-      '<div class="cx-step"><h3>Is there a blocker?</h3>' +
+      '<div class="cx-step"><h3>Blockers / sales signals</h3>' +
       UI.choice('blocker', V.blocker, 'None', { tight: true }) +
       '<div id="blocker-detail" hidden style="margin-top:12px"></div></div>' +
 
-      UI.field('Notes (optional)', '<textarea class="input" name="notes" placeholder="Anything worth remembering next time"></textarea>') +
+      '<div class="cx-step"><h3>Next action</h3>' +
+      '<p class="field-hint" style="margin:-6px 0 12px">No connect is complete until action, owner and follow-up date are captured.</p>' +
+      '<div class="field-row">' +
+        UI.field('Action', UI.select('nextAction', V.nextAction, null, { placeholder: 'Select action', required: true })) +
+        UI.field('Owner', UI.select('nextActionOwner', owners(), RB.auth.user().ownerKey, { required: true })) +
+        UI.field('Follow-up date', '<input class="input" type="date" name="nextDate" value="' + U.addDays(today, 7) + '" required>') +
+      '</div></div>' +
 
-      '<div class="cx-step"><h3>What happens next?</h3>' +
-      UI.choice('nextAction', V.nextAction, null, { tight: true }) +
-      '<div id="next-when" hidden style="margin-top:12px"><div class="field-row">' +
-        UI.field('Date', '<input class="input" type="date" name="nextDate" value="' + U.addDays(U.iso(U.today()), 7) + '">') +
-        UI.field('Time', '<input class="input" type="time" name="nextTime" value="11:00">') +
-      '</div></div></div>' +
+      '<div class="cx-step"><h3>Pipeline stage</h3>' +
+      UI.choice('stage', V.stage, null, { tight: true }) + '</div>' +
 
-      '<div class="modal-actions"><button type="submit" class="btn btn-primary btn-lg btn-block">Save Connect</button></div>' +
+      '<div class="cx-step"><h3>Expected deal size &amp; closure</h3>' +
+      '<div class="field-row">' +
+        UI.field('Expected deal size (₹)', '<input class="input" type="number" name="expectedValue" min="0" step="1000" inputmode="numeric" value="' +
+          (v && v.current != null ? v.current : (d.opportunity ? d.opportunity.initialPotential : '')) + '">') +
+        UI.field('Expected closure date', '<input class="input" type="date" name="expectedClosure" value="' +
+          U.esc(v && v.expectedClosure ? v.expectedClosure : '') + '">') +
+        UI.field('Probability (%)', UI.select('probability', V.probability, v && v.probability != null ? String(v.probability) : null, { placeholder: 'Select' })) +
+      '</div>' +
+      UI.field('Remarks', '<input class="input" name="remarks" placeholder="Optional">') +
+      '</div>' +
+
+      '<div id="close-wrap"></div>' +
+
+      '<div class="modal-actions">' +
+      '<button type="submit" class="btn btn-primary btn-lg btn-block">' +
+      (isNew ? 'Save lead' : 'Save school + opportunity') + '</button></div>' +
       '</form>',
       function (host) {
-        var commercial = host.querySelector('#commercial');
-        var closeWrap = host.querySelector('#close-wrap');
         var blockerDetail = host.querySelector('#blocker-detail');
-        var nextWhen = host.querySelector('#next-when');
-        var newContact = host.querySelector('#new-contact');
+        var closeWrap = host.querySelector('#close-wrap');
+        var stageGroup = host.querySelector('[data-choice="stage"]');
+        var stageHidden = host.querySelector('input[name="stage"]');
 
         UI.bindChoices(host, function (name, val) {
-          if (name === 'response') {
-            // Progressive disclosure: only ask for money when the answer implies it.
-            var wantsQuote = /Proposal/.test(val);
-            var wantsNeg = val === 'Negotiation';
-            commercial.hidden = !(wantsQuote || wantsNeg);
-            commercial.innerHTML = commercial.hidden ? '' :
-              '<div class="cx-step"><h3>Commercial</h3>' +
-              (wantsQuote ? UI.field('Quoted value (₹)',
-                '<input class="input" type="number" name="quoted" min="0" step="1000" inputmode="numeric" value="' +
-                (v.quoted != null ? v.quoted : (v.initialPotential || '')) + '">') : '') +
-              (wantsNeg ? UI.field('Negotiated value (₹)',
-                '<input class="input" type="number" name="negotiated" min="0" step="1000" inputmode="numeric" value="' +
-                (v.negotiated != null ? v.negotiated : (v.quoted || '')) + '">') : '') +
-              '<p class="field-hint">Initial potential stays at ' + U.esc(U.money(v.initialPotential)) +
-              '. Nothing overwrites it.</p></div>';
-
-            var lost = val === 'Lost' || val === 'Not Interested';
-            closeWrap.hidden = !lost;
-            closeWrap.innerHTML = lost ? lossFields(v) : '';
+          if (name === 'response' || name === 'mode') {
+            // Pre-select the stage the response implies; the rep can override.
+            var f = UI.values(host.querySelector('#f'));
+            if (!d.stageTouched) setStage(M.suggestStage(f.response, f.mode));
+          }
+          if (name === 'stage') {
+            d.stageTouched = true;
+            closeWrap.innerHTML = val === 'Lost' ? lossFields() : '';
           }
           if (name === 'blocker') {
             blockerDetail.hidden = val === 'None';
             blockerDetail.innerHTML = val === 'None' ? '' :
-              UI.field('Blocker detail (optional)', '<input class="input" name="blockerDetail" placeholder="What exactly is in the way?">');
-          }
-          if (name === 'nextAction') {
-            nextWhen.hidden = val === 'No Further Action';
-          }
-          if (name === 'contactId' && newContact) {
-            newContact.hidden = val !== '__new';
-            newContact.innerHTML = val !== '__new' ? '' :
-              '<div class="field-row">' +
-              UI.field('Name', '<input class="input" name="ncName">') +
-              UI.field('Role', UI.select('ncRole', V.contactRole, null, { placeholder: 'Select' })) +
-              UI.field('Phone', '<input class="input" type="tel" name="ncPhone">') + '</div>';
+              UI.field('Blocker detail (optional)', '<input class="input" name="blockerDetail">');
           }
         });
 
-        // Won is an explicit button, not a response — it needs a closed value.
-        var actions = host.querySelector('.modal-actions');
-        if (v.status === 'Open') {
-          var wonBtn = document.createElement('button');
-          wonBtn.type = 'button';
-          wonBtn.className = 'btn btn-dark btn-lg';
-          wonBtn.textContent = 'Mark Won';
-          wonBtn.addEventListener('click', function () { markWon(v); });
-          actions.insertBefore(wonBtn, actions.firstChild);
+        function setStage(stage) {
+          stageGroup.querySelectorAll('button').forEach(function (b) {
+            b.setAttribute('aria-pressed', b.getAttribute('data-value') === stage);
+          });
+          stageHidden.value = stage;
         }
+
+        var contactSel = host.querySelector('select[name="contactId"]');
+        if (contactSel) contactSel.addEventListener('change', function () {
+          var nc = host.querySelector('#new-contact');
+          nc.hidden = this.value !== '__new';
+          nc.innerHTML = this.value !== '__new' ? '' :
+            '<div class="field-row">' +
+            UI.field('Name', '<input class="input" name="contactName">') +
+            UI.field('Role', UI.select('contactRole', V.contactRole, null, { placeholder: 'Select' })) +
+            UI.field('Phone', '<input class="input" type="tel" name="contactPhone">') + '</div>';
+        });
 
         host.querySelector('#f').addEventListener('submit', function (e) {
           e.preventDefault();
-          submit(UI.values(this), v);
+          submit(UI.values(this));
         });
       });
   }
 
-  function lossFields(v) {
+  function lossFields() {
     return '<div class="cx-step"><h3>Marking this lost</h3>' +
-      UI.field('Loss reason', UI.select('lossReason', V.lossReason, null, { placeholder: 'Select a reason', required: true })) +
-      UI.field('Final opportunity value (₹)',
-        '<input class="input" type="number" name="finalValue" min="0" step="1000" value="' + (v.current || '') + '">',
-        'What we would have earned. Kept so lost value can be totalled.') + '</div>';
+      UI.field('Loss reason', UI.select('lossReason', V.lossReason, null, { placeholder: 'Select a reason' })) +
+      '</div>';
   }
 
-  function markWon(v) {
-    UI.modal('Mark Won — ' + (v.school ? v.school.name : ''),
-      '<form id="won">' +
-      UI.field('Closed value (₹)', '<input class="input" type="number" name="closedValue" min="0" step="1000" required value="' +
-        (v.negotiated != null ? v.negotiated : (v.quoted || v.initialPotential || '')) + '">',
-        'Initial potential was ' + U.money(v.initialPotential) +
-        (v.quoted != null ? ', quoted ' + U.money(v.quoted) : '')) +
-      UI.field('Closure date', '<input class="input" type="date" name="closedAt" value="' + U.iso(U.today()) + '" required>') +
-      '<div class="modal-actions"><button type="button" class="btn" data-close="1">Cancel</button>' +
-      '<button type="submit" class="btn btn-primary">Confirm Won</button></div></form>',
-      { onMount: function (h) {
-          h.querySelector('#won').addEventListener('submit', function (e) {
-            e.preventDefault();
-            var f = UI.values(this);
-            RB.store.logConnect({
-              schoolId: v.opp.schoolId, opportunityId: v.opp.id, by: RB.auth.user().id,
-              kind: 'Reconnect', mode: 'Meeting', response: 'Negotiation', interest: 'Hot',
-              notes: 'Closed won.', nextAction: 'No Further Action',
-              at: f.closedAt + 'T12:00:00',
-              close: { status: 'Won', value: Number(f.closedValue) }
-            });
-            done(v, 'Won — ' + U.money(Number(f.closedValue)) + ' added to closed revenue.');
-          });
-        } });
-  }
+  function submit(f) {
+    if (!f.mode) return UI.toast('Pick the type of connect.');
+    if (!f.response) return UI.toast('Record the response.');
+    if (!f.stage) return UI.toast('Set the pipeline stage.');
+    if (!f.nextAction || !f.nextActionOwner || !f.nextDate) {
+      return UI.toast('Next action, owner and follow-up date are all required.');
+    }
 
-  function submit(f, v) {
-    if (!f.mode) return UI.toast('How did you connect?');
-    if (!f.response) return UI.toast('What was the response?');
+    // Create the school and opportunity now, so an abandoned form leaves nothing.
+    if (d.school && !d.schoolId) d.schoolId = RB.store.addSchool(d.school).id;
+    if (d.opportunity && !d.opportunityId) {
+      d.opportunityId = RB.store.addOpportunity(Object.assign({
+        schoolId: d.schoolId, ownerKey: RB.auth.user().ownerKey
+      }, d.opportunity)).id;
+    }
 
-    var contactId = f.contactId === '__new' ? null : (f.contactId || d.contactId || null);
-    if (f.contactId === '__new' && f.ncName) {
+    var contactId = f.contactId && f.contactId !== '__new' ? f.contactId : null;
+    if (!contactId && f.contactName) {
       contactId = RB.store.addContact({
-        schoolId: d.schoolId, name: f.ncName, role: f.ncRole || 'Other', phone: f.ncPhone || null
+        schoolId: d.schoolId, name: f.contactName,
+        role: f.contactRole || null, phone: f.contactPhone || null
       }).id;
     }
 
-    var commercial = {};
-    if (f.quoted) commercial.quoted = Number(f.quoted);
-    if (f.negotiated) commercial.negotiated = Number(f.negotiated);
-
-    var payload = {
+    var closed = M.CLOSED[f.stage];
+    RB.store.logConnect({
       schoolId: d.schoolId, opportunityId: d.opportunityId, by: RB.auth.user().id,
-      kind: d.kind === 'New Connect' ? 'New' : 'Reconnect',
+      kind: d.kind === 'New' ? 'New' : 'Reconnect',
       mode: f.mode, contactId: contactId, response: f.response,
-      interest: f.interest || 'Warm', blocker: f.blocker || 'None',
-      blockerDetail: f.blockerDetail || null, changed: f.changed || null,
-      commercial: commercial, notes: f.notes || null,
-      nextAction: f.nextAction || null,
-      nextActionAt: (f.nextAction && f.nextAction !== 'No Further Action' && f.nextDate)
-        ? f.nextDate + 'T' + (f.nextTime || '11:00') + ':00' : null
-    };
+      blocker: f.blocker || 'None', blockerDetail: f.blockerDetail || null,
+      stage: f.stage,
+      expectedValue: f.expectedValue ? Number(f.expectedValue) : null,
+      probability: f.probability ? Number(f.probability) : null,
+      expectedClosure: f.expectedClosure || null,
+      remarks: f.remarks || null,
+      nextAction: f.nextAction, nextActionOwner: f.nextActionOwner,
+      nextActionAt: f.nextDate + 'T11:00:00',
+      at: f.date + 'T' + new Date().toTimeString().slice(0, 8),
+      close: closed && closed !== 'On Hold'
+        ? { status: closed, reason: f.lossReason || null,
+            value: f.expectedValue ? Number(f.expectedValue) : null }
+        : null
+    });
 
-    if (f.lossReason) {
-      payload.close = { status: 'Lost', reason: f.lossReason,
-                        value: f.finalValue ? Number(f.finalValue) : v.current };
-    }
-
-    RB.store.logConnect(payload);
-
-    var msg = payload.close ? 'Marked lost — ' + f.lossReason
-      : payload.nextActionAt ? 'Connect saved. Task set for ' + U.fmtDate(f.nextDate) + '.'
-      : 'Connect saved.';
-    done(v, msg);
-  }
-
-  function done(v, msg) {
     UI.closeModal();
-    UI.toast(msg, { label: 'Log another', run: function () { open(); } });
+    UI.toast(closed ? 'Marked ' + closed + '.' : 'Connect saved · follow-up ' + U.fmtDate(f.nextDate),
+      { label: 'Log another', run: function () { open(); } });
     RB.app.refresh();
-  }
-
-  function contactName(id) {
-    var c = id ? RB.store.contactById(id) : null;
-    return c ? c.name : null;
   }
 
   return { open: open };

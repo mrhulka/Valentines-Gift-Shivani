@@ -19,10 +19,14 @@ RB.model = (function () {
   var V = {
     connectKind: ['New Connect', 'Reconnect'],
 
-    board: ['CBSE', 'ICSE', 'SSC', 'IB', 'IGCSE', 'Other'],
+    board: ['CBSE', 'ICSE', 'SSC', 'CBSE-ICSE', 'Cambridge International', 'IB', 'CISCE', 'NIOS'],
 
-    region: ['Mumbai', 'Pune'],
+    /* Sales regions, per the Connect flow. */
+    region: ['Central', 'KDMC', 'Navi Mumbai', 'Western', 'Pune'],
 
+    /* "Does a STEM lab already exist?" — the branch at the top of a new lead. */
+    stemLab: ['Yes', 'No'],
+    labType: ['STEM Lab', 'Robotics Lab', 'Composite Lab', 'Tinkering / ATL', 'Computer Lab', 'Other'],
     existingLab: ['None', 'Robobox', 'Competitor', 'Internal School Program', "Don't Know"],
 
     competitor: ['None', 'Aerobay', 'Eduvate', 'STEMROBO', 'RCOM', 'OLL', 'NEXT', 'iRobo', 'Other'],
@@ -30,24 +34,18 @@ RB.model = (function () {
     leadSource: ['Cold', 'Eldrocks', '91 Media', 'BNI', 'Referral', 'Existing Relationship',
                  'Internal', 'Event / Exhibition', 'Other'],
 
-    offering: ['Advanced Lab Pro', 'Advanced Lab', 'STEM Lab', 'Kit Class',
-               'Bagless Skills', 'Robotics Workshop', 'AMC / Recurring', 'Other'],
+    /* Opportunity type, as the Connect flow names them. */
+    offering: ['STEM Lab', 'Advanced Lab', 'Bagless', 'Workshop'],
 
-    /* The six that get their own performance row on the CEO dashboard. */
-    coreOfferings: ['Advanced Lab Pro', 'Advanced Lab', 'STEM Lab', 'Kit Class',
-                    'Bagless Skills', 'Robotics Workshop'],
+    coreOfferings: ['STEM Lab', 'Advanced Lab', 'Bagless', 'Workshop'],
 
     /* What each offering includes - shown under the picker so the rep chooses
      * the right one without a price list open. */
     offeringDetail: {
-      'Advanced Lab Pro':  'Lab with teachers · kits · curriculum',
-      'Advanced Lab':      'Lab with teachers · curriculum',
-      'STEM Lab':          'STEM lab with teachers · curriculum',
-      'Kit Class':         'Kits + teachers',
-      'Bagless Skills':    'Individual activities, sold per activity',
-      'Robotics Workshop': 'Paid workshops run for the school',
-      'AMC / Recurring':   'Annual maintenance and renewals',
-      'Other':             ''
+      'STEM Lab':      'STEM lab with teachers · curriculum',
+      'Advanced Lab':  'Lab with teachers · kits · curriculum',
+      'Bagless':       'Bagless skills, sold per activity',
+      'Workshop':      'Paid workshops run for the school'
     },
 
     baglessActivity: ['Robotics', 'Coding', 'Drone', '3D Printing', 'AI / ML',
@@ -60,58 +58,66 @@ RB.model = (function () {
                   'Academic Head', 'School Coordinator', 'STEM / Robotics Coordinator',
                   'Teacher', 'Admin', 'Purchase / Procurement', 'Other'],
 
-    connectModeNew: ['Cold Call', 'Introductory Call', 'Meeting', 'School Visit', 'Demo',
-                     'WhatsApp', 'Email', 'Event / Exhibition', 'Referral Introduction', 'Other'],
+    /* One mode list and one response list — the flow uses the same set on both
+     * sides, so there is nothing to keep in step. */
+    connectMode: ['Call', 'Meeting', 'School Visit', 'Demo', 'WhatsApp', 'Email', 'Other'],
 
-    connectModeRe: ['Call', 'Meeting', 'School Visit', 'Demo', 'WhatsApp', 'Email', 'Other'],
-
-    responseNew: ['Interested', 'Very Interested', 'Neutral', 'Not Interested',
-                  'Asked for Information', 'Asked for Proposal', 'Asked to Reconnect',
-                  'Meeting Requested', 'Meeting Fixed', 'Decision Maker Not Available',
-                  'No Response', 'Wrong Contact', 'Existing Vendor', 'Other'],
-
-    responseRe: ['Interested', 'Progressing', 'Proposal Requested', 'Negotiation',
-                 'Meeting Fixed', 'Decision Pending', 'Asked to Reconnect',
-                 'Not Interested', 'Lost', 'Other'],
+    response: ['Interested', 'Rejected', 'Meeting Fixed', 'To confirm in a few days',
+               'Negotiation', 'Proposal Requested', 'Other'],
 
     interest: ['Hot', 'Warm', 'Cold'],
 
-    blocker: ['None', 'Budget / Pricing', 'Decision Maker Access', 'Management Approval',
-              'Existing Competitor', 'Existing Internal Program', 'No Immediate Requirement',
-              'Timing', 'Student Strength / School Capacity', 'Parent Acceptance',
-              'Trust / Credibility', 'Curriculum Fit', 'Procurement', 'Other'],
+    blocker: ['None', 'Budget / Pricing', 'Decision Maker Access', 'Existing Internal Program',
+              'Student Strength / Capacity', 'Lack of Space / Infra', 'Parental Acceptance',
+              'Existing Competition', 'Timing', 'Other'],
 
-    changed: ['No Change', 'Stage Progressed', 'Commercial Changed', 'Decision Maker Changed',
-              'Requirement Changed', 'Timeline Changed', 'Blocker Changed', 'Other'],
+    nextAction: ['Follow-up', 'Fix meeting', 'Schedule demo', 'Send proposal',
+                 'Management connect', 'Calendar addition', 'Negotiation follow-up',
+                 'Close by calendar addition', 'Other', 'No Further Action'],
 
-    nextAction: ['Call', 'Reconnect', 'Meeting', 'School Visit', 'Demo', 'Send Proposal',
-                 'Send Information', 'Commercial Discussion', 'Management Discussion',
-                 'Decision Follow-up', 'Other', 'No Further Action'],
+    /* Set explicitly on every connect, not inferred. */
+    stage: ['New Lead', 'Contacted', 'Meeting Fixed', 'Meeting Done', 'Demo-Presentation',
+            'Proposal', 'Negotiation', 'Verbal Confirmation', 'Won', 'Lost', 'On Hold'],
+
+    probability: ['10', '25', '40', '50', '60', '75', '90', '100'],
+
+    opportunityKind: ['Existing (Additional / Upgrade)', 'New (Additional Opportunity)'],
 
     lossReason: ['Budget', 'Price', 'Competitor', 'No Requirement', 'Management Rejected',
                  'Decision Delayed', 'Existing Vendor', 'Timing', 'Unable to Reach',
-                 'School Closed / Changed Plans', 'Other']
+                 'School Closed / Changed Plans', 'Other'],
+
+    competitor2: ['Aerobay', 'Eduvate', 'STEMROBO', 'RCOM', 'OLL', 'NEXT', 'iRobo', 'Other']
   };
 
   /* ============================================================= stages ==== */
   /* Derived, never stored. A response only ever moves an opportunity forward;
    * Won and Lost come from the explicit close flow. */
 
-  var STAGES = ['New Connect', 'Qualified', 'Meeting', 'Proposal', 'Negotiation', 'Won'];
+  /* The pipeline stage the flow asks the rep to set on every connect. Open
+   * stages in order; Won / Lost / On Hold are the three final outcomes. */
+  var STAGES = ['New Lead', 'Contacted', 'Meeting Fixed', 'Meeting Done', 'Demo-Presentation',
+                'Proposal', 'Negotiation', 'Verbal Confirmation', 'Won'];
   var RANK = {};
   STAGES.forEach(function (s, i) { RANK[s] = i; });
+  var CLOSED = { Won: 'Won', Lost: 'Lost', 'On Hold': 'On Hold' };
 
-  var MET_MODES = /^(Meeting|School Visit|Demo)$/;
-
+  /* Only used to pre-select the stage picker from the response, so the common
+   * case is one tap. The rep's choice always wins and is what gets stored. */
   var RESPONSE_STAGE = {
-    'Interested': 1, 'Very Interested': 1, 'Neutral': 1, 'Asked for Information': 1,
-    'Asked to Reconnect': 1, 'Progressing': 1, 'Decision Pending': 1,
-    'Meeting Requested': 2, 'Meeting Fixed': 2,
-    'Asked for Proposal': 3, 'Proposal Requested': 3,
-    'Negotiation': 4
-    // Not Interested / No Response / Wrong Contact / Existing Vendor / Decision
-    // Maker Not Available never advance a stage - they are the reason it stalls.
+    'Interested': 'Contacted',
+    'To confirm in a few days': 'Contacted',
+    'Meeting Fixed': 'Meeting Fixed',
+    'Proposal Requested': 'Proposal',
+    'Negotiation': 'Negotiation',
+    'Rejected': 'Lost'
   };
+
+  function suggestStage(response, mode) {
+    if (RESPONSE_STAGE[response]) return RESPONSE_STAGE[response];
+    if (/^(Meeting|School Visit|Demo)$/.test(mode || '')) return 'Meeting Done';
+    return 'Contacted';
+  }
 
   /* ========================================================= derivation ==== */
 
@@ -141,24 +147,35 @@ RB.model = (function () {
       if (c.commercial && c.commercial.negotiated != null) negotiated = c.commercial.negotiated;
     });
 
-    var stageRank = 0;
-    cs.forEach(function (c) {
-      var r = RESPONSE_STAGE[c.response];
-      if (r != null && r > stageRank) stageRank = r;
-      // Meeting in person is a fact about how the connect happened, not about
-      // how it went - a lukewarm meeting is still a meeting.
-      if (MET_MODES.test(c.mode || '') && stageRank < 2) stageRank = 2;
-    });
+    /* Stage is whatever the most recent connect recorded, falling back to the
+     * opportunity's own field for imported rows that have no connect stage. */
+    var stageSet = null;
+    cs.forEach(function (c) { if (c.stage) stageSet = c.stage; });
+    stageSet = stageSet || opp.stage || 'New Lead';
+    var stageRank = RANK[stageSet] != null ? RANK[stageSet] : 0;
     if (quoted != null && stageRank < 3) stageRank = 3;
     if (negotiated != null && stageRank < 4) stageRank = 4;
 
-    var status = opp.status || 'Open';
-    var stage = status === 'Won' ? 'Won' : status === 'Lost' ? 'Lost' : STAGES[stageRank];
+    var status = CLOSED[stageSet] ? (stageSet === 'On Hold' ? 'On Hold' : stageSet)
+               : (opp.status && opp.status !== 'Open' ? opp.status : 'Open');
+    var stage = stageSet;
+
+    /* Expected deal size, set on any connect, is the live commercial number. */
+    var expected = null;
+    cs.forEach(function (c) { if (c.expectedValue != null) expected = c.expectedValue; });
 
     var current = opp.closedValue != null ? opp.closedValue
                 : negotiated != null ? negotiated
+                : expected != null ? expected
                 : quoted != null ? quoted
                 : opp.initialPotential;
+
+    var probability = null, closureAt = null, remarks = null;
+    cs.forEach(function (c) {
+      if (c.probability != null) probability = c.probability;
+      if (c.expectedClosure) closureAt = c.expectedClosure;
+      if (c.remarks) remarks = c.remarks;
+    });
 
     var nextAction = null, nextAt = null;
     if (status === 'Open' && last && last.nextAction && last.nextAction !== 'No Further Action') {
@@ -174,7 +191,10 @@ RB.model = (function () {
       stage: stage, stageRank: stageRank, status: status,
       initialPotential: opp.initialPotential,
       quoted: quoted, negotiated: negotiated, closed: opp.closedValue,
-      current: current,
+      expected: expected, current: current,
+      probability: probability != null ? probability : opp.probability,
+      expectedClosure: closureAt || opp.expectedClosure,
+      remarks: remarks,
       newConnects: cs.filter(function (c) { return c.kind === 'New'; }).length,
       reconnects: cs.filter(function (c) { return c.kind === 'Reconnect'; }).length,
       lastAt: lastAt, daysSinceConnect: daysSince,
@@ -202,8 +222,7 @@ RB.model = (function () {
   function stageMovedDaysAgo(cs) {
     var best = -1, movedAt = null;
     cs.forEach(function (c) {
-      var r = RESPONSE_STAGE[c.response];
-      if (MET_MODES.test(c.mode || '') && (r == null || r < 2)) r = 2;
+      var r = RANK[c.stage];
       if (r != null && r > best) { best = r; movedAt = c.at; }
     });
     if (!movedAt) return Infinity;
@@ -344,9 +363,9 @@ RB.model = (function () {
       // Conversion
       conversion: {
         'New Connect → Opportunity': pct(created.length, cs.filter(function (c) { return c.kind === 'New'; }).length),
-        'Opportunity → Proposal': pct(reached(3).length, vs.length),
-        'Proposal → Negotiation': pct(reached(4).length, reached(3).length),
-        'Proposal → Won': pct(vs.filter(function (v) { return v.status === 'Won'; }).length, reached(3).length)
+        'Opportunity → Proposal': pct(reached(RANK.Proposal).length, vs.length),
+        'Proposal → Negotiation': pct(reached(RANK.Negotiation).length, reached(RANK.Proposal).length),
+        'Proposal → Won': pct(vs.filter(function (v) { return v.status === 'Won'; }).length, reached(RANK.Proposal).length)
       },
       views: vs, open: open, won: won, lost: lost, created: created,
       stalled: open.filter(function (v) { return v.stalled; })
@@ -357,7 +376,7 @@ RB.model = (function () {
 
   /* Sales funnel: cumulative "reached at least this stage". */
   function funnel(vs) {
-    var live = vs.filter(function (v) { return v.status !== 'Lost'; });
+    var live = vs.filter(function (v) { return v.status !== 'Lost' && v.status !== 'On Hold'; });
     return STAGES.map(function (name, i) {
       var at = name === 'Won'
         ? live.filter(function (v) { return v.status === 'Won'; })
@@ -427,7 +446,7 @@ RB.model = (function () {
       pipeline: U.sum(open, function (v) { return v.current || 0; }),
       quoted: U.sum(rows, function (v) { return v.quoted || 0; }),
       negotiated: U.sum(rows, function (v) { return v.negotiated || 0; }),
-      proposals: rows.filter(function (v) { return v.stageRank >= 3 || v.status === 'Won'; }).length,
+      proposals: rows.filter(function (v) { return v.stageRank >= RANK.Proposal || v.status === 'Won'; }).length,
       wonCount: won.length, closed: closed,
       lostCount: lost.length, lostValue: U.sum(lost, function (v) { return v.current || 0; }),
       winRate: decided ? (won.length / decided) * 100 : null,
@@ -497,7 +516,7 @@ RB.model = (function () {
         rows: stalledHigh });
     }
 
-    var awaiting = open.filter(function (v) { return v.stageRank === 3; });
+    var awaiting = open.filter(function (v) { return v.stage === 'Proposal'; });
     if (awaiting.length) {
       out.push({ icon: '✎', tone: 'yellow',
         title: U.money(U.sum(awaiting, function (v) { return v.current || 0; })) + ' in proposals awaiting response',
@@ -534,7 +553,7 @@ RB.model = (function () {
   }
 
   return {
-    V: V, STAGES: STAGES, RANK: RANK, RESPONSE_STAGE: RESPONSE_STAGE, DIMENSIONS: DIMENSIONS,
+    V: V, STAGES: STAGES, RANK: RANK, CLOSED: CLOSED, suggestStage: suggestStage, DIMENSIONS: DIMENSIONS,
     connectsFor: connectsFor, view: view, views: views, invalidate: invalidate,
     tasks: tasks, calendar: calendar, scorecard: scorecard, RANGES: RANGES,
     funnel: funnel, commercialFunnel: commercialFunnel, groupBy: groupBy, rollup: rollup,

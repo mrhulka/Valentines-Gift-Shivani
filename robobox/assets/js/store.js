@@ -112,8 +112,11 @@ RB.store = (function () {
 
   function addSchool(fields) {
     var s = Object.assign({
-      id: U.uid('SCH'), name: '', location: null, region: 'Mumbai', cluster: null,
-      board: null, students: null, existingLab: "Don't Know", competitor: 'None',
+      id: U.uid('SCH'), name: '', location: null, region: 'Central', cluster: null,
+      board: null, students: null,
+      // "Does a STEM lab already exist?" and, if so, whose and how much they spend.
+      stemLab: null, labType: null, labSpend: null,
+      existingLab: "Don't Know", competitor: 'None',
       leadSource: null, ownerKey: null, origin: 'app', createdAt: new Date().toISOString()
     }, fields);
     state.schools.push(s);
@@ -133,7 +136,9 @@ RB.store = (function () {
       coOwners: [],
       // Set once, at creation. Nothing in the app ever writes it again.
       initialPotential: null,
-      expectedClosure: null, status: 'Open', closedValue: null, lossReason: null,
+      currentNeed: null, decisionMaker: null,
+      expectedClosure: null, probability: null, stage: null,
+      status: 'Open', closedValue: null, lossReason: null,
       closedAt: null, origin: 'app', createdAt: U.iso(U.today())
     }, fields);
     state.opportunities.push(o);
@@ -145,8 +150,12 @@ RB.store = (function () {
     var c = Object.assign({
       id: U.uid('CNX'), schoolId: null, opportunityId: null, by: null,
       kind: 'Reconnect', mode: null, contactId: null, response: null, interest: 'Warm',
-      blocker: 'None', blockerDetail: null, changed: null, commercial: {},
-      notes: null, nextAction: null, nextActionAt: null,
+      blocker: 'None', blockerDetail: null, commercial: {},
+      // The flow's rule: a connect is not complete without action + owner + date.
+      nextAction: null, nextActionOwner: null, nextActionAt: null,
+      // Set explicitly on every connect rather than inferred.
+      stage: null, expectedValue: null, probability: null, expectedClosure: null,
+      notes: null, remarks: null,
       at: new Date().toISOString(), origin: 'app'
     }, fields);
     state.connects.push(c);
@@ -159,8 +168,12 @@ RB.store = (function () {
       opp.closedAt = c.at.slice(0, 10);
       if (fields.close.status === 'Won') opp.closedValue = fields.close.value;
       else { opp.lossReason = fields.close.reason; opp.finalValue = fields.close.value; }
+    } else if (opp && c.stage && !RB.model.CLOSED[c.stage]) {
+      // Re-opened: a later connect moved it off Won / Lost / On Hold.
+      opp.status = 'Open'; opp.closedAt = null;
     }
-    if (opp && fields.expectedClosure) opp.expectedClosure = fields.expectedClosure;
+    if (opp && c.expectedClosure) opp.expectedClosure = c.expectedClosure;
+    if (opp && c.probability != null) opp.probability = c.probability;
 
     commit({ type: 'connect', connect: c, opportunity: opp });
     return c;

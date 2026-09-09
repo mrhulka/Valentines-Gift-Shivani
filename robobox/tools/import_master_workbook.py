@@ -32,15 +32,17 @@ def uid(prefix, *parts):
     return prefix + '-' + hashlib.sha1('|'.join(parts).upper().encode()).hexdigest()[:10]
 
 # ------------------------------------------------------------- controlled lists
-BOARDS = ['CBSE', 'ICSE', 'SSC', 'IB', 'IGCSE', 'Other']
 def board(v):
     u = (s(v) or '').upper()
+    has_cbse = 'CBSE' in u
+    has_icse = 'ICSE' in u or 'ISC' in u
+    if has_cbse and has_icse:                 return 'CBSE-ICSE'
     if 'IB' in u or 'PYP' in u or 'MYP' in u: return 'IB'
-    if 'IGCSE' in u or 'CAMBRIDGE' in u:      return 'IGCSE'
-    if 'CBSE' in u:                           return 'CBSE'
-    if 'ICSE' in u or 'ISC' in u:             return 'ICSE'
+    if 'IGCSE' in u or 'CAMBRIDGE' in u:      return 'Cambridge International'
+    if has_cbse:                              return 'CBSE'
+    if has_icse:                              return 'ICSE'
     if 'STATE' in u or 'MSBSHSE' in u:        return 'SSC'
-    return 'Other' if u else None
+    return None
 
 COMPETITORS = ['Aerobay', 'Eduvate', 'STEMROBO', 'RCOM', 'OLL', 'NEXT', 'iRobo', 'Other', 'None']
 def competitor(v):
@@ -62,22 +64,20 @@ def lead_source(v):
     if 'REF' in u or u in ('ADVANI', 'SAURAV', 'SAWANT', 'HARSHITHA NEW SCHOOL'): return 'Referral'
     return 'Other'
 
-# Region: the sheet's four clusters all sit in the Mumbai metropolitan area.
-def region(v):
-    return 'Mumbai'
+# The sheet's clusters are the sales regions the Connect flow names.
+REGION_MAP = {'CENTRAL': 'Central', 'KDMC': 'KDMC', 'NAVI': 'Navi Mumbai',
+              'WESTERN': 'Western', 'PUNE': 'Pune'}
 
-def sub_region(v):
-    return s(v)
+def region(cluster):
+    return REGION_MAP.get((s(cluster) or '').upper(), 'Central')
 
 # Offering: read from how the rep described the deal. Anything unreadable stays
 # null rather than being forced into a category.
 OFFERING_RULES = [
-    ('Bagless Skills',     r'BAGLESS|BAGFLESS|BAGLES|POWERPACK'),
-    ('Robotics Workshop',  r'WORKSHOP|\bWKS\b'),
-    ('Advanced Lab Pro',   r'COMPOSITE LAB|ADVANCED LAB'),
-    ('STEM Lab',           r'STEM'),
-    ('Kit Class',          r'\bKIT'),
-    ('Advanced Lab',       r'ROBOTIC|\bLAB\b|CURRICUL|TINKER|\bATL\b'),
+    ('Bagless',        r'BAGLESS|BAGFLESS|BAGLES|POWERPACK'),
+    ('Workshop',       r'WORKSHOP|\bWKS\b'),
+    ('Advanced Lab',   r'COMPOSITE LAB|ADVANCED LAB|\bKIT'),
+    ('STEM Lab',       r'STEM|ROBOTIC|\bLAB\b|CURRICUL|TINKER|\bATL\b'),
 ]
 def offering(*fields):
     blob = ' '.join(f for f in fields if f).upper()
@@ -121,12 +121,13 @@ def parse_date(v):
 # ------------------------------------------------------------------ blockers
 BLOCKER_RULES = [
     ('Budget / Pricing',            r'PRIC|PAYING CAP|CHEAP|BUDGET|COST|EXPENSIVE|LOW PAY|FINANC|FEES'),
-    ('Decision Maker Access',       r'DOES NOT MEET|DOESNT MEET|CANT FIND A MEET|NO MEET|NOT MEET|DIFFICULT TO MEET|HARD TO MEET|NO RESPON|NOT RESPON'),
-    ('Management Approval',         r'MGMT|MANAGEMENT|TRUSTEE|APPROVAL|BOARD|COMMITTEE|DOUBTFUL|SLOW|TAKES TIME'),
-    ('Existing Competitor',         r'ALREADY (HAVE|HAS|WORKING)|EXISTING VENDOR|CHOSE '),
-    ('Trust / Credibility',         r'TRUST|RECOUP|CONVINC|CONFIDEN|PROOF|DOUBT'),
-    ('Timing',                      r'NEXT YEAR|ACADEMIC|SESSION|AFTER EXAM|VACATION|POSTPON|DEFER'),
-    ('Student Strength / School Capacity', r'LOW STRENGTH|SMALL SCHOOL|SPACE|INFRA'),
+    ('Decision Maker Access',       r'DOES NOT MEET|DOESNT MEET|CANT FIND A MEET|NO MEET|NOT MEET|DIFFICULT TO MEET|HARD TO MEET|NO RESPON|NOT RESPON|MGMT|MANAGEMENT|TRUSTEE|APPROVAL|COMMITTEE'),
+    ('Existing Competition',        r'ALREADY (HAVE|HAS|WORKING)|EXISTING VENDOR|CHOSE '),
+    ('Existing Internal Program',   r'INTERNAL|OWN TEACHER|IN HOUSE'),
+    ('Timing',                      r'NEXT YEAR|ACADEMIC|SESSION|AFTER EXAM|VACATION|POSTPON|DEFER|SLOW|TAKES TIME'),
+    ('Student Strength / Capacity', r'LOW STRENGTH|SMALL SCHOOL'),
+    ('Lack of Space / Infra',       r'SPACE|INFRA'),
+    ('Parental Acceptance',         r'PARENT|TRUST|RECOUP'),
 ]
 def blocker(v):
     u = (s(v) or '').upper()
@@ -139,18 +140,17 @@ def blocker(v):
 # The sheet records an outcome in prose; map it to the controlled response the
 # Connect form would have captured.
 RESPONSE_RULES = [
-    ('Asked for Proposal',           r'PROPOSAL|QUOT'),
-    ('Meeting Fixed',                r'MEETING (FIXED|SCHEDULED|ALIGNED)|ALIGNED A (ROBOTICS )?DEMO'),
-    ('Very Interested',              r'INTERESTED|LIKED|WANTS|RENEWED|CAN START'),
-    ('Decision Maker Not Available', r'DOES NOT MEET|CANT FIND A MEET|NO MEET SINCE'),
-    ('Existing Vendor',              r'ALREADY (HAVE|WORKING)|CHOSE '),
-    ('Asked to Reconnect',           r'HAVE MET|HAS MET|MET \w|HAVE DONE'),
+    ('Proposal Requested',        r'PROPOSAL|QUOT'),
+    ('Meeting Fixed',             r'MEETING (FIXED|SCHEDULED|ALIGNED)|ALIGNED A (ROBOTICS )?DEMO'),
+    ('Interested',                r'INTERESTED|LIKED|WANTS|RENEWED|CAN START'),
+    ('Rejected',                  r'CHOSE |ALREADY (HAVE|WORKING)'),
+    ('To confirm in a few days',  r'HAVE MET|HAS MET|MET \w|HAVE DONE'),
 ]
 def response(*fields):
     blob = ' '.join(f for f in fields if f).upper()
     for name, pat in RESPONSE_RULES:
         if re.search(pat, blob): return name
-    return 'Neutral'
+    return 'Other'
 
 MODE_RULES = [('Meeting', r'HAVE MET|HAS MET|MET \w|MEETING'), ('Demo', r'DEMO'),
               ('School Visit', r'VISIT'), ('Cold Call', r'COLD')]
@@ -161,19 +161,17 @@ def mode(*fields):
     return 'Introductory Call'
 
 NEXT_ACTION_RULES = [
-    ('Meeting',              r'\bMEET\b|MEET '),
-    ('Send Proposal',        r'PROPOSAL|QUOT'),
-    ('Demo',                 r'DEMO'),
-    ('Commercial Discussion', r'PRICE|PRICING|COMMERCIAL|RATE'),
-    ('Management Discussion', r'MGMT|MANAGEMENT|TRUSTEE'),
-    ('Call',                 r'CALL|CONNECT'),
+    ('Management connect',  r'MGMT|MANAGEMENT|TRUSTEE'),
+    ('Send proposal',       r'PROPOSAL|QUOT'),
+    ('Schedule demo',       r'DEMO'),
+    ('Fix meeting',         r'\bMEET\b|MEET '),
 ]
 def next_action(v):
     u = (s(v) or '').upper()
     if not u: return None
     for name, pat in NEXT_ACTION_RULES:
         if re.search(pat, u): return name
-    return 'Reconnect'
+    return 'Follow-up'
 
 OWNERS = {'AYUSH', 'PARTH', 'SID', 'VIKAS', 'MANISH'}
 def owners(v):
@@ -203,7 +201,7 @@ for i, r in enumerate(raw):
         'id': sid,
         'name': name,
         'location': loc,
-        'region': region(loc),
+        'region': region(r['Region']),
         'cluster': s(r['Region']),
         'board': board(r['Board']),
         'students': int(num(r['Student Count Midpoint']) or num(r['Student Count']) or 0) or None,
@@ -258,7 +256,9 @@ for i, r in enumerate(raw):
         'commercial': {},
         'notes': ' — '.join(x for x in [opportunity_txt, remarks] if x) or None,
         'nextAction': na,
+        'nextActionOwner': (own[0] if own else None),
         'nextActionAt': None,
+        'stage': None,
         'nextActionNote': next_txt,
         'at': (contacted_at + 'T10:00:00') if contacted_at else None,
         'datePrecision': precision,
