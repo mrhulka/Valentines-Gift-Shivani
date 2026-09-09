@@ -24,7 +24,7 @@ body = re.sub(r'<script src="[^"]+"></script>\s*', '', body).strip()
 # Load order matters: each module reads the ones above it at definition time.
 SCRIPTS = ['seed-data.js', 'util.js', 'model.js', 'store.js', 'auth.js',
            'charts.js', 'ui.js', 'filters.js', 'excel.js', 'connect-form.js',
-           'views.js', 'app.js']
+           'views.js', 'ceo.js', 'app.js']
 
 parts = [
     '<title>Robobox Connect</title>',

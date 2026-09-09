@@ -62,6 +62,10 @@ RB.connectForm = (function () {
         UI.field('Board', UI.select('board', V.board, null, { placeholder: 'Select', required: true })) +
         UI.field('Student count', '<input class="input" type="number" name="students" min="0" step="1" inputmode="numeric">') +
       '</div>' +
+      '<div class="field-row">' +
+        UI.field('Lead source', UI.select('leadSource', V.leadSource, null, { placeholder: 'Select', required: true })) +
+        UI.field('Referral person', '<input class="input" name="referredBy" placeholder="Only if referred">') +
+      '</div>' +
       '<div id="dupe"></div>' +
       '<div class="modal-actions"><button type="submit" class="btn btn-primary btn-lg btn-block">Continue</button></div>' +
       '</form>',
@@ -90,6 +94,8 @@ RB.connectForm = (function () {
           d.school = {
             name: v.name, location: v.location, region: v.region, board: v.board,
             students: v.students ? Number(v.students) : null,
+            leadSource: v.leadSource || null,
+            referredBy: v.referredBy || null,
             ownerKey: RB.auth.user().ownerKey
           };
           stepStemLab();

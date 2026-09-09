@@ -65,19 +65,50 @@ The scorecard has no company target. It measures **activity, opportunity,
 pipeline, conversion, closure, realisation and loss as separate things** —
 Connect count is effort, not performance.
 
-**Leadership** — Business pulse · **Team day** · Team · Stalled · Offerings ·
-Intelligence (blockers, loss reasons, offerings, geography, competitors, lead
-sources).
+**Command centre** (CEO only) — four tabs over one global
+filter bar and one set of formulas:
 
-**Team day** answers "what did the team set out to do, and what did they
-actually do" for any date. Both sides come out of the connect list — a connect
-whose next action falls on the date is a plan made for it, one logged on the
-date is work done — so it works for past days, which a live task list could not.
-It shows plans kept, connects logged, meetings held, and who logged nothing.
+| Tab | The question it answers |
+|---|---|
+| **Business** | How much market is tapped, how much of it is real, what closed, what is stuck |
+| **Sales** | Who is selling, what they did with their day, and whether pipeline moved because of it |
+| **Market** | Who Robobox is up against, which boards and lead sources are worth the effort |
+| **Win** | What a Robobox win looks like, where revenue is stuck, and which schools to go after next |
+
+The hierarchy on **Business** is market tapped → potential → qualified →
+weighted → won / lost. *Qualified* is all six of: opportunity identified,
+decision maker known, need established, deal size, next action, follow-up date —
+and when pipeline fails to qualify, the tab says **which** of the six is missing
+and how much money that blocks. Whitespace, the stale threshold, the large-deal
+threshold and the minimum sample for a winning profile are **assumptions set in
+Settings**, never hard-coded; blank means "derive it from the data", and the
+screen says which number it used.
+
+**Sales** carries the team day: what each person planned for a date and what
+they logged, per connect type (calls, meetings, visits, demos, WhatsApp,
+emails), plus opportunities created and **pipeline moved** — activity without
+movement is not counted as productive selling. Click a person for their day in
+order, each entry showing outcome and next action. Both sides come from the
+connect list, so it works for past days, which a live task list could not.
+
+**Win** scores every school 0–100 on eight weighted factors (student band,
+board, opportunity type, lab status, region, lead source, decision-maker access,
+competitive intensity) and explains each score in words. The scoring switches
+from pipeline-per-school to real win rate once enough deals have closed, and a
+"winning profile" is refused outright below the sample floor — a profile from
+three deals is a story, not a finding.
+
+Every metric traces back to school → opportunity → connect → stage history.
+There is no manually entered summary number anywhere in the app.
+`node tools/test_model.js` asserts the formulas against a fixture.
 
 ## Filters and export
 
-Every data screen carries the same filter bar: **region, school type, salesperson,
+The command centre carries one global bar across all four tabs: **date range,
+region, sales owner, new / existing school, board, opportunity type, lead
+source**. The date range decides what counts as activity, creation and closure
+in the period; pipeline is always a snapshot of now. Sales screens carry the
+wider bar: **region, board, salesperson,
 offering, stage, existing lab, lead source, competitor, interest, blocker**. The
 predicates are the same getters used to group by a dimension, so adding a filter
 is one line in `DIMENSIONS`. Options are built from the data, so a filter never

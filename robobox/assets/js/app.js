@@ -14,12 +14,11 @@ RB.app = (function () {
     'schools':   { label: 'My schools',    icon: '◫', group: 'Sell',       render: RB.views.mySchools },
     'scorecard': { label: 'My scorecard',  icon: '◑', group: 'Sell',       render: RB.views.myScorecard },
 
-    'pulse':     { label: 'Business pulse', icon: '◆', group: 'Leadership', need: 'ceo', render: RB.views.pulse },
-    'day-team':  { label: 'Team day',       icon: '☀', group: 'Leadership', need: 'ceo', render: RB.views.teamDay },
-    'team':      { label: 'Team',           icon: '⚇', group: 'Leadership', need: 'ceo', render: RB.views.team },
-    'stalled':   { label: 'Stalled',        icon: '◷', group: 'Leadership', need: 'ceo', render: RB.views.stalled },
-    'offerings': { label: 'Offerings',      icon: '▤', group: 'Leadership', need: 'ceo', render: RB.views.offerings },
-    'intel':     { label: 'Intelligence',   icon: '◈', group: 'Leadership', need: 'ceo', render: RB.views.intel },
+    /* The command centre: four tabs, one filter bar, one set of formulas. */
+    'business':  { label: 'Business',      icon: '◆', group: 'Command centre', need: 'ceo', render: RB.ceo.business },
+    'sales':     { label: 'Sales',         icon: '⚇', group: 'Command centre', need: 'ceo', render: RB.ceo.sales },
+    'market':    { label: 'Market',        icon: '◈', group: 'Command centre', need: 'ceo', render: RB.ceo.market },
+    'win':       { label: 'Win',           icon: '★', group: 'Command centre', need: 'ceo', render: RB.ceo.win },
 
     'settings':  { label: 'Settings',      icon: '⚙', group: 'Account',    render: settings }
   };
@@ -28,15 +27,17 @@ RB.app = (function () {
     var route = ROUTES[r];
     return !!route && (!route.need || RB.auth.can('ceoDashboard'));
   }
-  function defaultRoute() { return RB.auth.can('ceoDashboard') ? 'pulse' : 'day'; }
+  function defaultRoute() { return RB.auth.can('ceoDashboard') ? 'business' : 'day'; }
 
   function nav() {
     var ts = M.tasks(RB.auth.user().id);
     var badges = {
       day: ts.filter(function (t) { return t.bucket === 'Overdue'; }).length,
-      tasks: ts.length,
-      stalled: M.views().filter(function (v) { return v.status === 'Open' && v.stalled; }).length
+      tasks: ts.length
     };
+    if (RB.auth.can('ceoDashboard')) {
+      badges.business = M.needsAttention(M.views(), M.fitModel(M.views())).length;
+    }
     var groups = {};
     Object.keys(ROUTES).forEach(function (k) {
       if (!allowed(k)) return;
@@ -120,8 +121,24 @@ RB.app = (function () {
         '<button class="btn" id="backup">Download backup</button>' +
         (RB.auth.can('ceoDashboard') ? '<button class="btn btn-danger" id="reset">Reset to imported data</button>' : '') +
         '</div>') +
+      (RB.auth.can('ceoDashboard') ? assumptionsCard() : '') +
       '</div>';
 
+    if (RB.auth.can('ceoDashboard')) {
+      host.querySelector('#assume').addEventListener('submit', function (e) {
+        e.preventDefault();
+        var v = UI.values(this);
+        M.setConfig({
+          avgLabValue: v.avgLabValue ? Number(v.avgLabValue) : null,
+          staleDays: Number(v.staleDays) || 14,
+          highValue: v.highValue ? Number(v.highValue) : null,
+          minWinSample: Number(v.minWinSample) || 10,
+          target: v.target ? Number(v.target) : null
+        });
+        UI.toast('Assumptions saved.');
+        refresh();
+      });
+    }
     host.querySelector('#backup').addEventListener('click', function () {
       U.download('robobox-backup-' + U.iso(U.today()) + '.json', RB.store.exportState(), 'application/json');
     });
@@ -137,6 +154,37 @@ RB.app = (function () {
             });
           } });
     });
+  }
+
+  /* The only numbers on the dashboard that are not measured. Each one says
+   * what it defaults to, so a blank field is never a hidden guess. */
+  function assumptionsCard() {
+    var c = M.config(), avg = M.avgLabValue();
+    return UI.card('Dashboard assumptions', 'Used by the leadership tabs. Blank = derived from the data.',
+      '<form id="assume">' +
+      '<div class="field-row">' +
+        UI.field('Average STEM lab opportunity (₹)',
+          '<input class="input" type="number" name="avgLabValue" min="0" step="any" inputmode="decimal" value="' +
+          U.esc(c.avgLabValue || '') + '" placeholder="' + Math.round(avg.value) + '">',
+          'Drives market whitespace. Currently ' + U.money(avg.value) + ' — ' + avg.basis + '.') +
+        UI.field('Stale after (days)',
+          '<input class="input" type="number" name="staleDays" min="1" step="1" value="' + U.esc(c.staleDays) + '">',
+          'No stage movement for this long counts as stale.') +
+      '</div>' +
+      '<div class="field-row">' +
+        UI.field('Large deal threshold (₹)',
+          '<input class="input" type="number" name="highValue" min="0" step="any" inputmode="decimal" value="' +
+          U.esc(c.highValue || '') + '" placeholder="' + Math.round(M.highValue()) + '">',
+          'Used by the attention rules. Defaults to the top quartile of live deals.') +
+        UI.field('Minimum won deals for a profile',
+          '<input class="input" type="number" name="minWinSample" min="1" step="1" value="' + U.esc(c.minWinSample) + '">',
+          'Below this the winning profile and fit score stay rules-based.') +
+      '</div>' +
+      UI.field('Sales target (₹, optional)',
+        '<input class="input" type="number" name="target" min="0" step="any" inputmode="decimal" value="' +
+        U.esc(c.target || '') + '">', 'Set it to get pipeline coverage.') +
+      '<div class="row" style="margin-top:12px"><button class="btn btn-primary" type="submit">Save assumptions</button></div>' +
+      '</form>');
   }
 
   /* ---------------------------------------------------------------- search */

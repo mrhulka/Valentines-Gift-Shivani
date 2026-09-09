@@ -117,7 +117,8 @@ RB.store = (function () {
       // "Does a STEM lab already exist?" and, if so, whose and how much they spend.
       stemLab: null, labType: null, labSpend: null,
       existingLab: "Don't Know", competitor: 'None',
-      leadSource: null, ownerKey: null, origin: 'app', createdAt: new Date().toISOString()
+      leadSource: null, referredBy: null, ownerKey: null, origin: 'app',
+      createdAt: U.iso(U.today())
     }, fields);
     state.schools.push(s);
     return s;

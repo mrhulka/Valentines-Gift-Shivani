@@ -130,7 +130,7 @@ RB.model = (function () {
   /* Everything the rest of the app reads about an opportunity. Computed once
    * per render pass and cached, because the CEO screens call it per row. */
   var cache = null;
-  function invalidate() { cache = null; }
+  function invalidate() { cache = null; firstOppCache = null; }
 
   function view(opp) {
     if (!cache) cache = {};
@@ -215,8 +215,43 @@ RB.model = (function () {
     }
     v.stalled = v.stalledReasons.length > 0;
 
+    /* ---- fields the leadership dashboard is built on. All derived. ---- */
+    v.pipelineAge = opp.createdAt ? U.daysSince(opp.createdAt) : null;
+    var movedAt = stageChangedAt(cs, opp);
+    v.stageChangedAt = movedAt;
+    v.stageAge = movedAt ? U.daysSince(movedAt) : null;
+    v.weighted = status === 'Open' && v.probability != null
+      ? (v.current || 0) * (v.probability / 100) : 0;
+    v.daysToClose = status === 'Won' && opp.createdAt && opp.closedAt
+      ? U.daysBetween(opp.createdAt, opp.closedAt) : null;
+    // The value at the point of loss, not whatever the number says today.
+    v.lostAtValue = status === 'Lost'
+      ? (opp.finalValue != null ? opp.finalValue : v.current) : null;
+    v.hasContact = !!(opp.decisionMaker || RB.store.contactsFor(opp.schoolId).length ||
+                      cs.some(function (c) { return c.contactId; }));
+    v.needEstablished = !!(opp.currentNeed || cs.some(function (c) { return c.response; }));
+    /* Record every check, not just up to the first failure - the dashboard
+     * reports which conditions are missing, so a short-circuit would lie. */
+    v.qualification = {};
+    QUAL.forEach(function (q) { v.qualification[q.key] = q.test(v); });
+    v.qualified = QUAL.every(function (q) { return v.qualification[q.key]; });
+    v.schoolKind = firstOpp(opp.schoolId) === opp.id ? 'New School' : 'Existing School';
+    v.studentBand = studentBand(school && school.students);
+
     cache[opp.id] = v;
     return v;
+  }
+
+  /* The school's first opportunity is the one the new-school flow created;
+   * anything after it is an existing-school opportunity. */
+  var firstOppCache = null;
+  function firstOpp(schoolId) {
+    if (!firstOppCache) {
+      firstOppCache = {};
+      U.sortBy(RB.store.opportunities(), function (o) { return o.createdAt || '9999'; }, 'asc')
+        .forEach(function (o) { if (!firstOppCache[o.schoolId]) firstOppCache[o.schoolId] = o.id; });
+    }
+    return firstOppCache[schoolId];
   }
 
   function stageMovedDaysAgo(cs) {
@@ -409,7 +444,7 @@ RB.model = (function () {
     offering:   { label: 'Offering',    get: function (v) { return v.opp.offering || 'Not set'; } },
     region:     { label: 'Region',      get: function (v) { return v.school ? v.school.region : '—'; } },
     cluster:    { label: 'Area',        get: function (v) { return v.school ? v.school.cluster : '—'; } },
-    board:      { label: 'Board',       get: function (v) { return v.school ? v.school.board : '—'; } },
+    board:      { label: 'Board',       get: function (v) { return v.school && v.school.board || '—'; } },
     stage:      { label: 'Stage',       get: function (v) { return v.stage; } },
     blocker:    { label: 'Blocker',     get: function (v) { return v.blocker || 'None'; } },
     lossReason: { label: 'Loss reason', get: function (v) { return v.opp.lossReason || '—'; } },
@@ -417,7 +452,10 @@ RB.model = (function () {
     competitor: { label: 'Competitor',  get: function (v) { return v.school && v.school.competitor || 'None'; } },
     interest:   { label: 'Interest',    get: function (v) { return v.interest || '—'; } },
     existingLab:{ label: 'Existing lab', get: function (v) { return v.school && v.school.existingLab || '—'; } },
-    board:      { label: 'School type',  get: function (v) { return v.school && v.school.board || '—'; } }
+    schoolKind: { label: 'School',      get: function (v) { return v.schoolKind; } },
+    studentBand:{ label: 'Student count', get: function (v) { return v.studentBand; } },
+    stemLab:    { label: 'STEM lab',    get: function (v) { return schoolTrait(v.school || {}, 'stemLab'); } },
+    location:   { label: 'Location',    get: function (v) { return v.school && v.school.location || '—'; } }
   };
 
   function groupBy(vs, dim) {
@@ -461,10 +499,22 @@ RB.model = (function () {
    * Both come out of the connect list: a connect whose next action falls on the
    * date is a plan made for it, and one logged on the date is work done. That
    * holds for past days too, which a live task list could not do. */
+  /* The connect modes the day board counts, in column order. Matched loosely
+   * so imported wording ("Introductory Call") lands in the right column. */
+  var MODE_COLUMNS = [
+    { key: 'calls',    label: 'Calls',    re: /call/i },
+    { key: 'meetings', label: 'Meetings', re: /^meeting/i },
+    { key: 'visits',   label: 'Visits',   re: /visit/i },
+    { key: 'demos',    label: 'Demos',    re: /demo|present/i },
+    { key: 'whatsapp', label: 'WhatsApp', re: /whatsapp/i },
+    { key: 'emails',   label: 'Emails',   re: /mail/i }
+  ];
+
   function dayActivity(dateISO, filter) {
     var vs = filter ? filter(views()) : views();
     var keep = {};
     vs.forEach(function (v) { keep[v.opp.id] = true; });
+    var day = { from: dateISO, to: dateISO };
 
     var all = RB.store.connects().filter(function (c) {
       return !c.opportunityId || keep[c.opportunityId];
@@ -481,14 +531,30 @@ RB.model = (function () {
       // A plan counts as kept once a later connect exists on that opportunity.
       var keptIds = {};
       done.forEach(function (c) { keptIds[c.opportunityId] = true; });
-      return {
+      /* Opportunities the person created that day, and the pipeline that
+       * actually advanced a stage on it - activity without movement is not
+       * the same thing as productive selling. */
+      var created = vs.filter(function (v) {
+        return v.owner === u.ownerKey && inRange(v.opp.createdAt, day);
+      });
+      var moved = vs.filter(function (v) {
+        return v.owner === u.ownerKey && advancedIn(v, day);
+      });
+
+      var row = {
         user: u, planned: planned, done: done,
         kept: planned.filter(function (c) { return keptIds[c.opportunityId]; }).length,
         newConnects: done.filter(function (c) { return c.kind === 'New'; }).length,
         reconnects: done.filter(function (c) { return c.kind === 'Reconnect'; }).length,
         meetings: done.filter(function (c) { return /Meeting|Visit|Demo/.test(c.mode || ''); }).length,
-        quoted: U.sum(done, function (c) { return (c.commercial && c.commercial.quoted) || 0; })
+        quoted: U.sum(done, function (c) { return (c.commercial && c.commercial.quoted) || 0; }),
+        created: created, createdCount: created.length,
+        moved: moved, movedValue: U.sum(moved, function (v) { return v.current || 0; })
       };
+      MODE_COLUMNS.forEach(function (m) {
+        row[m.key] = done.filter(function (c) { return m.re.test(c.mode || ''); }).length;
+      });
+      return row;
     });
   }
 
@@ -552,11 +618,531 @@ RB.model = (function () {
     return out;
   }
 
+  /* ====================================================== assumptions ==== */
+  /* Nothing on the dashboard is a typed-in number. Where the spec needs an
+   * assumption (whitespace value, stale threshold, what counts as a big deal)
+   * it is configurable, and blank means "derive it from the data" - every
+   * screen that uses one shows which number it used and where it came from. */
+
+  var CFG_KEY = 'robobox.assumptions';
+  var cfg = readConfig();
+
+  function readConfig() {
+    var d = { avgLabValue: null, staleDays: 14, highValue: null, minWinSample: 10, target: null };
+    try { return Object.assign(d, JSON.parse(window.localStorage.getItem(CFG_KEY) || '{}')); }
+    catch (e) { return d; }
+  }
+  function config() { return cfg; }
+  function setConfig(patch) {
+    Object.assign(cfg, patch);
+    try { window.localStorage.setItem(CFG_KEY, JSON.stringify(cfg)); } catch (e) {}
+  }
+
+  function percentile(nums, p) {
+    var a = nums.filter(function (n) { return typeof n === 'number' && !isNaN(n); })
+                .sort(function (x, y) { return x - y; });
+    if (!a.length) return null;
+    var i = (a.length - 1) * (p / 100), lo = Math.floor(i), hi = Math.ceil(i);
+    return lo === hi ? a[lo] : a[lo] + (a[hi] - a[lo]) * (i - lo);
+  }
+
+  /* The average value of one STEM lab opportunity. Won deals if there are
+   * enough of them, otherwise the median opportunity actually on the books. */
+  function avgLabValue() {
+    if (cfg.avgLabValue) return { value: cfg.avgLabValue, basis: 'set in Settings', derived: false, n: null };
+    var all = views();
+    var won = all.filter(function (v) { return v.status === 'Won' && v.closed; });
+    var use = won.length >= 5;
+    var pool = use ? won.map(function (v) { return v.closed; })
+                   : all.map(function (v) { return v.initialPotential; }).filter(Boolean);
+    return { value: U.median(pool) || 0, derived: true, n: pool.length,
+             basis: use ? 'median won deal' : 'median opportunity size on the books' };
+  }
+
+  /* "Large deal" for the attention rules: the top quartile of what is live. */
+  function highValue() {
+    if (cfg.highValue) return cfg.highValue;
+    return percentile(views().map(function (v) { return v.current; }).filter(Boolean), 75) || 0;
+  }
+
+  /* ==================================================== qualification ==== */
+  /* All six must hold. Kept as a list so the dashboard can show which one is
+   * missing rather than only that the count is low. */
+  var QUAL = [
+    { key: 'opportunity', label: 'Opportunity identified', test: function (v) { return !!v.opp.offering; } },
+    { key: 'contact',     label: 'Decision maker known',   test: function (v) { return v.hasContact; } },
+    { key: 'need',        label: 'Need established',       test: function (v) { return v.needEstablished; } },
+    { key: 'value',       label: 'Deal size entered',      test: function (v) { return v.current != null; } },
+    { key: 'next',        label: 'Next action entered',    test: function (v) { return !!v.nextAction; } },
+    { key: 'date',        label: 'Follow-up date entered', test: function (v) { return !!v.nextActionAt; } }
+  ];
+
+  /* Where the six checks fail across a set - the CEO's "why is so little of
+   * my pipeline forecastable" answer. */
+  function qualificationGap(vs) {
+    var open = vs.filter(function (v) { return v.status === 'Open'; });
+    return QUAL.map(function (q) {
+      var miss = open.filter(function (v) { return !q.test(v); });
+      return { key: q.key, label: q.label, missing: miss.length, rows: miss,
+               value: U.sum(miss, function (v) { return v.current || 0; }),
+               share: open.length ? (miss.length / open.length) * 100 : null };
+    }).filter(function (r) { return r.missing; });
+  }
+
+  /* ======================================================== stage time ==== */
+  /* Stage age comes from connect history: the date of the connect that last
+   * moved the opportunity forward. Never a stored "last updated" column. */
+  function stageChangedAt(cs, opp) {
+    var best = -1, at = null;
+    cs.forEach(function (c) {
+      var r = RANK[c.stage];
+      if (r != null && r > best) { best = r; at = c.at; }
+    });
+    if (at) return at.slice(0, 10);
+    return opp.createdAt || (cs[0] && cs[0].at ? cs[0].at.slice(0, 10) : null);
+  }
+
+  /* Did this opportunity advance a stage inside the period? Read off the
+   * connect history, so a past month reports what was true in that month. */
+  function advancedIn(v, range) {
+    var best = -1, moved = false;
+    v.connects.forEach(function (c) {
+      var r = RANK[c.stage];
+      if (r == null || r <= best) return;
+      best = r;
+      if (inRange(c.at, range)) moved = true;
+    });
+    return moved;
+  }
+
+  /* ========================================================== business ==== */
+  /* Tab 1. Market tapped -> pipeline -> qualified -> weighted -> won / lost. */
+  function business(vs, range, schoolList) {
+    var open = vs.filter(function (v) { return v.status === 'Open'; });
+    /* Not Lost, and only where a commercial value actually exists - a school
+     * in the database is not pipeline until someone has sized the deal. */
+    var identified = vs.filter(function (v) { return v.status !== 'Lost' && v.current != null; });
+    var qual = open.filter(function (v) { return v.qualified; });
+    var active = open.filter(function (v) { return v.status === 'Open'; });
+    var won = vs.filter(function (v) { return v.status === 'Won' && inRange(v.opp.closedAt, range); });
+    var lost = vs.filter(function (v) { return v.status === 'Lost' && inRange(v.opp.closedAt, range); });
+
+    var potential = U.sum(identified, function (v) { return v.current || 0; });
+    var weighted = U.sum(open, function (v) { return v.weighted; });
+    var noProb = open.filter(function (v) { return v.probability == null; });
+
+    var today = U.iso(U.today());
+    function closureIn(days) {
+      var to = U.addDays(today, days);
+      var rows = open.filter(function (v) {
+        return v.expectedClosure && v.expectedClosure >= today && v.expectedClosure <= to;
+      });
+      return { days: days, rows: rows, n: rows.length,
+               value: U.sum(rows, function (v) { return v.weighted; }),
+               gross: U.sum(rows, function (v) { return v.current || 0; }) };
+    }
+
+    if (!schoolList) {
+      var seen = {};
+      vs.forEach(function (v) { if (v.school) seen[v.school.id] = v.school; });
+      schoolList = Object.keys(seen).map(function (k) { return seen[k]; });
+    }
+    /* Three answers, not two. A school nobody has asked about is not a school
+     * without a lab, and counting it as one would invent whitespace. */
+    var noLab = schoolList.filter(function (s) { return s.stemLab === 'No' || s.existingLab === 'None'; });
+    var hasLab = schoolList.filter(function (s) {
+      return s.stemLab === 'Yes' || s.existingLab === 'Competitor' ||
+             s.existingLab === 'Robobox' || s.existingLab === 'Internal School Program';
+    });
+    var notAsked = schoolList.filter(function (s) {
+      return noLab.indexOf(s) === -1 && hasLab.indexOf(s) === -1;
+    });
+    var withOpp = {};
+    vs.forEach(function (v) { withOpp[v.opp.schoolId] = true; });
+    var avg = avgLabValue();
+
+    var ages = open.map(function (v) { return v.pipelineAge; }).filter(function (n) { return n != null; });
+    var stale = open.filter(function (v) { return v.stageAge != null && v.stageAge > cfg.staleDays; });
+
+    return {
+      potential: potential, potentialCount: identified.length, identified: identified,
+      qualified: U.sum(qual, function (v) { return v.current || 0; }),
+      qualifiedCount: qual.length, qualifiedRows: qual,
+      qualifiedShare: potential ? (U.sum(qual, function (v) { return v.current || 0; }) / potential) * 100 : null,
+      qualifiedRate: active.length ? (qual.length / active.length) * 100 : null,
+      weighted: weighted, weightedShare: potential ? (weighted / potential) * 100 : null,
+      noProbability: noProb,
+      wonValue: U.sum(won, function (v) { return v.closed != null ? v.closed : (v.current || 0); }),
+      wonCount: won.length, won: won,
+      wonSchools: U.uniq(won.map(function (v) { return v.opp.schoolId; })).length,
+      lostValue: U.sum(lost, function (v) { return v.lostAtValue || 0; }),
+      lostCount: lost.length, lost: lost,
+      closure: { 30: closureIn(30), 60: closureIn(60), 90: closureIn(90) },
+      open: open, active: active,
+      activePipeline: U.sum(open, function (v) { return v.current || 0; }),
+      // Market
+      schools: schoolList, schoolsTapped: schoolList.length,
+      untapped: noLab, hasLab: hasLab, notAsked: notAsked,
+      noOpportunity: schoolList.filter(function (s) { return !withOpp[s.id]; }),
+      students: U.sum(schoolList, function (s) { return s.students || 0; }),
+      whitespace: noLab.length * avg.value, whitespaceBasis: avg,
+      // Quality
+      medianAge: U.median(ages), avgAge: ages.length ? U.sum(ages, function (n) { return n; }) / ages.length : null,
+      stale: stale, staleValue: U.sum(stale, function (v) { return v.current || 0; }),
+      staleDays: cfg.staleDays,
+      gap: qualificationGap(vs),
+      coverage: cfg.target ? (U.sum(qual, function (v) { return v.current || 0; }) / cfg.target) : null
+    };
+  }
+
+  /* Pipeline movement: the nine open stages plus the two exits. */
+  function stageBoard(vs) {
+    var live = vs.filter(function (v) { return v.status !== 'Lost' && v.status !== 'On Hold'; });
+    var steps = funnel(live);
+    var exits = ['Lost', 'On Hold'].map(function (k) {
+      var rows = vs.filter(function (v) { return v.status === k; });
+      return { key: k, n: rows.length, rows: rows,
+               value: U.sum(rows, function (v) { return (k === 'Lost' ? v.lostAtValue : v.current) || 0; }) };
+    });
+    return { steps: steps, exits: exits };
+  }
+
+  /* ============================================================= sales ==== */
+  /* Tab 2. The same metric set, grouped by whichever dimension is selected. */
+  function performance(vs, dim, range) {
+    return groupBy(vs, dim).map(function (g) {
+      var open = g.rows.filter(function (v) { return v.status === 'Open'; });
+      var qual = open.filter(function (v) { return v.qualified; });
+      var won = g.rows.filter(function (v) { return v.status === 'Won'; });
+      var moved = g.rows.filter(function (v) { return advancedIn(v, range); });
+      var newSchools = U.uniq(g.rows.filter(function (v) {
+        return v.schoolKind === 'New School' && inRange(v.opp.createdAt, range);
+      }).map(function (v) { return v.opp.schoolId; }));
+      return Object.assign(g, {
+        leads: newSchools.length,
+        created: g.rows.filter(function (v) { return inRange(v.opp.createdAt, range); }).length,
+        qualifiedValue: U.sum(qual, function (v) { return v.current || 0; }),
+        qualifiedCount: qual.length,
+        weighted: U.sum(open, function (v) { return v.weighted; }),
+        medianDays: U.median(won.map(function (v) { return v.daysToClose; })),
+        movedValue: U.sum(moved, function (v) { return v.current || 0; }),
+        movedCount: moved.length, movedRows: moved
+      });
+    });
+  }
+
+  /* ============================================================ blockers ==== */
+  /* Ranked by money at risk and how long it has been stuck, not by frequency. */
+  function blockerRisk(vs) {
+    var open = vs.filter(function (v) { return v.status === 'Open' && v.blocker; });
+    var total = U.sum(vs.filter(function (v) { return v.status === 'Open'; }),
+                      function (v) { return v.current || 0; });
+    var out = [];
+    U.groupBy(open, function (v) { return v.blocker; }).forEach(function (rows, key) {
+      var atRisk = U.sum(rows, function (v) { return v.weighted || 0; });
+      var value = U.sum(rows, function (v) { return v.current || 0; });
+      var ages = rows.map(function (v) { return v.stageAge; }).filter(function (n) { return n != null && isFinite(n); });
+      out.push({
+        key: key, rows: rows, count: rows.length,
+        atRisk: atRisk, value: value,
+        avgStuck: ages.length ? Math.round(U.sum(ages, function (n) { return n; }) / ages.length) : null,
+        share: total ? (value / total) * 100 : null,
+        // Age factor per the spec: money stuck for 45 days outranks the same
+        // money stuck for 5.
+        weightedKnown: rows.filter(function (v) { return v.probability != null; }).length,
+        priority: U.sum(rows, function (v) {
+          var age = v.pipelineAge != null && isFinite(v.pipelineAge) ? v.pipelineAge : 0;
+          return (v.weighted || v.current || 0) * Math.min(age / 30, 3);
+        })
+      });
+    });
+    return U.sortBy(out, function (g) { return g.priority; }, 'desc');
+  }
+
+  /* =========================================================== attention ==== */
+  /* Five rules, each one an opportunity the CEO can act on today. */
+  function needsAttention(vs, fit) {
+    var open = vs.filter(function (v) { return v.status === 'Open'; });
+    var big = highValue();
+    var today = U.iso(U.today());
+    var seen = {}, out = [];
+
+    function push(v, problem, action) {
+      if (seen[v.opp.id]) return;
+      seen[v.opp.id] = true;
+      out.push({ v: v, problem: problem, action: action });
+    }
+
+    U.sortBy(open, function (v) { return v.current || 0; }, 'desc').forEach(function (v) {
+      var value = v.current || 0;
+      if (value >= big && v.stageAge != null && v.stageAge > cfg.staleDays) {
+        push(v, 'High value, stuck ' + v.stageAge + ' days', 'Management connect this week');
+      } else if (v.probability >= 70 && v.nextActionAt && v.nextActionAt.slice(0, 10) < today) {
+        push(v, 'Likely to close, follow-up overdue', 'Call today — ' + (v.nextAction || 'follow up'));
+      } else if (value >= big && !v.nextAction) {
+        push(v, 'Large deal with no next action', 'Set the next action and a date');
+      } else if (v.expectedClosure && v.expectedClosure < today) {
+        push(v, 'Closure date passed, still open', 'Re-forecast or close it out');
+      } else if (fit && fit.score(v.school).score >= 70 && value >= big &&
+                 (v.daysSinceConnect == null || v.daysSinceConnect > 21)) {
+        push(v, 'Strategic school gone quiet', 'Reconnect — strong fit profile');
+      }
+    });
+    return out;
+  }
+
+  /* ============================================================== market ==== */
+  /* Observed competitive revenue only - what the team actually recorded a
+   * school spending. Never an estimate of a competitor's total business. */
+  function competitors(vs) {
+    var schools = {};
+    vs.forEach(function (v) { if (v.school) schools[v.school.id] = v.school; });
+    var list = Object.keys(schools).map(function (k) { return schools[k]; });
+
+    var out = [];
+    U.groupBy(list.filter(function (s) { return s.competitor && s.competitor !== 'None'; }),
+              function (s) { return s.competitor; }).forEach(function (rows, key) {
+      out.push(competitorRow(key, rows));
+    });
+
+    /* Robobox counts a school as ours when a deal closed there, or the record
+     * says the existing lab is ours. */
+    var oursIds = {};
+    vs.forEach(function (v) { if (v.status === 'Won' && v.school) oursIds[v.school.id] = true; });
+    list.forEach(function (s) { if (s.existingLab === 'Robobox') oursIds[s.id] = true; });
+    var ours = list.filter(function (s) { return oursIds[s.id]; });
+    var row = competitorRow('Robobox', ours);
+    row.us = true;
+    row.observed = U.sum(vs.filter(function (v) { return v.status === 'Won'; }),
+                         function (v) { return v.closed || 0; });
+    row.avg = ours.length ? row.observed / ours.length : 0;
+    out.unshift(row);
+    return out;
+  }
+
+  function competitorRow(key, schools) {
+    var observed = U.sum(schools, function (s) { return s.labSpend || 0; });
+    return { key: key, schools: schools, count: schools.length,
+             students: U.sum(schools, function (s) { return s.students || 0; }),
+             observed: observed, avg: schools.length ? observed / schools.length : 0,
+             known: schools.filter(function (s) { return s.labSpend; }).length };
+  }
+
+  /* Lead source, with the conversions the spec names. Not called ROI - no
+   * acquisition cost is collected, so no return can honestly be computed. */
+  function leadSources(vs, schools) {
+    var leadCount = {};
+    (schools || []).forEach(function (sc) {
+      var k = sc.leadSource || 'Not recorded';
+      leadCount[k] = (leadCount[k] || 0) + 1;
+    });
+    var out = [];
+    U.groupBy(vs, function (v) { return (v.school && v.school.leadSource) || 'Not recorded'; })
+     .forEach(function (rows, key) {
+      var g = rollup(key, rows);
+      var leads = leadCount[key] != null ? leadCount[key]
+                : U.uniq(rows.map(function (v) { return v.opp.schoolId; })).length;
+      var open = rows.filter(function (v) { return v.status === 'Open'; });
+      var qual = open.filter(function (v) { return v.qualified; });
+      out.push(Object.assign(g, {
+        leads: leads,
+        qualifiedValue: U.sum(qual, function (v) { return v.current || 0; }),
+        toOpportunity: leads ? (rows.length / leads) * 100 : null,
+        toWin: leads ? (g.wonCount / leads) * 100 : null,
+        revenuePerLead: leads ? g.closed / leads : 0,
+        pipelinePerLead: leads ? g.pipeline / leads : 0
+      }));
+    });
+    return U.sortBy(out, function (g) { return g.pipeline + g.closed; }, 'desc');
+  }
+
+  /* Boards, with the sales-cycle column the other group tables do not carry. */
+  function segments(vs, dim, schools, schoolField) {
+    var bySeg = {};
+    if (schools && schoolField) {
+      schools.forEach(function (sc) {
+        var k = sc[schoolField] || '—';
+        if (!bySeg[k]) bySeg[k] = [];
+        bySeg[k].push(sc);
+      });
+    }
+    return groupBy(vs, dim).map(function (g) {
+      var won = g.rows.filter(function (v) { return v.status === 'Won'; });
+      var segSchools = bySeg[g.key] ||
+        U.uniq(g.rows.map(function (v) { return v.school; })).filter(Boolean);
+      return Object.assign(g, {
+        schools: segSchools.length,
+        students: U.sum(segSchools, function (s) { return s.students || 0; }),
+        medianDays: U.median(won.map(function (v) { return v.daysToClose; })),
+        avgWon: won.length ? U.sum(won, function (v) { return v.closed || 0; }) / won.length : null
+      });
+    });
+  }
+
+  /* ================================================================= win ==== */
+  function salesSpeed(vs) {
+    var days = vs.filter(function (v) { return v.status === 'Won'; })
+                 .map(function (v) { return v.daysToClose; })
+                 .filter(function (n) { return n != null; });
+    return { n: days.length, median: U.median(days), fastest: percentile(days, 10),
+             slowest: percentile(days, 90) };
+  }
+
+  /* The profile of a Robobox win. Refuses to answer on a small sample - a
+   * "winning profile" from three deals is a story, not a finding. */
+  var PROFILE_DIMS = ['board', 'region', 'offering', 'leadSource', 'stemLab', 'studentBand', 'owner', 'competitor'];
+
+  function winningProfile(vs) {
+    var won = vs.filter(function (v) { return v.status === 'Won'; });
+    var need = cfg.minWinSample;
+    if (won.length < need) {
+      return { enough: false, have: won.length, need: need };
+    }
+    var traits = PROFILE_DIMS.map(function (dim) {
+      var best = U.sortBy(groupBy(won, dim), function (g) { return g.count; }, 'desc')[0];
+      if (!best) return null;
+      return { dim: dim, label: DIMENSIONS[dim].label, value: best.key, n: best.count,
+               share: (best.count / won.length) * 100 };
+    }).filter(Boolean);
+    var deals = won.map(function (v) { return v.closed; }).filter(Boolean);
+    return {
+      enough: true, n: won.length, traits: traits, rows: won,
+      dealLow: percentile(deals, 25), dealHigh: percentile(deals, 75),
+      medianDays: U.median(won.map(function (v) { return v.daysToClose; }))
+    };
+  }
+
+  /* ------------------------------------------------------- the fit score ---
+   * Rules-based today, data-driven the moment there are closed deals: each
+   * factor scores a segment against the best-performing segment on the same
+   * factor. The basis is reported so nobody mistakes one for the other. */
+  var FIT = [
+    { key: 'studentBand', w: 20, label: 'Student count' },
+    { key: 'board',       w: 15, label: 'Board' },
+    { key: 'offering',    w: 15, label: 'Opportunity type' },
+    { key: 'stemLab',     w: 15, label: 'STEM lab status' },
+    { key: 'region',      w: 10, label: 'Region' },
+    { key: 'leadSource',  w: 5,  label: 'Lead source' },
+    { key: 'contact',     w: 10, label: 'Decision maker access' },
+    { key: 'competition', w: 10, label: 'Competitive intensity' }
+  ];
+
+  function fitModel(vs) {
+    var decided = vs.filter(function (v) { return v.status === 'Won' || v.status === 'Lost'; });
+    var useWinRate = decided.length >= cfg.minWinSample;
+    var tables = {};
+
+    FIT.forEach(function (f) {
+      if (f.key === 'contact' || f.key === 'competition') return;   // rules, not history
+      var table = {}, best = 0;
+      groupBy(vs, f.key).forEach(function (g) {
+        var d = g.wonCount + g.lostCount;
+        var score = useWinRate
+          ? (d >= 3 ? g.wonCount / d : null)
+          // No closed deals yet: rank on the pipeline the segment carries per
+          // school, which is real recorded data rather than a guess.
+          : (g.count >= 3 ? g.pipeline / g.count : null);
+        if (score != null) { table[g.key] = score; if (score > best) best = score; }
+      });
+      tables[f.key] = { table: table, best: best };
+    });
+
+    function score(school) {
+      if (!school) return { score: 0, reasons: [], parts: [] };
+      var total = 0, parts = [];
+      FIT.forEach(function (f) {
+        var t = 0, note = null, seg = null;
+        if (f.key === 'contact') {
+          var cs = RB.store.contactsFor(school.id);
+          var senior = cs.filter(function (c) { return /Trustee|CEO|Director|Principal|Owner/i.test(c.role || ''); });
+          t = senior.length ? 1 : cs.length ? 0.5 : 0;
+          seg = senior.length ? 'Senior contact on file' : cs.length ? 'Contact on file' : 'No contact yet';
+        } else if (f.key === 'competition') {
+          t = !school.competitor || school.competitor === 'None' ? 1
+            : school.competitor === 'Other' ? 0.6 : 0.35;
+          seg = !school.competitor || school.competitor === 'None' ? 'No competitor on site' : school.competitor + ' incumbent';
+        } else {
+          seg = schoolTrait(school, f.key);
+          var tb = tables[f.key];
+          t = tb && tb.best && tb.table[seg] != null ? tb.table[seg] / tb.best : 0.5;
+          if (!tb || tb.table[seg] == null) note = 'no history';
+        }
+        var got = t * f.w;
+        total += got;
+        parts.push({ label: f.label, weight: f.w, got: got, segment: seg, note: note });
+      });
+      var top = U.sortBy(parts, function (p) { return p.got / p.weight; }, 'desc')
+                 .filter(function (p) { return p.got / p.weight >= 0.7; }).slice(0, 3);
+      return {
+        score: Math.round(total), parts: parts,
+        reasons: top.map(function (p) { return p.segment; }),
+        why: top.length
+          ? 'Matches Robobox’s strongest segment on ' +
+            top.map(function (p) { return p.label.toLowerCase() + ' (' + p.segment + ')'; }).join(', ')
+          : 'No strong match with what Robobox has sold so far'
+      };
+    }
+
+    return { score: score, basis: useWinRate ? 'win rate' : 'pipeline per school',
+             useWinRate: useWinRate, decided: decided.length, need: cfg.minWinSample };
+  }
+
+  /* A school's value on a fit factor. */
+  function schoolTrait(school, key) {
+    if (key === 'studentBand') return studentBand(school.students);
+    if (key === 'stemLab') return school.stemLab || (school.existingLab === 'None' ? 'No' : school.existingLab === "Don't Know" ? 'Not known' : 'Yes');
+    if (key === 'offering') {
+      var os = RB.store.opportunitiesFor(school.id);
+      return (os[0] && os[0].offering) || 'Not set';
+    }
+    return school[key] || 'Not recorded';
+  }
+
+  function studentBand(n) {
+    if (!n) return 'Not recorded';
+    if (n < 500) return 'Under 500';
+    if (n < 1500) return '500–1,500';
+    if (n < 3000) return '1,500–3,000';
+    return '3,000+';
+  }
+
+  /* Schools that look like the ones Robobox wins, ranked. Excludes anything
+   * already won - a lookalike list is for where to sell next. */
+  function lookalikes(vs, fit, schools) {
+    var byId = {}, wonAt = {};
+    (schools || []).forEach(function (sc) { byId[sc.id] = sc; });
+    vs.forEach(function (v) {
+      if (v.school) byId[v.school.id] = v.school;
+      if (v.status === 'Won') wonAt[v.opp.schoolId] = true;
+    });
+    var avg = avgLabValue().value;
+    var best = {};
+    vs.forEach(function (v) {
+      if (v.status === 'Lost' || !v.school) return;
+      var cur = best[v.school.id];
+      if (!cur || (v.current || 0) > cur) best[v.school.id] = v.current || 0;
+    });
+    return U.sortBy(Object.keys(byId).filter(function (id) { return !wonAt[id]; })
+      .map(function (id) {
+        var s = byId[id], f = fit.score(s);
+        return { school: s, fit: f.score, why: f.why, parts: f.parts,
+                 value: best[id] || avg,
+                 action: f.score >= 75 ? 'Prioritise' : f.score >= 55 ? 'Work it' : 'Lower priority' };
+      }), function (r) { return r.fit * 1000 + (r.value || 0) / 1e6; }, 'desc');
+  }
+
   return {
     V: V, STAGES: STAGES, RANK: RANK, CLOSED: CLOSED, suggestStage: suggestStage, DIMENSIONS: DIMENSIONS,
     connectsFor: connectsFor, view: view, views: views, invalidate: invalidate,
     tasks: tasks, calendar: calendar, scorecard: scorecard, RANGES: RANGES,
     funnel: funnel, commercialFunnel: commercialFunnel, groupBy: groupBy, rollup: rollup,
-    attention: attention, inRange: inRange, dayActivity: dayActivity, ownerOf: ownerOf
+    attention: attention, inRange: inRange, dayActivity: dayActivity, ownerOf: ownerOf,
+    QUAL: QUAL, FIT: FIT, config: config, setConfig: setConfig, percentile: percentile,
+    avgLabValue: avgLabValue, highValue: highValue, qualificationGap: qualificationGap,
+    business: business, stageBoard: stageBoard, performance: performance, advancedIn: advancedIn,
+    blockerRisk: blockerRisk, needsAttention: needsAttention, competitors: competitors,
+    leadSources: leadSources, segments: segments, salesSpeed: salesSpeed,
+    winningProfile: winningProfile, fitModel: fitModel, lookalikes: lookalikes,
+    studentBand: studentBand, schoolTrait: schoolTrait, MODE_COLUMNS: MODE_COLUMNS
   };
 })();

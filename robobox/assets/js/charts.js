@@ -94,6 +94,7 @@ RB.charts = (function () {
     var H = data.length * rowH + 8;
     var plotW = W - labelW - valueW - 12;
     var max = niceMax(Math.max.apply(null, data.map(function (d) { return d.value || 0; })));
+    if (!max) return '<p class="empty">' + esc(opts.empty || 'Nothing recorded yet.') + '</p>';
     var colorFn = opts.color || function () { return INK; };
 
     var marks = data.map(function (d, i) {
@@ -318,9 +319,9 @@ RB.charts = (function () {
         esc(truncate(r, rowChars)) + '<title>' + esc(r) + '</title></text>' + cells;
     }).join('');
 
-    var scale = '<div class="legend"><span class="legend-item">' + esc(opts.measureLabel || 'Value') + ' &nbsp;low</span>' +
+    var scale = '<div class="legend"><span class="legend-item">' + esc(opts.measureLabel || 'Value') + ': low</span>' +
       SEQ.map(function (c) { return '<span class="legend-swatch" style="background:' + c + ';width:16px"></span>'; }).join('') +
-      '<span class="legend-item">high (' + esc(fmt(max)) + ')</span></div>';
+      '<span class="legend-item">high — max ' + esc(fmt(max)) + '</span></div>';
 
     return '<div style="overflow-x:auto"><svg class="viz" viewBox="0 0 ' + W + ' ' + H +
       '" style="min-width:' + W + 'px;max-width:none" role="img" aria-label="' +
@@ -338,6 +339,56 @@ RB.charts = (function () {
     }).join('');
     return '<svg class="viz stat-spark" width="' + W + '" height="' + H + '" viewBox="0 0 ' + W + ' ' + H + '" aria-hidden="true">' +
       '<path d="' + d + '" fill="none" stroke="' + (opts.color || 'var(--charcoal)') + '" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" opacity=".75"></path></svg>';
+  }
+
+  /* ---------------------------------------------------------------- bubble */
+  /* Two measures plus a size. Used for the competitive map: footprint across,
+   * observed revenue up, students as the area. One hue - the bubbles are not
+   * categories to be told apart by colour, they are named on the chart. */
+  function bubble(opts) {
+    var data = opts.data || [];   // [{key, x, y, r, us}]
+    if (!data.length) return '<p class="empty">No data.</p>';
+    var W = 720, H = opts.height || 320;
+    var padL = 62, padR = 18, padT = 16, padB = 40;
+    var plotW = W - padL - padR, plotH = H - padT - padB;
+    var maxX = niceMax(Math.max.apply(null, data.map(function (d) { return d.x || 0; }))) || 1;
+    var maxY = niceMax(Math.max.apply(null, data.map(function (d) { return d.y || 0; }))) || 1;
+    var maxR = Math.max.apply(null, data.map(function (d) { return d.r || 0; })) || 1;
+    var fx = opts.formatX || U.count, fy = opts.formatY || U.money, fr = opts.formatR || U.count;
+
+    var grid = '';
+    for (var g = 0; g <= 4; g++) {
+      var vy = (maxY / 4) * g, y = padT + plotH - (vy / maxY) * plotH;
+      grid += '<line class="gridline" x1="' + padL + '" y1="' + y + '" x2="' + (W - padR) + '" y2="' + y + '"></line>' +
+              '<text class="axis-label" x="' + (padL - 8) + '" y="' + (y + 4) + '" text-anchor="end">' + esc(fy(vy)) + '</text>';
+      var vx = (maxX / 4) * g, x = padL + (vx / maxX) * plotW;
+      grid += '<text class="axis-label" x="' + x + '" y="' + (H - 14) + '" text-anchor="middle">' + esc(fx(vx)) + '</text>';
+    }
+
+    var marks = U.sortBy(data, function (d) { return d.r || 0; }, 'desc').map(function (d) {
+      var cx = padL + ((d.x || 0) / maxX) * plotW;
+      var cy = padT + plotH - ((d.y || 0) / maxY) * plotH;
+      var r = 8 + Math.sqrt((d.r || 0) / maxR) * 26;
+      var t = tip(d.key, [
+        [opts.labelX || 'Schools', fx(d.x)],
+        [opts.labelY || 'Observed revenue', fy(d.y)],
+        [opts.labelR || 'Students', fr(d.r)]
+      ]);
+      return '<g class="mark" data-tip="' + t + '"' + (opts.onClick ? ' data-key="' + esc(d.key) + '" style="cursor:pointer"' : '') + '>' +
+        '<circle cx="' + cx.toFixed(1) + '" cy="' + cy.toFixed(1) + '" r="' + r.toFixed(1) + '" fill="' +
+          (d.us ? 'var(--brand)' : INK) + '" fill-opacity="' + (d.us ? '.92' : '.34') + '" stroke="' +
+          (d.us ? 'var(--charcoal)' : INK) + '" stroke-width="1.5"></circle>' +
+        '<text class="value-label strong" x="' + cx.toFixed(1) + '" y="' + (cy - r - 6).toFixed(1) +
+          '" text-anchor="middle">' + esc(truncate(d.key, 16)) + '</text>' +
+      '</g>';
+    }).join('');
+
+    return '<svg class="viz" viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="xMinYMin meet" role="img" aria-label="' +
+      esc(opts.title || 'Bubble chart') + '">' + grid +
+      '<line class="baseline" x1="' + padL + '" y1="' + (padT + plotH) + '" x2="' + (W - padR) + '" y2="' + (padT + plotH) + '"></line>' +
+      marks + '</svg>' +
+      '<div class="chart-note">Across: ' + esc(opts.labelX || 'schools') + ' · Up: ' + esc(opts.labelY || 'observed revenue') +
+      ' · Bubble size: ' + esc(opts.labelR || 'students') + '. Robobox in yellow.</div>';
   }
 
   /* --------------------------------------------------------------- helpers */
@@ -377,7 +428,7 @@ RB.charts = (function () {
 
   return {
     INK: INK, STATUS: STATUS, seriesColor: seriesColor, ordinalColor: ordinalColor, seqColor: seqColor,
-    hbar: hbar, stackedBar: stackedBar, funnel: funnel, line: line, column: column,
+    hbar: hbar, stackedBar: stackedBar, funnel: funnel, line: line, column: column, bubble: bubble,
     heatmap: heatmap, sparkline: sparkline, legend: legend, initTooltip: initTooltip, truncate: truncate
   };
 })();
