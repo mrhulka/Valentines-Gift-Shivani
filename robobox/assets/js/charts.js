@@ -117,48 +117,6 @@ RB.charts = (function () {
       'aria-label="' + esc(opts.title || 'Bar chart') + '">' + marks + '</svg>';
   }
 
-  /* -------------------------------------------------- stacked / grouped bar */
-  function stackedBar(opts) {
-    var data = opts.data || [];          // [{key, parts:[{label,value}]}]
-    var series = opts.series || [];      // [{label, color}]
-    if (!data.length) return '<p class="empty">No data.</p>';
-    var rowH = 28, gap = 8, labelW = opts.labelW || 128, valueW = 74;
-    var W = 720, H = data.length * rowH + 8;
-    var plotW = W - labelW - valueW - 12;
-    var totals = data.map(function (d) { return U.sum(d.parts, function (p) { return p.value; }); });
-    var max = niceMax(Math.max.apply(null, totals));
-    var fmt = opts.format || U.count;
-
-    var marks = data.map(function (d, i) {
-      var y = i * rowH + 4, h = rowH - gap, x = labelW;
-      var total = totals[i];
-      var segs = d.parts.map(function (p, j) {
-        if (!p.value) return '';
-        var w = (p.value / max) * plotW;
-        var isLast = j === lastNonZero(d.parts);
-        var seg = '<g class="mark" data-tip="' + tip(d.key + ' · ' + p.label,
-              [[opts.measureLabel || 'Value', fmt(p.value)], ['Share', U.pct(p.value, total)]]) + '">' +
-          '<path d="' + bar(x, y, Math.max(w - 2, 1), h, isLast ? 4 : 0, 'right') + '" fill="' + (series[j] ? series[j].color : seriesColor(j)) + '"></path>' +
-        '</g>';
-        x += w;
-        return seg;
-      }).join('');
-      return '<g>' +
-        '<text class="axis-label" x="' + (labelW - 8) + '" y="' + (y + h / 2 + 4) + '" text-anchor="end">' + esc(truncate(d.key, 20)) + '</text>' +
-        segs +
-        '<text class="value-label" x="' + (labelW + plotW + 10) + '" y="' + (y + h / 2 + 4) + '">' + esc(fmt(total)) + '</text>' +
-      '</g>';
-    }).join('');
-
-    return '<svg class="viz" viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="xMinYMin meet" role="img" aria-label="' +
-      esc(opts.title || 'Stacked bar chart') + '">' + marks + '</svg>' + legend(series);
-  }
-
-  function lastNonZero(parts) {
-    for (var i = parts.length - 1; i >= 0; i--) if (parts[i].value) return i;
-    return -1;
-  }
-
   /* ---------------------------------------------------------------- funnel */
   /* Ordered stages -> the ordinal ramp, plus the step-to-step conversion. */
   function funnel(opts) {
@@ -282,53 +240,6 @@ RB.charts = (function () {
       marks + '</svg>';
   }
 
-  /* --------------------------------------------------------------- heatmap */
-  /* Magnitude across two dimensions: one hue, light -> dark, with a scale legend. */
-  function heatmap(opts) {
-    var rows = opts.rows || [], cols = opts.cols || [], get = opts.get;
-    if (!rows.length || !cols.length) return '<p class="empty">No data.</p>';
-    var cellW = opts.cellW || 78, cellH = 34, labelW = opts.labelW || 140, headH = 26;
-    // Row labels are right-anchored inside labelW, so cap them to what fits.
-    var rowChars = Math.max(8, Math.floor((labelW - 16) / 7));
-    var W = labelW + cols.length * cellW, H = headH + rows.length * cellH + 6;
-    var max = 0;
-    rows.forEach(function (r) { cols.forEach(function (c) { var v = get(r, c) || 0; if (v > max) max = v; }); });
-    var fmt = opts.format || U.count;
-
-    var head = cols.map(function (c, j) {
-      return '<text class="axis-label" x="' + (labelW + j * cellW + cellW / 2) + '" y="' + (headH - 9) + '" text-anchor="middle">' +
-        esc(truncate(c, 11)) + '</text>';
-    }).join('');
-
-    var body = rows.map(function (r, i) {
-      var y = headH + i * cellH;
-      var cells = cols.map(function (c, j) {
-        var v = get(r, c) || 0;
-        var t = max ? v / max : 0;
-        var x = labelW + j * cellW;
-        // Ink flips to the surface colour once the fill gets dark enough to need it.
-        var ink = t > 0.62 ? 'var(--surface)' : 'var(--ink)';
-        return '<g class="mark" data-tip="' + tip(r + ' · ' + c, [[opts.measureLabel || 'Value', fmt(v)]]) + '"' +
-          (opts.onClick ? ' data-key="' + esc(r + '||' + c) + '" style="cursor:pointer"' : '') + '>' +
-          '<rect x="' + (x + 1) + '" y="' + (y + 1) + '" width="' + (cellW - 2) + '" height="' + (cellH - 2) +
-            '" rx="4" fill="' + (v ? seqColor(t) : 'var(--surface-sunk)') + '"></rect>' +
-          '<text class="value-label" x="' + (x + cellW / 2) + '" y="' + (y + cellH / 2 + 4) + '" text-anchor="middle" fill="' + ink + '">' +
-            esc(v ? fmt(v) : '·') + '</text>' +
-        '</g>';
-      }).join('');
-      return '<text class="axis-label" x="' + (labelW - 8) + '" y="' + (y + cellH / 2 + 4) + '" text-anchor="end">' +
-        esc(truncate(r, rowChars)) + '<title>' + esc(r) + '</title></text>' + cells;
-    }).join('');
-
-    var scale = '<div class="legend"><span class="legend-item">' + esc(opts.measureLabel || 'Value') + ': low</span>' +
-      SEQ.map(function (c) { return '<span class="legend-swatch" style="background:' + c + ';width:16px"></span>'; }).join('') +
-      '<span class="legend-item">high — max ' + esc(fmt(max)) + '</span></div>';
-
-    return '<div style="overflow-x:auto"><svg class="viz" viewBox="0 0 ' + W + ' ' + H +
-      '" style="min-width:' + W + 'px;max-width:none" role="img" aria-label="' +
-      esc(opts.title || 'Heatmap') + '">' + head + body + '</svg></div>' + scale;
-  }
-
   /* -------------------------------------------------------------- sparkline */
   function sparkline(values, opts) {
     opts = opts || {};
@@ -429,7 +340,7 @@ RB.charts = (function () {
 
   return {
     INK: INK, STATUS: STATUS, seriesColor: seriesColor, ordinalColor: ordinalColor, seqColor: seqColor,
-    hbar: hbar, stackedBar: stackedBar, funnel: funnel, line: line, column: column, bubble: bubble,
-    heatmap: heatmap, sparkline: sparkline, legend: legend, initTooltip: initTooltip, truncate: truncate
+    hbar: hbar, funnel: funnel, line: line, column: column, bubble: bubble,
+    sparkline: sparkline, legend: legend, initTooltip: initTooltip, truncate: truncate
   };
 })();

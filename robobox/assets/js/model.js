@@ -1006,7 +1006,7 @@ RB.model = (function () {
         qualifiedValue: U.sum(qual, function (v) { return v.current || 0; }),
         qualifiedCount: qual.length,
         weighted: U.sum(open, function (v) { return v.weighted; }),
-        medianDays: U.median(won.map(function (v) { return v.daysToClose; })),
+        avgDays: U.mean(won.map(function (v) { return v.daysToClose; })),
         movedValue: U.sum(moved, function (v) { return v.current || 0; }),
         movedCount: moved.length, movedRows: moved
       });
@@ -1026,6 +1026,7 @@ RB.model = (function () {
       var ages = rows.map(function (v) { return v.stageAge; }).filter(function (n) { return n != null && isFinite(n); });
       out.push({
         key: key, rows: rows, count: rows.length,
+        schools: U.uniq(rows.map(function (v) { return v.opp.schoolId; })).length,
         atRisk: atRisk, value: value,
         avgStuck: ages.length ? Math.round(U.sum(ages, function (n) { return n; }) / ages.length) : null,
         share: total ? (value / total) * 100 : null,
@@ -1155,7 +1156,7 @@ RB.model = (function () {
       return Object.assign(g, {
         schools: segSchools.length,
         students: U.sum(segSchools, function (s) { return s.students || 0; }),
-        medianDays: U.median(won.map(function (v) { return v.daysToClose; })),
+        avgDays: U.mean(won.map(function (v) { return v.daysToClose; })),
         avgWon: won.length ? U.sum(won, function (v) { return v.closed || 0; }) / won.length : null
       });
     });
@@ -1166,7 +1167,7 @@ RB.model = (function () {
     var days = vs.filter(function (v) { return v.status === 'Won'; })
                  .map(function (v) { return v.daysToClose; })
                  .filter(function (n) { return n != null; });
-    return { n: days.length, median: U.median(days), fastest: percentile(days, 10),
+    return { n: days.length, avg: U.mean(days), fastest: percentile(days, 10),
              slowest: percentile(days, 90) };
   }
 
@@ -1190,7 +1191,7 @@ RB.model = (function () {
     return {
       enough: true, n: won.length, traits: traits, rows: won,
       dealLow: percentile(deals, 25), dealHigh: percentile(deals, 75),
-      medianDays: U.median(won.map(function (v) { return v.daysToClose; }))
+      avgDays: U.mean(won.map(function (v) { return v.daysToClose; }))
     };
   }
 

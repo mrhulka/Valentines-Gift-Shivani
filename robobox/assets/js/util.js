@@ -175,6 +175,12 @@ RB.util = (function () {
     return Array.from(new Set(arr.filter(function (x) { return x !== null && x !== undefined && x !== ''; })));
   }
 
+  function mean(nums) {
+    var a = nums.filter(function (n) { return typeof n === 'number' && !isNaN(n); });
+    if (!a.length) return null;
+    return a.reduce(function (x, y) { return x + y; }, 0) / a.length;
+  }
+
   function median(nums) {
     var a = nums.filter(function (n) { return typeof n === 'number' && !isNaN(n); }).sort(function (x, y) { return x - y; });
     if (!a.length) return null;
@@ -260,7 +266,7 @@ RB.util = (function () {
     today: today, iso: iso, parseISO: parseISO, fmtDate: fmtDate, monthKey: monthKey,
     monthLabel: monthLabel, shiftMonth: shiftMonth, daysBetween: daysBetween, daysSince: daysSince, addDays: addDays,
     relative: relative, groupBy: groupBy, tally: tally, sortBy: sortBy, sum: sum, uniq: uniq,
-    median: median, uid: uid, initials: initials, toCSV: toCSV, download: download, el: el,
+    median: median, mean: mean, uid: uid, initials: initials, toCSV: toCSV, download: download, el: el,
     debounce: debounce, MONTH_SHORT: MONTH_SHORT
   };
 })();

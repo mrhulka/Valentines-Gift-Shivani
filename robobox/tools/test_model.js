@@ -114,7 +114,7 @@ assert.strictEqual(b.whitespace, 1 * b.whitespaceBasis.value);
 
 /* --- time --------------------------------------------------------------- */
 assert.strictEqual(v('O1').daysToClose, 60, 'won date - created date');
-assert.strictEqual(M.salesSpeed(vs).median, 60);
+assert.strictEqual(M.salesSpeed(vs).avg, 60, 'days to close is reported as an average');
 assert.strictEqual(v('O4').stageAge, 200, 'never moved since creation');
 assert.ok(v('O4').stageAge > M.config().staleDays);
 assert.ok(b.stale.some(x => x.opp.id === 'O4'), 'O4 is stale');
@@ -273,4 +273,14 @@ if (top.length > 1) {
   }
 }
 
-console.log('model: all ' + 71 + ' assertions passed');
+/* --- a blocker is counted in schools, not only deals --------------------- */
+var b2 = M.blockerRisk(vs);
+assert.strictEqual(b2[0].schools, 1, 'one school behind the budget blocker');
+assert.ok(b2[0].schools <= b2[0].count, 'schools can never exceed deals');
+
+/* --- average, not median, and it ignores deals that never closed --------- */
+assert.strictEqual(U.mean([10, 20, 60]), 30);
+assert.strictEqual(U.mean([]), null);
+assert.strictEqual(U.mean([5, null, undefined, 15]), 10, 'blanks are skipped, not counted as zero');
+
+console.log('model: all ' + 76 + ' assertions passed');

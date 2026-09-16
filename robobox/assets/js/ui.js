@@ -114,6 +114,16 @@ RB.ui = (function () {
     });
   }
 
+  /* Every date field in the app opens the native calendar on click instead of
+   * asking anyone to type into dd/mm/yyyy boxes. */
+  function bindDatePickers(host) {
+    host.querySelectorAll('input[type=date]').forEach(function (i) {
+      if (i.dataset.picker) return;
+      i.dataset.picker = '1';
+      i.addEventListener('click', function () { try { i.showPicker(); } catch (e) {} });
+    });
+  }
+
   function values(form) {
     var out = {};
     new FormData(form).forEach(function (v, k) { out[k] = typeof v === 'string' ? v.trim() : v; });
@@ -291,7 +301,7 @@ RB.ui = (function () {
     toast: toast, modal: modal, closeModal: closeModal, stat: stat, stats: stats,
     head: head, card: card, stageTag: stageTag, interestTag: interestTag,
     select: select, field: field, choice: choice, bindChoices: bindChoices,
-    values: values, table: table, oppColumns: oppColumns, drill: drill,
+    values: values, bindDatePickers: bindDatePickers, table: table, oppColumns: oppColumns, drill: drill,
     monthGrid: monthGrid, bindMonthGrid: bindMonthGrid
   };
 })();

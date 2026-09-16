@@ -102,6 +102,11 @@ RB.filters = (function () {
       });
     });
     host.querySelectorAll('.filter-bar input[type=date]').forEach(function (i) {
+      // Clicking anywhere on the field opens the browser's own calendar,
+      // rather than making anyone type into the dd/mm/yyyy boxes.
+      i.addEventListener('click', function () {
+        try { i.showPicker(); } catch (e) {}
+      });
       i.addEventListener('change', function () {
         if (i.getAttribute('name') === 'f_from') from = i.value || null; else to = i.value || null;
         redraw();

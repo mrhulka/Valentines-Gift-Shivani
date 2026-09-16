@@ -25,7 +25,12 @@ RB.connectForm = (function () {
     stepKind();
   }
 
-  function shell(title, body, onMount) { return UI.modal(title, body, { onMount: onMount }); }
+  function shell(title, body, onMount) {
+    return UI.modal(title, body, { onMount: function (host) {
+      UI.bindDatePickers(host);
+      if (onMount) onMount(host);
+    } });
+  }
 
   function owners() {
     return RB.store.users().filter(function (u) { return u.ownerKey; })

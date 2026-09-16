@@ -460,9 +460,9 @@ RB.ceo = (function () {
         render: function (g) { return g.winRate == null ? '<span class="muted">—</span>' : pctText(g.winRate); } },
       { key: 'avgDeal', label: 'Avg deal', num: true, get: function (g) { return g.avgDeal; },
         render: function (g) { return g.avgDeal ? U.money(g.avgDeal) : '<span class="muted">—</span>'; } },
-      { key: 'medianDays', label: 'Median close', num: true,
-        get: function (g) { return g.medianDays == null ? 1e9 : g.medianDays; },
-        render: function (g) { return g.medianDays == null ? '<span class="muted">—</span>' : Math.round(g.medianDays) + 'd'; } },
+      { key: 'avgDays', label: 'Avg. days to close', num: true,
+        get: function (g) { return g.avgDays == null ? 1e9 : g.avgDays; },
+        render: function (g) { return g.avgDays == null ? '<span class="muted">—</span>' : Math.round(g.avgDays) + 'd'; } },
       { key: 'movedValue', label: 'Business Moved', num: true, get: function (g) { return g.movedValue; },
         render: function (g) { return g.movedValue ? U.money(g.movedValue) : '<span class="muted">—</span>'; } }
     ];
@@ -481,7 +481,7 @@ RB.ceo = (function () {
       { label: 'Lost', type: 'number', get: function (g) { return g.lostCount; } },
       { label: 'Win rate %', type: 'percent', get: function (g) { return g.winRate; } },
       { label: 'Avg deal', type: 'money', get: function (g) { return g.avgDeal; } },
-      { label: 'Median days to close', type: 'number', get: function (g) { return g.medianDays; } },
+      { label: 'Avg. days to close', type: 'number', get: function (g) { return g.avgDays; } },
       { label: 'Business Moved', type: 'money', get: function (g) { return g.movedValue; } }
     ] };
   }
@@ -566,6 +566,20 @@ RB.ceo = (function () {
     };
     var noSpend = comps.every(function (c) { return !c.observed; });
 
+    /* One row per region: what Robobox holds, what the field holds, and the
+     * competitors actually present — named, with counts. Nine colour bands in
+     * one bar told nobody anything; a table does. */
+    var regionRows = regions.map(function (r) {
+      var mine = cell(r, 'Robobox');
+      var rivals = players.filter(function (pl) { return pl !== 'Robobox'; })
+        .map(function (pl) { return { key: pl, value: cell(r, pl) }; })
+        .filter(function (x) { return x.value; });
+      rivals = U.sortBy(rivals, function (x) { return x.value; }, 'desc');
+      var theirs = U.sum(rivals, function (x) { return x.value; });
+      return { key: r, mine: mine, theirs: theirs, total: mine + theirs, rivals: rivals,
+               share: (mine + theirs) ? (mine / (mine + theirs)) * 100 : null };
+    });
+
     var b = M.business(vs, s.range, s.schools);
     var list = M.listValue(b.open);
 
@@ -615,16 +629,16 @@ RB.ceo = (function () {
             : C.bubble({ data: comps.map(function (c) {
                        return { key: c.key, x: c.count, y: c.observed, r: c.students, us: !!c.us };
                      }), labelX: 'Schools covered', labelY: 'Observed revenue', labelR: 'Students' })) +
-        UI.card('Region × competition', 'Switch the measure',
-          '<div class="tabs" style="margin-top:0">' + Object.keys(measures).map(function (k) {
-            return '<button type="button" data-mx="' + k + '" aria-pressed="' + (k === matrixMeasure) + '">' +
-              U.esc(measures[k]) + '</button>';
-          }).join('') + '</div>' +
-          C.heatmap({ rows: regions, cols: players, get: cell,
-                      format: matrixMeasure === 'observed' ? U.money : U.count,
-                      measureLabel: measures[matrixMeasure], labelW: 112, cellW: 66 })) +
       '</div>' +
       '<div id="comp"></div>' +
+
+      '<div class="section-title">Who holds which region' +
+        '<span class="st-sub">Robobox against everyone else, by ' + U.esc(measures[matrixMeasure].toLowerCase()) + '</span></div>' +
+      '<div class="tabs">' + Object.keys(measures).map(function (k) {
+        return '<button type="button" data-mx="' + k + '" aria-pressed="' + (k === matrixMeasure) + '">' +
+          U.esc(measures[k]) + '</button>';
+      }).join('') + '</div>' +
+      '<div id="reg"></div>' +
 
       '<div class="section-title">Board intelligence</div>' +
       UI.card('Business in play by board', 'Which boards Robobox is actually building business in',
@@ -646,12 +660,16 @@ RB.ceo = (function () {
           { label: 'Avg revenue / school', type: 'money', get: function (c) { return c.avg; } },
           { label: 'Schools with a spend figure', type: 'number', get: function (c) { return c.known; } }
         ] },
-        { name: 'Region x competition', rows: regions, columns: [
-          { label: 'Region', get: function (r) { return r; } }
-        ].concat(players.map(function (p) {
-          return { label: p, type: matrixMeasure === 'observed' ? 'money' : 'number',
-                   get: function (r) { return cell(r, p); } };
-        })) },
+        { name: 'Who holds which region', rows: regionRows, columns: [
+          { label: 'Region', get: function (r) { return r.key; } },
+          { label: 'Robobox', type: matrixMeasure === 'observed' ? 'money' : 'number',
+            get: function (r) { return r.mine; } },
+          { label: 'Competition', type: matrixMeasure === 'observed' ? 'money' : 'number',
+            get: function (r) { return r.theirs; } },
+          { label: 'Robobox share %', type: 'percent', get: function (r) { return r.share; } },
+          { label: 'Competitors present', width: 44,
+            get: function (r) { return r.rivals.map(function (x) { return x.key + ' (' + x.value + ')'; }).join(', '); } }
+        ] },
         segmentSheet('Boards', 'Board', boards),
         { name: 'Lead sources', rows: sources, columns: [
           { label: 'Lead source', get: function (g) { return g.key; } },
@@ -695,6 +713,36 @@ RB.ceo = (function () {
         var c = comps.filter(function (x) { return x.key === k; })[0];
         if (c) schoolListModal(k + ' — schools', c.schools);
       });
+    });
+
+    var fmt = matrixMeasure === 'observed' ? U.money : U.count;
+    UI.table(host.querySelector('#reg'), {
+      rows: regionRows, rowId: function (r) { return r.key; }, sortKey: 'mine', pageSize: 10,
+      empty: 'No regions in this filter.',
+      columns: [
+        { key: 'key', label: 'Region', get: function (r) { return r.key; },
+          render: function (r) { return '<span class="strong">' + U.esc(r.key) + '</span>'; } },
+        { key: 'share', label: 'Robobox share', sortable: false, get: function (r) { return r.share || 0; },
+          render: function (r) {
+            return '<span class="share"><span class="share-bar">' +
+              '<span style="width:' + (r.share || 0).toFixed(1) + '%"></span></span>' +
+              '<span class="share-pct">' + (r.share == null ? '—' : Math.round(r.share) + '%') + '</span></span>';
+          } },
+        { key: 'mine', label: 'Robobox', num: true, get: function (r) { return r.mine; },
+          render: function (r) { return r.mine ? '<span class="strong">' + U.esc(fmt(r.mine)) + '</span>'
+                                               : '<span class="muted">—</span>'; } },
+        { key: 'theirs', label: 'Competition', num: true, get: function (r) { return r.theirs; },
+          render: function (r) { return r.theirs ? U.esc(fmt(r.theirs)) : '<span class="muted">—</span>'; } },
+        { key: 'rivals', label: 'Who is there', sortable: false,
+          get: function (r) { return r.rivals.length; },
+          render: function (r) {
+            return r.rivals.length
+              ? r.rivals.slice(0, 4).map(function (x) {
+                  return '<span class="tag">' + U.esc(x.key) + ' ' + U.esc(fmt(x.value)) + '</span>';
+                }).join(' ') + (r.rivals.length > 4 ? ' <span class="small muted">+' + (r.rivals.length - 4) + '</span>' : '')
+              : '<span class="muted">nobody recorded</span>';
+          } }
+      ]
     });
 
     UI.table(host.querySelector('#comp'), {
@@ -775,9 +823,9 @@ RB.ceo = (function () {
         render: function (g) { return g.winRate == null ? '<span class="muted">—</span>' : pctText(g.winRate); } },
       { key: 'avgWon', label: 'Avg won deal', num: true, get: function (g) { return g.avgWon || 0; },
         render: function (g) { return g.avgWon ? U.money(g.avgWon) : '<span class="muted">—</span>'; } },
-      { key: 'medianDays', label: 'Median days', num: true,
-        get: function (g) { return g.medianDays == null ? 1e9 : g.medianDays; },
-        render: function (g) { return g.medianDays == null ? '<span class="muted">—</span>' : Math.round(g.medianDays) + 'd'; } }
+      { key: 'avgDays', label: 'Avg. days to close', num: true,
+        get: function (g) { return g.avgDays == null ? 1e9 : g.avgDays; },
+        render: function (g) { return g.avgDays == null ? '<span class="muted">—</span>' : Math.round(g.avgDays) + 'd'; } }
     ];
   }
 
@@ -791,7 +839,7 @@ RB.ceo = (function () {
       { label: 'Business Won', type: 'money', get: function (g) { return g.closed; } },
       { label: 'Win rate %', type: 'percent', get: function (g) { return g.winRate; } },
       { label: 'Avg won deal', type: 'money', get: function (g) { return g.avgWon; } },
-      { label: 'Median days to close', type: 'number', get: function (g) { return g.medianDays; } }
+      { label: 'Avg. days to close', type: 'number', get: function (g) { return g.avgDays; } }
     ] };
   }
 
@@ -820,10 +868,10 @@ RB.ceo = (function () {
 
       '<div class="section-title">Sales speed</div>' +
       UI.stats([
-        UI.stat({ cls: 'stat-hero', label: 'Median days to close',
-                  value: speed.median == null ? '—' : Math.round(speed.median) + 'd',
+        UI.stat({ cls: 'stat-hero', label: 'Avg. days to close',
+                  value: speed.avg == null ? '—' : Math.round(speed.avg) + 'd',
                   foot: speed.n ? 'across ' + speed.n + ' won deals' : 'no business won yet',
-                  title: 'Median of (won date − opportunity creation date).' }),
+                  title: 'Average of (won date − the day the deal was created).' }),
         UI.stat({ label: 'Fastest 10%', value: speed.fastest == null ? '—' : Math.round(speed.fastest) + 'd',
                   foot: 'best-case realistic speed' }),
         UI.stat({ label: 'Slowest 10%', value: speed.slowest == null ? '—' : Math.round(speed.slowest) + 'd',
@@ -846,35 +894,46 @@ RB.ceo = (function () {
             '<div class="stats" style="margin-top:12px">' +
               UI.stat({ small: true, label: 'Typical deal',
                         value: U.money(profile.dealLow) + ' – ' + U.money(profile.dealHigh) }) +
-              UI.stat({ small: true, label: 'Median close',
-                        value: profile.medianDays == null ? '—' : Math.round(profile.medianDays) + 'd' }) +
+              UI.stat({ small: true, label: 'Avg. days to close',
+                        value: profile.avgDays == null ? '—' : Math.round(profile.avgDays) + 'd' }) +
             '</div>')
         : '<div class="empty">A winning profile needs at least ' + profile.need + ' won opportunities to mean anything. ' +
           'There ' + (profile.have === 1 ? 'is' : 'are') + ' ' + profile.have + ' so far — the profile appears automatically once the ' +
           (profile.need - profile.have) + ' remaining close.</div>') +
 
       '<div class="section-title">Where revenue is getting stuck</div>' +
-      '<div class="grid grid-2">' +
-        UI.card('Top blockers by urgency', 'Business at risk × how long it has been stuck',
+      '<div class="grid">' +
+        UI.card('Top blockers by urgency', 'Ranked by business at risk × how long it has been stuck',
           blockers.length
-            ? C.hbar({ data: blockers.slice(0, 5).map(function (b) { return { key: b.key, value: b.priority }; }),
-                       format: U.money, measureLabel: 'Priority score', labelW: 200, onClick: true,
-                       color: function () { return 'var(--red)'; } })
-            : '<div class="empty">No blockers recorded on open opportunities.</div>') +
-        UI.card('Lookalike engine', 'Fit basis: ' + fit.basis +
-          (fit.useWinRate ? '' : ' — switches to win rate after ' + fit.need + ' closed deals'),
-          C.hbar({ data: looks.slice(0, 8).map(function (r) { return { key: r.school.name, value: r.fit }; }),
-                   format: function (n) { return Math.round(n) + '/100'; }, sort: false,
-                   measureLabel: 'Fit score', labelW: 200, onClick: true })) +
+            ? '<ol class="blockers">' + blockers.slice(0, 5).map(function (bl) {
+                return '<li><button type="button" data-blocker="' + U.esc(bl.key) + '">' +
+                  '<span class="bl-name">' + U.esc(bl.key) + '</span>' +
+                  '<span class="bl-n">' + U.esc(U.count(bl.schools)) +
+                    '<small>' + (bl.schools === 1 ? 'school' : 'schools') + '</small></span>' +
+                  '<span class="bl-v">' + U.esc(U.money(bl.value)) + '<small>business</small></span>' +
+                '</button></li>';
+              }).join('') + '</ol>'
+            : '<div class="empty">No blockers recorded on open deals.</div>') +
       '</div>' +
-      '<div id="blockers"></div>' +
       (blockers.length && blockers.every(function (x) { return !x.weightedKnown; })
-        ? '<p class="small muted">Pipeline at risk is expected deal size × probability. No probability has been ' +
-          'recorded on any connect yet, so it reads as ₹0 and the ranking falls back to the full ' +
-          'expected value × age factor.</p>'
+        ? '<p class="small muted">Ranked by business at risk × how long it has been stuck. ' +
+          'No likelihood has been recorded on any connect yet, so the ranking uses the full ' +
+          'business value rather than value × likelihood.</p>'
         : '') +
 
-      '<div class="section-title">Schools that look like a Robobox win</div><div id="look"></div>' +
+      '<div class="section-title">Schools that look like a Robobox win' +
+        '<span class="st-sub">fit basis: ' + U.esc(fit.basis) +
+        (fit.useWinRate ? '' : ' — switches to win rate after ' + fit.need + ' deals are won') + '</span></div>' +
+      '<div class="fitcards">' + looks.slice(0, 8).map(function (r) {
+        return '<button type="button" class="fitcard" data-fit="' + U.esc(r.school.id) + '">' +
+          '<span class="fit-score' + (r.fit >= 75 ? ' is-strong' : '') + '">' + r.fit + '</span>' +
+          '<span class="fit-body"><strong>' + U.esc(r.school.name) + '</strong>' +
+          '<small>' + U.esc([r.school.region, r.school.board,
+            r.school.students ? U.count(r.school.students) + ' students' : null].filter(Boolean).join(' · ')) + '</small>' +
+          '<span class="fit-meta">' + U.esc(U.money(r.value)) + ' · ' + U.esc(r.action) + '</span></span>' +
+        '</button>';
+      }).join('') + '</div>' +
+      '<div id="look"></div>' +
 
       (att.length ? '<div class="section-title">Needs Action · ' + att.length + '</div><div id="att"></div>' : '');
 
@@ -912,12 +971,15 @@ RB.ceo = (function () {
     var strip = host.querySelector('#att-strip');
     if (strip) strip.addEventListener('click', function () { UI.drill('Needs Action', att.map(function (i) { return i.v; })); });
     if (att.length) attentionTable(host.querySelector('#att'), att);
-    host.querySelectorAll('.viz [data-key]').forEach(function (g) {
-      g.addEventListener('click', function () {
-        var k = g.getAttribute('data-key');
-        var b = blockers.filter(function (x) { return x.key === k; })[0];
-        if (b) return UI.drill(k, b.rows);
-        var l = looks.filter(function (x) { return x.school.name === k; })[0];
+    host.querySelectorAll('[data-blocker]').forEach(function (el) {
+      el.addEventListener('click', function () {
+        var bl = blockers.filter(function (x) { return x.key === el.getAttribute('data-blocker'); })[0];
+        if (bl) UI.drill(bl.key, bl.rows);
+      });
+    });
+    host.querySelectorAll('[data-fit]').forEach(function (el) {
+      el.addEventListener('click', function () {
+        var l = looks.filter(function (x) { return x.school.id === el.getAttribute('data-fit'); })[0];
         if (l) fitModal(l);
       });
     });
@@ -929,31 +991,6 @@ RB.ceo = (function () {
         if (grp) UI.drill(grp.key, grp.rows);
       },
       columns: segmentColumns(dims[cycleDim])
-    });
-
-    UI.table(host.querySelector('#blockers'), {
-      rows: blockers, rowId: function (b) { return b.key; }, sortKey: 'priority', pageSize: 12,
-      onRowClick: function (k) {
-        var b = blockers.filter(function (x) { return x.key === k; })[0];
-        if (b) UI.drill(k, b.rows);
-      },
-      empty: 'No blockers recorded on open opportunities.',
-      columns: [
-        { key: 'key', label: 'Blocker', get: function (b) { return b.key; },
-          render: function (b) { return '<span class="strong">' + U.esc(b.key) + '</span>'; } },
-        { key: 'atRisk', label: 'Business at risk', num: true, get: function (b) { return b.atRisk; },
-          render: function (b) { return b.atRisk ? U.money(b.atRisk) : '<span class="muted">—</span>'; } },
-        { key: 'value', label: 'Business value', num: true, get: function (b) { return b.value; },
-          render: function (b) { return U.money(b.value); } },
-        { key: 'count', label: 'Deals', num: true, get: function (b) { return b.count; },
-          render: function (b) { return U.count(b.count); } },
-        { key: 'avgStuck', label: 'Avg days stuck', num: true, get: function (b) { return b.avgStuck || 0; },
-          render: function (b) { return b.avgStuck == null ? '<span class="muted">—</span>' : b.avgStuck + 'd'; } },
-        { key: 'share', label: '% of business', num: true, get: function (b) { return b.share || 0; },
-          render: function (b) { return pctText(b.share); } },
-        { key: 'priority', label: 'Priority', num: true, get: function (b) { return b.priority; },
-          render: function (b) { return '<span class="strong">' + U.esc(U.money(b.priority)) + '</span>'; } }
-      ]
     });
 
     UI.table(host.querySelector('#look'), {
