@@ -12,7 +12,7 @@ RB.app = (function () {
     'tasks':     { label: 'My tasks',      icon: '☑', group: 'Sell',       render: RB.views.myTasks },
     'calendar':  { label: 'My calendar',   icon: '▦', group: 'Sell',       render: RB.views.myCalendar },
     'schools':   { label: 'My schools',    icon: '◫', group: 'Sell',       render: RB.views.mySchools },
-    'scorecard': { label: 'My scorecard',  icon: '◑', group: 'Sell',       render: RB.views.myScorecard },
+    'scorecard': { label: 'My performance', icon: '◑', group: 'Sell',      render: RB.views.myScorecard },
 
     /* The command centre: four tabs, one filter bar, one set of formulas. */
     'business':  { label: 'Business',      icon: '◆', group: 'Command centre', need: 'ceo', render: RB.ceo.business },
@@ -139,7 +139,11 @@ RB.app = (function () {
           staleDays: Number(v.staleDays) || 14,
           highValue: v.highValue ? Number(v.highValue) : null,
           minWinSample: Number(v.minWinSample) || 10,
-          target: v.target ? Number(v.target) : null
+          target: v.target ? Number(v.target) : null,
+          targets: M.PERFORMANCE.reduce(function (a, m) {
+            a[m.key] = v['t_' + m.key] ? Number(v['t_' + m.key]) : null;
+            return a;
+          }, {})
         });
         UI.toast('Assumptions saved.');
         refresh();
@@ -276,7 +280,15 @@ RB.app = (function () {
           '<input class="input" type="number" name="minWinSample" min="1" step="1" value="' + U.esc(c.minWinSample) + '">',
           'Below this the winning profile and fit score stay rules-based.') +
       '</div>' +
-      UI.field('Sales target (₹, optional)',
+      '<div class="section-title" style="margin-top:20px">Monthly targets per salesperson</div>' +
+      '<div class="field-row">' +
+        M.PERFORMANCE.map(function (m) {
+          return UI.field(m.label, '<input class="input" type="number" min="0" step="any" ' +
+            'inputmode="' + (m.money ? 'decimal' : 'numeric') + '" name="t_' + m.key + '" value="' +
+            U.esc((c.targets && c.targets[m.key]) || '') + '" placeholder="No target">');
+        }).join('') +
+      '</div>' +
+      UI.field('Business target for the company (₹, optional)',
         '<input class="input" type="number" name="target" min="0" step="any" inputmode="decimal" value="' +
         U.esc(c.target || '') + '">', 'Set it to get pipeline coverage.') +
       '<div class="row" style="margin-top:12px"><button class="btn btn-primary" type="submit">Save assumptions</button></div>' +

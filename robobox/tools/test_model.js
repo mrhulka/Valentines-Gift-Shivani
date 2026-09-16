@@ -213,4 +213,64 @@ assert.ok(lines.some(l => l.id === 'Advanced Lab Pro'));
 assert.ok(lines.some(l => l.legacy && l.id === 'Workshop'), 'live offerings outside the catalogue are priceable');
 M.setConfig({ pricing: {} });
 
-console.log('model: all ' + 47 + ' assertions passed');
+/* --- the journey: six steps, cumulative ---------------------------------- */
+var j = M.journey(vs);
+assert.strictEqual(j.length, 6);
+assert.strictEqual(j.map(s => s.key).join('|'),
+  'New Schools|Connected|Meetings|Proposal|Discussion|Won');
+// O1 is Won, O3 is at Proposal, O4 never moved. Lost is off the journey.
+assert.strictEqual(j[0].n, 3, 'three live deals entered at New Schools');
+assert.strictEqual(j[3].n, 2, 'the won deal and the proposal reached Proposal');
+assert.strictEqual(j[5].n, 1, 'one won');
+for (var i = 1; i < j.length; i++) {
+  assert.ok(j[i].n <= j[i - 1].n, 'step ' + i + ' cannot exceed the one before it');
+}
+assert.strictEqual(j[5].value, 1200000, 'the journey carries value, not just counts');
+
+/* --- business health ----------------------------------------------------- */
+var hb = M.health(vs);
+assert.strictEqual(hb.map(h => h.key).join('|'),
+  'Stuck|Overdue|No Next Step|Missing Information');
+var by = {}; hb.forEach(h => by[h.key] = h);
+// O4 has not moved in 200 days; O3 moved 5 days ago.
+assert.ok(by.Stuck.rows.some(v => v.opp.id === 'O4'));
+assert.ok(!by.Stuck.rows.some(v => v.opp.id === 'O3'));
+assert.strictEqual(by['No Next Step'].rows.length, 1, 'only O4 has no next step');
+assert.ok(by['Missing Information'].rows.some(v => v.opp.id === 'O4'));
+assert.ok(!by['Missing Information'].rows.some(v => v.opp.id === 'O3'), 'O3 has everything');
+// Nothing is overdue until a committed date passes.
+assert.strictEqual(by.Overdue.n, 0);
+D.connects.push({ id: 'K5', schoolId: 'S1', opportunityId: 'O3', by: 'a', kind: 'Reconnect',
+  mode: 'Call', stage: 'Proposal', nextAction: 'Follow-up', nextActionOwner: 'A',
+  nextActionAt: ago(2) + 'T10:00:00', at: ago(2) + 'T10:00:00', commercial: {} });
+M.invalidate();
+assert.strictEqual(M.health(M.views()).filter(h => h.key === 'Overdue')[0].n, 1,
+  'a passed next-step date is overdue');
+D.connects.pop(); M.invalidate();
+
+/* --- my performance: four numbers against one target set ----------------- */
+M.setConfig({ targets: { connections: 4, meetings: 2, newSchools: 1, businessWon: 1000000 } });
+var myPerf = M.performanceOf('A', all, null);
+assert.strictEqual(myPerf.map(r => r.label).join('|'),
+  'Connections|Meetings|New Schools|Business Won');
+var pm = {}; myPerf.forEach(r => pm[r.key] = r);
+assert.strictEqual(pm.connections.actual, 3, 'a logged three connects');
+assert.strictEqual(pm.meetings.actual, 2, 'Meeting and Demo count, the WhatsApp does not');
+assert.strictEqual(pm.businessWon.actual, 1200000, 'won uses the actual closed value');
+assert.strictEqual(pm.connections.pct, 75, '3 of 4');
+assert.ok(pm.businessWon.pct > 100, 'over target is reported, not capped');
+M.setConfig({ targets: {} });
+assert.strictEqual(M.performanceOf('A', all, null)[0].target, null, 'no target, no percentage');
+assert.strictEqual(M.performanceOf('A', all, null)[0].pct, null);
+
+/* --- the five next steps that matter: overdue first, then money ---------- */
+var top = M.topSteps('a', 5);
+assert.ok(top.length <= 5);
+if (top.length > 1) {
+  var rank = t => t.bucket === 'Overdue' ? 2 : t.bucket === 'Today' ? 1 : 0;
+  for (var k = 1; k < top.length; k++) {
+    assert.ok(rank(top[k]) <= rank(top[k - 1]), 'overdue steps come first');
+  }
+}
+
+console.log('model: all ' + 71 + ' assertions passed');

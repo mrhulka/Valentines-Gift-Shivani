@@ -57,9 +57,9 @@ RB.views = (function () {
                   foot: buckets.Overdue.length ? 'needs attention today' : 'all clear',
                   onClick: 'overdue' }),
         UI.stat({ label: 'Due today', value: U.count(buckets.Today.length), onClick: 'today' }),
-        UI.stat({ cls: 'stat-hero', label: 'Active pipeline', value: U.money(all.activePipeline),
+        UI.stat({ cls: 'stat-hero', label: 'Business in Play', value: U.money(all.activePipeline),
                   foot: all.activeCount + ' opportunities' }),
-        UI.stat({ label: 'Closed revenue', value: U.money(all.closedRevenue),
+        UI.stat({ label: 'Business Won', value: U.money(all.closedRevenue),
                   foot: all.wonCount + ' won' })
       ]) +
 
@@ -157,17 +157,17 @@ RB.views = (function () {
     });
     var items = byDay[day] || [];
 
-    host.innerHTML = UI.head('My calendar', 'Built from the next action on every Connect. Nothing to add by hand.',
+    host.innerHTML = UI.head('My calendar', 'Built from the next step on every Connect. Nothing to add by hand.',
       '<button class="btn btn-primary top-log" id="log">+ Log Connect</button>') +
       '<div class="grid grid-2">' +
-        UI.card('Month', 'The number on a day is how many follow-ups fall on it',
+        UI.card('Month', 'The number on a day is how many next steps fall on it',
           UI.monthGrid({ month: month, selected: day,
             get: function (iso) {
               var n = (byDay[iso] || []).length;
-              return { n: n, title: n ? n + ' follow-up' + (n === 1 ? '' : 's') : '' };
+              return { n: n, title: n ? n + ' next step' + (n === 1 ? '' : 's') : '' };
             } })) +
         UI.card(U.fmtDate(day) + (day === today ? ' · today' : ''),
-          items.length + ' follow-up' + (items.length === 1 ? '' : 's'),
+          items.length + ' next step' + (items.length === 1 ? '' : 's'),
           items.length ? taskList(items) : '<div class="cal-empty">Nothing due on this day.</div>') +
       '</div>';
 
@@ -178,78 +178,47 @@ RB.views = (function () {
     bindTasks(host);
   }
 
-  /* ========================================================= SCORECARD ==== */
-  /* No arbitrary target. The scorecard is built from what was actually done. */
+  /* ======================================================= MY PERFORMANCE ==== */
+  /* Four numbers, each against the target the CEO set, then the five next
+   * steps that matter most. Nothing else — a rep does not need a funnel. */
   var scoreRange = 'This month';
 
   function myScorecard(host) {
     var key = myKey();
-    var sc = M.scorecard({ ownerKey: key, range: M.RANGES()[scoreRange], filter: F.apply });
-    var life = M.scorecard({ ownerKey: key, filter: F.apply });
+    var range = M.RANGES()[scoreRange];
+    var rows = M.performanceOf(key, range, F.apply);
+    var steps = M.topSteps(me().id, 5);
+    var noTarget = rows.every(function (r) { return !r.target; });
 
-    host.innerHTML = UI.head('My scorecard', 'Effort, opportunity, pipeline and closure — kept separate on purpose.') +
+    host.innerHTML = UI.head('My Performance',
+      'What you did ' + scoreRange.toLowerCase() + ', against target.',
+      '<button class="btn btn-primary top-log" id="log">+ Log Connect</button>') +
       rangeBar(scoreRange) +
-      toolbar(M.views().filter(function (v) { return v.owner === key; }), 'x2') +
 
-      '<div class="section-title">Activity</div>' +
-      UI.stats([
-        UI.stat({ cls: 'stat-hero', label: 'Total connects', value: U.count(sc.totalConnects) }),
-        UI.stat({ label: 'New connects', value: U.count(sc.newConnects) }),
-        UI.stat({ label: 'Reconnects', value: U.count(sc.reconnects) }),
-        UI.stat({ label: 'Opportunities created', value: U.count(sc.opportunitiesCreated) })
-      ]) +
+      '<div class="kpis kpis-4">' + rows.map(function (r) {
+        var val = r.money ? U.money(r.actual) : U.count(r.actual);
+        var tone = r.pct == null ? '' : r.pct >= 100 ? '' : r.pct < 50 ? 'is-risk' : 'is-warn';
+        return '<div class="kpi ' + tone + '">' +
+          '<span class="kpi-label">' + U.esc(r.label) + '</span>' +
+          '<span class="kpi-value">' + U.esc(val) + '</span>' +
+          (r.target
+            ? '<span class="kpi-foot">of ' + U.esc(r.money ? U.money(r.target) : U.count(r.target)) +
+              ' target · ' + Math.round(r.pct) + '%</span>' +
+              '<span class="meter"><span style="width:' + Math.min(100, r.pct) + '%"></span></span>'
+            : '<span class="kpi-foot">no target set</span>') +
+        '</div>';
+      }).join('') + '</div>' +
 
-      '<div class="section-title">Commercial</div>' +
-      UI.stats([
-        UI.stat({ label: 'Potential created', value: U.money(sc.potentialCreated) }),
-        UI.stat({ label: 'Active pipeline', value: U.money(life.activePipeline),
-                  foot: life.activeCount + ' live', onClick: 'open' }),
-        UI.stat({ label: 'Quoted', value: U.money(life.quotedValue) }),
-        UI.stat({ label: 'Negotiated', value: U.money(life.negotiatedValue) }),
-        UI.stat({ cls: 'stat-brand', label: 'Closed revenue', value: U.money(sc.closedRevenue),
-                  foot: sc.wonCount + ' won', onClick: 'won' }),
-        UI.stat({ cls: 'stat-red', label: 'Lost value', value: U.money(sc.lostValue),
-                  foot: sc.lostCount + ' lost', onClick: 'lost' })
-      ]) +
+      (noTarget
+        ? '<p class="small muted">Targets are set once by the CEO in Settings and apply to everyone.</p>'
+        : '') +
 
-      '<div class="grid grid-2">' +
-        UI.card('Conversion', 'How effectively the pipeline progresses', convTable(life.conversion)) +
-        UI.card('Realisation', 'How much of the original potential became revenue',
-          '<div class="stats" style="margin:0">' +
-          UI.stat({ label: 'Realisation', small: true,
-                    value: life.realisation == null ? '—' : life.realisation.toFixed(1) + '%',
-                    foot: 'closed ÷ initial potential' }) +
-          UI.stat({ label: 'Negotiation leakage', small: true, value: U.money(life.leakage),
-                    foot: 'quoted − closed' }) + '</div>') +
-      '</div>' +
+      '<div class="section-title">My Actions<span class="st-sub">the 5 that matter most</span></div>' +
+      (steps.length ? taskList(steps) : '<div class="empty">Nothing outstanding.</div>');
 
-      '<div class="section-title">Your funnel</div>' +
-      '<div class="card">' + C.funnel({ data: M.funnel(life.views), format: U.money, highlightLast: true, onClick: true }) + '</div>';
-
+    host.querySelector('#log').addEventListener('click', function () { RB.connectForm.open(); });
     bindRange(host, function (r) { scoreRange = r; myScorecard(host); });
-    bindToolbar(host, 'x2', function () { myScorecard(host); }, function () {
-      return [RB.excel.opportunitySheet('Opportunities', life.views),
-              RB.excel.connectSheet('Connects — ' + scoreRange, sc.connects)];
-    }, 'robobox-' + me().id + '-scorecard');
-    bindStats(host, { open: ['Active pipeline', life.open], won: ['Won', life.won], lost: ['Lost', life.lost] });
-    host.querySelectorAll('[data-key]').forEach(function (g) {
-      g.addEventListener('click', function () {
-        var step = M.funnel(life.views).filter(function (x) { return x.key === g.getAttribute('data-key'); })[0];
-        if (step) UI.drill('Reached ' + step.key, step.rows);
-      });
-    });
-  }
-
-  function convTable(conv) {
-    return '<div class="table-wrap"><table class="data"><tbody>' +
-      Object.keys(conv).map(function (k) {
-        var val = conv[k];
-        return '<tr><td>' + U.esc(k) + '</td><td class="num" style="width:120px">' +
-          (val == null ? '<span class="muted">—</span>'
-            : '<span class="meter" style="display:block"><span style="width:' + Math.min(100, val) + '%"></span></span>') +
-          '</td><td class="num strong" style="width:70px">' +
-          (val == null ? '—' : val.toFixed(0) + '%') + '</td></tr>';
-      }).join('') + '</tbody></table></div>';
+    bindTasks(host);
   }
 
   function rangeBar(current) {

@@ -315,7 +315,11 @@ table.data .strong { font-weight: 650; }
 .toolbar > .btn { order: 1; }
 .toolbar > .small { order: 3; align-self: center; }
 .filters { display: flex; flex-wrap: wrap; gap: 9px; align-items: center; margin-bottom: 18px; }
-.seg { display: inline-flex; background: var(--surface-sunk); border-radius: var(--r-pill); padding: 4px; gap: 3px; }
+/* Five range pills are wider than a phone; scroll the row rather than
+   letting it push the page sideways. */
+.seg { display: inline-flex; background: var(--surface-sunk); border-radius: var(--r-pill);
+  padding: 4px; gap: 3px; max-width: 100%; overflow-x: auto; scrollbar-width: none; }
+.seg::-webkit-scrollbar { display: none; }
 .seg button { border: 0; background: none; padding: 7px 15px; border-radius: var(--r-pill);
   color: var(--ink-2); font-weight: 600; font-size: 13px; cursor: pointer; min-height: 34px; }
 .seg button:hover { color: var(--ink); }
@@ -542,3 +546,51 @@ table.data .strong { font-weight: 650; }
 .person-meta strong { display: block; font-size: 13.5px; }
 .person-meta small { color: var(--ink-muted); font-size: 12px; }
 .person .spacer { margin-left: auto; }
+
+/* ------------------------------------------------------------ headline KPIs */
+/* Four numbers, large, no card chrome competing with them. Colour is meaning
+   only: plain by default, yellow for attention, red for overdue or at risk. */
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 1px;
+  background: var(--line); border: 1px solid var(--line); border-radius: var(--r-lg);
+  overflow: hidden; margin-bottom: 26px; }
+.kpis-4 { grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); }
+.kpi { display: flex; flex-direction: column; gap: 7px; align-items: flex-start; text-align: left;
+  padding: 22px 24px; background: var(--surface); border: 0; font: inherit; color: var(--ink);
+  transition: background .12s ease; }
+button.kpi { cursor: pointer; }
+button.kpi:hover { background: var(--surface-2); }
+.kpi-label { font-size: 12px; font-weight: 600; color: var(--ink-2);
+  text-transform: uppercase; letter-spacing: .07em; }
+.kpi-value { font-size: 38px; font-weight: 700; letter-spacing: -.04em; line-height: 1;
+  font-variant-numeric: tabular-nums; }
+.kpi-foot { font-size: 12.5px; color: var(--ink-muted); }
+.kpi.is-warn .kpi-value { color: #8A6A00; }
+:root:not([data-theme="light"]) .kpi.is-warn .kpi-value { color: var(--brand); }
+:root[data-theme="dark"] .kpi.is-warn .kpi-value { color: var(--brand); }
+.kpi.is-risk .kpi-value { color: var(--red); }
+.kpi .meter { width: 100%; margin-top: 2px; }
+@media (max-width: 720px) { .kpi-value { font-size: 30px; } .kpi { padding: 18px 18px; } }
+
+/* --------------------------------------------------------------- journey */
+/* Six steps across, count above the name, value below. Ordered, so the ink
+   deepens left to right rather than using six different colours. */
+.journey { display: grid; grid-template-columns: repeat(auto-fit, minmax(128px, 1fr)); gap: 8px;
+  margin-bottom: 26px; }
+.jstep { position: relative; display: flex; flex-direction: column; gap: 5px; padding: 18px 16px;
+  background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-md);
+  font: inherit; color: var(--ink); text-align: left; cursor: pointer;
+  transition: border-color .12s ease, background .12s ease; }
+.jstep:hover { background: var(--surface-2); border-color: var(--line-strong); }
+.jstep::after { content: "›"; position: absolute; right: -8px; top: 50%; transform: translateY(-50%);
+  color: var(--ink-muted); font-size: 16px; z-index: 1; }
+.jstep:last-child::after { content: none; }
+.jstep[data-last] { background: var(--brand); border-color: var(--brand); color: var(--brand-ink); }
+.jstep[data-last]:hover { background: var(--hivis); }
+.jstep[data-last] .jstep-k, .jstep[data-last] .jstep-v { color: var(--brand-ink); opacity: .78; }
+.jstep-n { font-size: 26px; font-weight: 700; letter-spacing: -.03em; line-height: 1;
+  font-variant-numeric: tabular-nums; }
+.jstep-k { font-size: 12px; font-weight: 650; }
+.jstep-v { font-size: 12px; color: var(--ink-muted); font-variant-numeric: tabular-nums; }
+
+.section-title .st-sub { font-size: 11px; font-weight: 500; letter-spacing: 0;
+  text-transform: none; color: var(--ink-muted); }

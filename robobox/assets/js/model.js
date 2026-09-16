@@ -570,6 +570,53 @@ RB.model = (function () {
     return s && s.ownerKey;
   }
 
+  /* ======================================================= my performance ==== */
+  /* Four numbers a salesperson is actually measured on, and the monthly target
+   * the CEO set for each. A blank target shows actuals with nothing to miss. */
+  var PERFORMANCE = [
+    { key: 'connections', label: 'Connections' },
+    { key: 'meetings',    label: 'Meetings' },
+    { key: 'newSchools',  label: 'New Schools' },
+    { key: 'businessWon', label: 'Business Won', money: true }
+  ];
+
+  function performanceOf(ownerKey, range, filter) {
+    var vs = (filter ? filter(views()) : views()).filter(function (v) { return v.owner === ownerKey; });
+    var keep = {};
+    vs.forEach(function (v) { keep[v.opp.id] = true; });
+    var cs = RB.store.connects().filter(function (c) {
+      if (!inRange(c.at, range)) return false;
+      if (c.opportunityId && !keep[c.opportunityId]) return false;
+      var u = RB.store.userById(c.by);
+      return u && u.ownerKey === ownerKey;
+    });
+    var schools = U.uniq(RB.store.schools()
+      .filter(function (sc) { return sc.ownerKey === ownerKey && inRange(sc.createdAt, range); })
+      .map(function (sc) { return sc.id; }));
+    var won = vs.filter(function (v) { return v.status === 'Won' && inRange(v.opp.closedAt, range); });
+    var t = cfg.targets || {};
+
+    var actual = {
+      connections: cs.length,
+      meetings: cs.filter(function (c) { return /meeting|visit|demo/i.test(c.mode || ''); }).length,
+      newSchools: schools.length,
+      businessWon: U.sum(won, function (v) { return v.closed != null ? v.closed : (v.current || 0); })
+    };
+    return PERFORMANCE.map(function (m) {
+      var target = t[m.key] || null;
+      return { key: m.key, label: m.label, money: !!m.money,
+               actual: actual[m.key], target: target,
+               pct: target ? (actual[m.key] / target) * 100 : null };
+    });
+  }
+
+  /* The five next steps that matter most: overdue first, then by money. */
+  function topSteps(userId, n) {
+    return U.sortBy(tasks(userId), function (t) {
+      return (t.bucket === 'Overdue' ? 2e12 : t.bucket === 'Today' ? 1e12 : 0) + (t.value || 0);
+    }, 'desc').slice(0, n || 5);
+  }
+
   /* =========================================================== attention ==== */
   /* The CEO's action centre. Each item resolves to a list of opportunities. */
 
@@ -633,8 +680,8 @@ RB.model = (function () {
   var cfg = readConfig();
 
   function readConfig() {
-    var d = { avgLabValue: null, staleDays: 14, highValue: null, minWinSample: 10,
-             target: null, pricing: {} };
+    var d = { avgLabValue: null, staleDays: 30, highValue: null, minWinSample: 10,
+             target: null, pricing: {}, targets: {} };
     try { return Object.assign(d, JSON.parse(window.localStorage.getItem(CFG_KEY) || '{}')); }
     catch (e) { return d; }
   }
@@ -891,6 +938,55 @@ RB.model = (function () {
                value: U.sum(rows, function (v) { return (k === 'Lost' ? v.lostAtValue : v.current) || 0; }) };
     });
     return { steps: steps, exits: exits };
+  }
+
+  /* ======================================================== the journey ==== */
+  /* Six steps the CEO actually thinks in, collapsed from the nine stages a
+   * rep sets. Cumulative: a deal at Proposal has been through Meetings. */
+  var JOURNEY = [
+    { key: 'New Schools', from: 'New Lead' },
+    { key: 'Connected',   from: 'Contacted' },
+    { key: 'Meetings',    from: 'Meeting Fixed' },
+    { key: 'Proposal',    from: 'Demo-Presentation' },
+    { key: 'Discussion',  from: 'Negotiation' },
+    { key: 'Won',         from: 'Won' }
+  ];
+
+  function journey(vs) {
+    var live = vs.filter(function (v) { return v.status !== 'Lost' && v.status !== 'On Hold'; });
+    return JOURNEY.map(function (step) {
+      var rank = RANK[step.from];
+      var rows = step.key === 'Won'
+        ? live.filter(function (v) { return v.status === 'Won'; })
+        : live.filter(function (v) { return v.stageRank >= rank || v.status === 'Won'; });
+      return { key: step.key, n: rows.length, rows: rows,
+               value: U.sum(rows, function (v) { return v.current || 0; }) };
+    });
+  }
+
+  /* ===================================================== business health ==== */
+  /* Four ways a deal goes wrong, each one a list you can open and act on. */
+  function health(vs) {
+    var open = vs.filter(function (v) { return v.status === 'Open'; });
+    var today = U.iso(U.today());
+    function band(label, rows, note) {
+      return { key: label, rows: rows, n: rows.length, note: note,
+               value: U.sum(rows, function (v) { return v.current || 0; }) };
+    }
+    return [
+      band('Stuck', open.filter(function (v) {
+        return v.stageAge != null && v.stageAge > cfg.staleDays;
+      }), 'no movement for ' + cfg.staleDays + '+ days'),
+      band('Overdue', open.filter(function (v) {
+        return (v.expectedClosure && v.expectedClosure < today) ||
+               (v.nextActionAt && v.nextActionAt.slice(0, 10) < today);
+      }), 'a date we committed to has passed'),
+      band('No Next Step', open.filter(function (v) { return !v.nextAction; }),
+           'nothing scheduled to move it on'),
+      band('Missing Information', open.filter(function (v) {
+        return QUAL.some(function (q) { return !v.qualification[q.key]; });
+      }), 'cannot be forecast until it is filled in')
+    ];
   }
 
   /* ============================================================= sales ==== */
@@ -1228,6 +1324,8 @@ RB.model = (function () {
     CATALOGUE: CATALOGUE, priceLines: priceLines, prices: prices, setPrice: setPrice,
     priceFor: priceFor, listValue: listValue,
     business: business, stageBoard: stageBoard, performance: performance, advancedIn: advancedIn,
+    journey: journey, JOURNEY: JOURNEY, health: health,
+    PERFORMANCE: PERFORMANCE, performanceOf: performanceOf, topSteps: topSteps,
     blockerRisk: blockerRisk, needsAttention: needsAttention, competitors: competitors,
     leadSources: leadSources, segments: segments, salesSpeed: salesSpeed,
     winningProfile: winningProfile, fitModel: fitModel, lookalikes: lookalikes,

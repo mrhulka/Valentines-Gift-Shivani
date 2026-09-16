@@ -256,7 +256,7 @@ RB.ui = (function () {
               U.esc(U.relative(v.lastAt)) + '</div>'
             : '<span class="muted">never</span>';
         } },
-      { key: 'next', label: 'Next action', get: function (v) { return v.nextAction || ''; },
+      { key: 'next', label: 'Next Step', get: function (v) { return v.nextAction || ''; },
         render: function (v) {
           if (!v.nextAction) return '<span class="tag tag-red">None set</span>';
           return U.esc(v.nextAction) + (v.nextActionAt
