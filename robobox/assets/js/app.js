@@ -125,7 +125,7 @@ RB.app = (function () {
       (RB.auth.can('ceoDashboard')
         ? '<div class="section-title">Price list</div>' + pricingCard() +
           '<div class="section-title">Sales team</div>' + teamCard() +
-          '<div class="section-title">Dashboard assumptions</div>' + assumptionsCard()
+          '<div class="section-title">Monthly targets</div>' + targetsCard()
         : '');
 
     if (RB.auth.can('ceoDashboard')) {
@@ -134,18 +134,11 @@ RB.app = (function () {
       host.querySelector('#assume').addEventListener('submit', function (e) {
         e.preventDefault();
         var v = UI.values(this);
-        M.setConfig({
-          avgLabValue: v.avgLabValue ? Number(v.avgLabValue) : null,
-          staleDays: Number(v.staleDays) || 14,
-          highValue: v.highValue ? Number(v.highValue) : null,
-          minWinSample: Number(v.minWinSample) || 10,
-          target: v.target ? Number(v.target) : null,
-          targets: M.PERFORMANCE.reduce(function (a, m) {
-            a[m.key] = v['t_' + m.key] ? Number(v['t_' + m.key]) : null;
-            return a;
-          }, {})
-        });
-        UI.toast('Assumptions saved.');
+        M.setConfig({ targets: M.PERFORMANCE.reduce(function (a, m) {
+          a[m.key] = v['t_' + m.key] ? Number(v['t_' + m.key]) : null;
+          return a;
+        }, {}) });
+        UI.toast('Targets saved.');
         refresh();
       });
     }
@@ -256,42 +249,19 @@ RB.app = (function () {
     });
   }
 
-  /* The only numbers on the dashboard that are not measured. Each one says
-   * what it defaults to, so a blank field is never a hidden guess. */
-  function assumptionsCard() {
-    var c = M.config(), avg = M.avgLabValue();
-    return UI.card('Dashboard assumptions', 'Used by the leadership tabs. Blank = derived from the data.',
-      '<form id="assume">' +
-      '<div class="field-row">' +
-        UI.field('Average STEM lab opportunity (₹)',
-          '<input class="input" type="number" name="avgLabValue" min="0" step="any" inputmode="decimal" value="' +
-          U.esc(c.avgLabValue || '') + '" placeholder="' + Math.round(avg.value) + '">',
-          'Drives market whitespace. Currently ' + U.money(avg.value) + ' — ' + avg.basis + '.') +
-        UI.field('Stale after (days)',
-          '<input class="input" type="number" name="staleDays" min="1" step="1" value="' + U.esc(c.staleDays) + '">',
-          'No stage movement for this long counts as stale.') +
-      '</div>' +
-      '<div class="field-row">' +
-        UI.field('Large deal threshold (₹)',
-          '<input class="input" type="number" name="highValue" min="0" step="any" inputmode="decimal" value="' +
-          U.esc(c.highValue || '') + '" placeholder="' + Math.round(M.highValue()) + '">',
-          'Used by the attention rules. Defaults to the top quartile of live deals.') +
-        UI.field('Minimum won deals for a profile',
-          '<input class="input" type="number" name="minWinSample" min="1" step="1" value="' + U.esc(c.minWinSample) + '">',
-          'Below this the winning profile and fit score stay rules-based.') +
-      '</div>' +
-      '<div class="section-title" style="margin-top:20px">Monthly targets per salesperson</div>' +
-      '<div class="field-row">' +
+  /* Monthly targets, one set, applied to every salesperson. Everything else
+   * the leadership screens need is derived from the data itself. */
+  function targetsCard() {
+    var c = M.config();
+    return UI.card('Targets per salesperson', 'Shown against actuals on My Performance. Leave blank for no target.',
+      '<form id="assume"><div class="field-row">' +
         M.PERFORMANCE.map(function (m) {
           return UI.field(m.label, '<input class="input" type="number" min="0" step="any" ' +
             'inputmode="' + (m.money ? 'decimal' : 'numeric') + '" name="t_' + m.key + '" value="' +
             U.esc((c.targets && c.targets[m.key]) || '') + '" placeholder="No target">');
         }).join('') +
       '</div>' +
-      UI.field('Business target for the company (₹, optional)',
-        '<input class="input" type="number" name="target" min="0" step="any" inputmode="decimal" value="' +
-        U.esc(c.target || '') + '">', 'Set it to get pipeline coverage.') +
-      '<div class="row" style="margin-top:12px"><button class="btn btn-primary" type="submit">Save assumptions</button></div>' +
+      '<div class="row" style="margin-top:12px"><button class="btn btn-primary" type="submit">Save targets</button></div>' +
       '</form>');
   }
 

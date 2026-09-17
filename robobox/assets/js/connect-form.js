@@ -25,6 +25,12 @@ RB.connectForm = (function () {
     stepKind();
   }
 
+  /* The school this draft is about, whichever path got us here: typed on a
+   * new lead, or picked from the database on an existing one. */
+  function draftSchool() {
+    return d.school || RB.store.schoolById(d.schoolId) || {};
+  }
+
   function shell(title, body, onMount) {
     return UI.modal(title, body, { onMount: function (host) {
       UI.bindDatePickers(host);
@@ -155,7 +161,7 @@ RB.connectForm = (function () {
    * tracked before any negotiation. It stays editable: the rate card is the
    * list price, not the deal. */
   function stepOpportunity() {
-    var school = d.school || RB.store.schoolById(d.schoolId) || {};
+    var school = draftSchool();
     shell(school.name + ' · opportunity',
       '<form id="f">' +
       '<div class="cx-step"><h3>Opportunity type</h3>' +
@@ -329,7 +335,7 @@ RB.connectForm = (function () {
   function stepConnect() {
     var isNew = d.kind === 'New';
     var v = d.opportunityId ? M.view(RB.store.opportunityById(d.opportunityId)) : null;
-    var schoolName = v ? v.school.name : d.school.name;
+    var schoolName = v ? v.school.name : draftSchool().name;
     var contacts = d.schoolId ? RB.store.contactsFor(d.schoolId) : [];
     var prev = v && v.last;
     var today = U.iso(U.today());
@@ -359,9 +365,7 @@ RB.connectForm = (function () {
       '<div class="cx-step"><h3>Response / outcome</h3>' +
       UI.choice('response', V.response, null, { tight: true }) + '</div>' +
 
-      '<div class="cx-step"><h3>Blockers / sales signals</h3>' +
-      UI.choice('blocker', V.blocker, 'None', { tight: true }) +
-      '<div id="blocker-detail" hidden style="margin-top:12px"></div></div>' +
+      '<div id="blocker-step" hidden></div>' +
 
       '<div class="cx-step"><h3>Next action</h3>' +
       '<p class="field-hint" style="margin:-6px 0 12px">No connect is complete until action, owner and follow-up date are captured.</p>' +
@@ -392,27 +396,45 @@ RB.connectForm = (function () {
       (isNew ? 'Save lead' : 'Save school + opportunity') + '</button></div>' +
       '</form>',
       function (host) {
-        var blockerDetail = host.querySelector('#blocker-detail');
+        var blockerStep = host.querySelector('#blocker-step');
+
+        /* Why the deal was turned down is only worth asking once it has been.
+         * On any other outcome the blocker list is not shown at all, so
+         * nothing gets a blocker by default. */
+        function showBlockers(rejected) {
+          blockerStep.hidden = !rejected;
+          blockerStep.innerHTML = rejected
+            ? '<div class="cx-step"><h3>Why was it rejected?</h3>' +
+              UI.choice('blocker', V.blocker.filter(function (b) { return b !== 'None'; }),
+                        null, { tight: true }) +
+              '<div id="blocker-detail" hidden style="margin-top:12px"></div></div>'
+            : '';
+          if (rejected) UI.bindChoices(blockerStep, onPick);
+        }
         var closeWrap = host.querySelector('#close-wrap');
         var stageGroup = host.querySelector('[data-choice="stage"]');
         var stageHidden = host.querySelector('input[name="stage"]');
 
-        UI.bindChoices(host, function (name, val) {
+        function onPick(name, val) {
           if (name === 'response' || name === 'mode') {
             // Pre-select the stage the response implies; the rep can override.
             var f = UI.values(host.querySelector('#f'));
             if (!d.stageTouched) setStage(M.suggestStage(f.response, f.mode));
+            if (name === 'response') showBlockers(val === 'Rejected');
           }
           if (name === 'stage') {
             d.stageTouched = true;
             closeWrap.innerHTML = val === 'Lost' ? lossFields() : '';
           }
           if (name === 'blocker') {
-            blockerDetail.hidden = val === 'None';
-            blockerDetail.innerHTML = val === 'None' ? '' :
-              UI.field('Blocker detail (optional)', '<input class="input" name="blockerDetail">');
+            var detail = host.querySelector('#blocker-detail');
+            detail.hidden = false;
+            detail.innerHTML = UI.field('Blocker detail (optional)',
+              '<input class="input" name="blockerDetail">');
           }
-        });
+        }
+        UI.bindChoices(host, onPick);
+        showBlockers(false);
 
         function setStage(stage) {
           stageGroup.querySelectorAll('button').forEach(function (b) {

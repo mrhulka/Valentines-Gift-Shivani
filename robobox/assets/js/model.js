@@ -80,9 +80,10 @@ RB.model = (function () {
                  'Management connect', 'Calendar addition', 'Negotiation follow-up',
                  'Close by calendar addition', 'Other', 'No Further Action'],
 
-    /* Set explicitly on every connect, not inferred. */
-    stage: ['New Lead', 'Contacted', 'Meeting Fixed', 'Meeting Done', 'Demo-Presentation',
-            'Proposal', 'Negotiation', 'Verbal Confirmation', 'Won', 'Lost', 'On Hold'],
+    /* Set explicitly on every connect, not inferred. Six steps, plus the two
+     * ways a deal leaves the pipeline. */
+    stage: ['New School', 'Connected', 'Meeting', 'Proposal', 'Closing / Negotiations',
+            'Won', 'Lost', 'On Hold'],
 
     probability: ['10', '25', '40', '50', '60', '75', '90', '100'],
 
@@ -101,27 +102,40 @@ RB.model = (function () {
 
   /* The pipeline stage the flow asks the rep to set on every connect. Open
    * stages in order; Won / Lost / On Hold are the three final outcomes. */
-  var STAGES = ['New Lead', 'Contacted', 'Meeting Fixed', 'Meeting Done', 'Demo-Presentation',
-                'Proposal', 'Negotiation', 'Verbal Confirmation', 'Won'];
+  var STAGES = ['New School', 'Connected', 'Meeting', 'Proposal', 'Closing / Negotiations', 'Won'];
   var RANK = {};
   STAGES.forEach(function (s, i) { RANK[s] = i; });
   var CLOSED = { Won: 'Won', Lost: 'Lost', 'On Hold': 'On Hold' };
 
+  /* The nine-stage list this replaced. Anything already recorded against an
+   * old name still resolves, so shortening the pipeline did not orphan a
+   * single connect. */
+  var STAGE_ALIAS = {
+    'New Lead': 'New School',
+    'Contacted': 'Connected',
+    'Meeting Fixed': 'Meeting',
+    'Meeting Done': 'Meeting',
+    'Demo-Presentation': 'Proposal',
+    'Negotiation': 'Closing / Negotiations',
+    'Verbal Confirmation': 'Closing / Negotiations'
+  };
+  function stageOf(name) { return STAGE_ALIAS[name] || name || null; }
+
   /* Only used to pre-select the stage picker from the response, so the common
    * case is one tap. The rep's choice always wins and is what gets stored. */
   var RESPONSE_STAGE = {
-    'Interested': 'Contacted',
-    'To confirm in a few days': 'Contacted',
-    'Meeting Fixed': 'Meeting Fixed',
+    'Interested': 'Connected',
+    'To confirm in a few days': 'Connected',
+    'Meeting Fixed': 'Meeting',
     'Proposal Requested': 'Proposal',
-    'Negotiation': 'Negotiation',
+    'Negotiation': 'Closing / Negotiations',
     'Rejected': 'Lost'
   };
 
   function suggestStage(response, mode) {
     if (RESPONSE_STAGE[response]) return RESPONSE_STAGE[response];
-    if (/^(Meeting|School Visit|Demo)$/.test(mode || '')) return 'Meeting Done';
-    return 'Contacted';
+    if (/^(Meeting|School Visit|Demo)$/.test(mode || '')) return 'Meeting';
+    return 'Connected';
   }
 
   /* ========================================================= derivation ==== */
@@ -155,11 +169,13 @@ RB.model = (function () {
     /* Stage is whatever the most recent connect recorded, falling back to the
      * opportunity's own field for imported rows that have no connect stage. */
     var stageSet = null;
-    cs.forEach(function (c) { if (c.stage) stageSet = c.stage; });
-    stageSet = stageSet || opp.stage || 'New Lead';
+    cs.forEach(function (c) { if (c.stage) stageSet = stageOf(c.stage); });
+    stageSet = stageSet || stageOf(opp.stage) || 'New School';
     var stageRank = RANK[stageSet] != null ? RANK[stageSet] : 0;
-    if (quoted != null && stageRank < 3) stageRank = 3;
-    if (negotiated != null && stageRank < 4) stageRank = 4;
+    if (quoted != null && stageRank < RANK.Proposal) stageRank = RANK.Proposal;
+    if (negotiated != null && stageRank < RANK['Closing / Negotiations']) {
+      stageRank = RANK['Closing / Negotiations'];
+    }
 
     var status = CLOSED[stageSet] ? (stageSet === 'On Hold' ? 'On Hold' : stageSet)
                : (opp.status && opp.status !== 'Open' ? opp.status : 'Open');
@@ -262,7 +278,7 @@ RB.model = (function () {
   function stageMovedDaysAgo(cs) {
     var best = -1, movedAt = null;
     cs.forEach(function (c) {
-      var r = RANK[c.stage];
+      var r = RANK[stageOf(c.stage)];
       if (r != null && r > best) { best = r; movedAt = c.at; }
     });
     if (!movedAt) return Infinity;
@@ -404,7 +420,7 @@ RB.model = (function () {
       conversion: {
         'New Connect → Opportunity': pct(created.length, cs.filter(function (c) { return c.kind === 'New'; }).length),
         'Opportunity → Proposal': pct(reached(RANK.Proposal).length, vs.length),
-        'Proposal → Negotiation': pct(reached(RANK.Negotiation).length, reached(RANK.Proposal).length),
+        'Proposal → Closing': pct(reached(RANK['Closing / Negotiations']).length, reached(RANK.Proposal).length),
         'Proposal → Won': pct(vs.filter(function (v) { return v.status === 'Won'; }).length, reached(RANK.Proposal).length)
       },
       views: vs, open: open, won: won, lost: lost, created: created,
@@ -828,7 +844,7 @@ RB.model = (function () {
   function stageChangedAt(cs, opp) {
     var best = -1, at = null;
     cs.forEach(function (c) {
-      var r = RANK[c.stage];
+      var r = RANK[stageOf(c.stage)];
       if (r != null && r > best) { best = r; at = c.at; }
     });
     if (at) return at.slice(0, 10);
@@ -840,7 +856,7 @@ RB.model = (function () {
   function advancedIn(v, range) {
     var best = -1, moved = false;
     v.connects.forEach(function (c) {
-      var r = RANK[c.stage];
+      var r = RANK[stageOf(c.stage)];
       if (r == null || r <= best) return;
       best = r;
       if (inRange(c.at, range)) moved = true;
@@ -941,25 +957,16 @@ RB.model = (function () {
   }
 
   /* ======================================================== the journey ==== */
-  /* Six steps the CEO actually thinks in, collapsed from the nine stages a
-   * rep sets. Cumulative: a deal at Proposal has been through Meetings. */
-  var JOURNEY = [
-    { key: 'New Schools', from: 'New Lead' },
-    { key: 'Connected',   from: 'Contacted' },
-    { key: 'Meetings',    from: 'Meeting Fixed' },
-    { key: 'Proposal',    from: 'Demo-Presentation' },
-    { key: 'Discussion',  from: 'Negotiation' },
-    { key: 'Won',         from: 'Won' }
-  ];
-
+  /* The pipeline is already the six steps the CEO reads, so the journey is
+   * just the stage list, cumulative: a deal at Proposal has been through
+   * Meeting. */
   function journey(vs) {
     var live = vs.filter(function (v) { return v.status !== 'Lost' && v.status !== 'On Hold'; });
-    return JOURNEY.map(function (step) {
-      var rank = RANK[step.from];
-      var rows = step.key === 'Won'
+    return STAGES.map(function (key, i) {
+      var rows = key === 'Won'
         ? live.filter(function (v) { return v.status === 'Won'; })
-        : live.filter(function (v) { return v.stageRank >= rank || v.status === 'Won'; });
-      return { key: step.key, n: rows.length, rows: rows,
+        : live.filter(function (v) { return v.stageRank >= i || v.status === 'Won'; });
+      return { key: key, n: rows.length, rows: rows,
                value: U.sum(rows, function (v) { return v.current || 0; }) };
     });
   }
@@ -1325,7 +1332,7 @@ RB.model = (function () {
     CATALOGUE: CATALOGUE, priceLines: priceLines, prices: prices, setPrice: setPrice,
     priceFor: priceFor, listValue: listValue,
     business: business, stageBoard: stageBoard, performance: performance, advancedIn: advancedIn,
-    journey: journey, JOURNEY: JOURNEY, health: health,
+    journey: journey, health: health, stageOf: stageOf, STAGE_ALIAS: STAGE_ALIAS,
     PERFORMANCE: PERFORMANCE, performanceOf: performanceOf, topSteps: topSteps,
     blockerRisk: blockerRisk, needsAttention: needsAttention, competitors: competitors,
     leadSources: leadSources, segments: segments, salesSpeed: salesSpeed,

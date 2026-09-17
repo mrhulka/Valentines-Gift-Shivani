@@ -217,9 +217,9 @@ M.setConfig({ pricing: {} });
 var j = M.journey(vs);
 assert.strictEqual(j.length, 6);
 assert.strictEqual(j.map(s => s.key).join('|'),
-  'New Schools|Connected|Meetings|Proposal|Discussion|Won');
+  'New School|Connected|Meeting|Proposal|Closing / Negotiations|Won');
 // O1 is Won, O3 is at Proposal, O4 never moved. Lost is off the journey.
-assert.strictEqual(j[0].n, 3, 'three live deals entered at New Schools');
+assert.strictEqual(j[0].n, 3, 'three live deals entered at New School');
 assert.strictEqual(j[3].n, 2, 'the won deal and the proposal reached Proposal');
 assert.strictEqual(j[5].n, 1, 'one won');
 for (var i = 1; i < j.length; i++) {
@@ -283,4 +283,18 @@ assert.strictEqual(U.mean([10, 20, 60]), 30);
 assert.strictEqual(U.mean([]), null);
 assert.strictEqual(U.mean([5, null, undefined, 15]), 10, 'blanks are skipped, not counted as zero');
 
-console.log('model: all ' + 76 + ' assertions passed');
+/* --- the six-step pipeline still reads the nine-stage records ------------ */
+assert.strictEqual(M.STAGES.length, 6);
+assert.strictEqual(M.stageOf('Meeting Fixed'), 'Meeting', 'an old name maps forward');
+assert.strictEqual(M.stageOf('Verbal Confirmation'), 'Closing / Negotiations');
+assert.strictEqual(M.stageOf('Proposal'), 'Proposal', 'a current name is left alone');
+assert.strictEqual(M.stageOf(null), null);
+// K3 was recorded as 'Proposal' and K1 as 'Won' before the list shortened.
+assert.strictEqual(v('O3').stage, 'Proposal', 'a stored stage still resolves');
+assert.ok(M.RANK['Closing / Negotiations'] > M.RANK.Proposal, 'closing sits after proposal');
+
+/* --- a blocker is only recorded on a rejection --------------------------- */
+assert.ok(M.V.blocker.indexOf('None') === 0,
+  'None heads the list, and the form drops it when it asks why a deal was lost');
+
+console.log('model: all ' + 84 + ' assertions passed');

@@ -601,7 +601,7 @@ RB.ceo = (function () {
                   foot: b.untapped.length
                     ? U.count(b.untapped.length) + ' × ' + U.money(b.whitespaceBasis.value)
                     : 'nobody has been asked yet',
-                  title: 'An assumption, not a measurement. Set the average lab value in Settings.' })
+                  title: 'An assumption, not a measurement: untapped schools × the median deal on the books.' })
       ]) +
       (b.notAsked.length
         ? '<button type="button" class="action-item yellow" id="ask-lab">' +

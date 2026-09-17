@@ -599,7 +599,9 @@ button.kpi:hover { background: var(--surface-2); }
 /* Category, how many schools it holds up, and how much business — ranked. */
 .blockers { list-style: none; margin: 0; padding: 0; counter-reset: bl; }
 .blockers li { counter-increment: bl; }
-.blockers button { display: grid; grid-template-columns: 22px 1fr auto auto; gap: 14px;
+/* minmax(0,…) not 1fr: a bare 1fr floors at the content's min width, which
+   pushed the page sideways on a phone. */
+.blockers button { display: grid; grid-template-columns: 22px minmax(0, 1fr) auto auto; gap: 14px;
   align-items: center; width: 100%; padding: 13px 4px; background: none; border: 0;
   border-bottom: 1px solid var(--line); font: inherit; color: var(--ink); cursor: pointer;
   text-align: left; }
@@ -647,3 +649,97 @@ input[type="date"].input { cursor: pointer; }
   font-size: 12px; color: var(--ink-muted); }
 .legend-item { display: inline-flex; align-items: center; gap: 6px; }
 .legend-swatch { display: inline-block; width: 11px; height: 11px; border-radius: 3px; }
+
+/* ==========================================================================
+   Simpler surface — lighter, rounder, more air.
+   Everything below overrides the earlier rules on purpose: one place to read,
+   one place to revert. Brand colours and every number are unchanged.
+   ========================================================================== */
+
+:root { --r-lg: 20px; --r-xl: 26px; --rail: 236px;
+  --shadow-1: 0 1px 2px rgba(35,38,44,.03), 0 8px 24px rgba(35,38,44,.05);
+  --shadow-2: 0 18px 50px rgba(35,38,44,.14); }
+
+.shell { padding: 16px; gap: 4px; }
+
+/* The rail is a light panel, not a dark slab. The one solid colour in it is
+   the active item, which is where the eye should go. */
+.sidebar { background: var(--surface); color: var(--ink); padding: 20px 12px 14px;
+  box-shadow: var(--shadow-1); top: 16px; height: calc(100vh - 32px); }
+/* The wordmark was white for the dark rail; the rail is light now. */
+.rail-brand { padding-bottom: 22px; color: var(--ink); }
+.rail-brand small { color: var(--ink-muted); }
+.nav-group h4 { color: var(--ink-muted); }
+.nav-item { color: var(--ink-2); font-size: 13.5px; border-radius: 14px; }
+.nav-item:hover { background: var(--surface-2); color: var(--ink); }
+.nav-item[aria-current="page"] { background: var(--brand); color: var(--brand-ink); font-weight: 700; }
+.nav-item[aria-current="page"]::before { content: none; }
+.nav-item[aria-current="page"] .nav-ico { margin-left: 0; opacity: 1; }
+.nav-item .badge { background: var(--surface-sunk); color: var(--ink-2); }
+.nav-item[aria-current="page"] .badge { background: rgba(35,38,44,.14); color: var(--brand-ink); }
+.nav-item .badge.alarm, .nav-item[aria-current="page"] .badge.alarm { background: var(--red); color: #fff; }
+.rail-user { border-top: 1px solid var(--line); padding-top: 14px; }
+.rail-user-meta strong { color: var(--ink); }
+.rail-user-meta small { color: var(--ink-muted); }
+.rail-signout { border-color: var(--line-strong); color: var(--ink-2); }
+.rail-signout:hover { background: var(--surface-2); color: var(--ink); }
+:root:not([data-theme="light"]) .sidebar,
+:root[data-theme="dark"] .sidebar { background: var(--surface); }
+
+.main { padding: 0 6px 90px 20px; }
+.page-head { margin-bottom: 26px; }
+.page-head h1 { font-size: 30px; letter-spacing: -.035em; }
+
+/* Cards float on the canvas; no hairline competing with the shadow. */
+.card, .table-wrap, .stat { border: 0; box-shadow: var(--shadow-1); }
+.card { padding: 24px 26px; }
+.card-head { border-bottom: 0; padding-bottom: 0; margin-bottom: 18px; }
+.stat::before { content: none; }
+.stat { border-radius: var(--r-lg); padding: 20px 22px; }
+.stat-hero, .stat-brand, .stat-red { border: 0; }
+
+/* Headline numbers: separate floating tiles, the first one filled. */
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(212px, 1fr));
+  gap: 16px; background: none; border: 0; border-radius: 0; overflow: visible; margin-bottom: 30px; }
+.kpi { gap: 9px; padding: 22px 24px; border-radius: var(--r-lg); box-shadow: var(--shadow-1); }
+button.kpi:hover { background: var(--surface); box-shadow: var(--shadow-2); transform: translateY(-2px); }
+.kpi { transition: box-shadow .15s ease, transform .15s ease; }
+.kpis > .kpi:first-child { background: var(--charcoal); }
+.kpis > .kpi:first-child .kpi-label { color: rgba(255,255,255,.58); }
+.kpis > .kpi:first-child .kpi-value { color: #fff; }
+.kpis > .kpi:first-child .kpi-foot { color: rgba(255,255,255,.55); }
+.kpis > button.kpi:first-child:hover { background: #2C3038; }
+/* Health bands stay plain — colour there means something. */
+.kpis-4 > .kpi:first-child { background: var(--surface); }
+.kpis-4 > .kpi:first-child .kpi-label { color: var(--ink-2); }
+.kpis-4 > .kpi:first-child .kpi-value { color: var(--ink); }
+.kpis-4 > .kpi:first-child .kpi-foot { color: var(--ink-muted); }
+.kpis-4 > button.kpi:first-child:hover { background: var(--surface); }
+.kpis-4 > .kpi.is-warn:first-child .kpi-value { color: #8A6A00; }
+.kpis-4 > .kpi.is-risk:first-child .kpi-value { color: var(--red); }
+
+.jstep { border: 0; box-shadow: var(--shadow-1); border-radius: var(--r-lg); padding: 20px 18px; }
+.jstep:hover { background: var(--surface); box-shadow: var(--shadow-2); }
+.jstep::after { color: var(--line-strong); }
+
+.section-title { margin: 30px 0 14px; }
+table.data th { font-size: 11px; letter-spacing: .04em; text-transform: uppercase; }
+table.data th, table.data td { padding: 15px 18px; }
+.fitcard, .filter-bar, .action-item, .prev-connect { border: 0; box-shadow: var(--shadow-1); }
+.fitcard { border-radius: var(--r-lg); }
+.topbar-search input { border: 0; box-shadow: var(--shadow-1); }
+
+/* A date field has a browser-set minimum width; two of them side by side do
+   not fit a phone, and the flex row pushed the page sideways. */
+@media (max-width: 560px) {
+  .filters { flex-direction: column; align-items: stretch; }
+  .filter-pick { width: 100%; }
+  .filter-pick .input { width: 100%; }
+}
+
+@media (max-width: 560px) {
+  .blockers button { gap: 10px; }
+  .bl-n { min-width: 46px; }
+  .bl-v { min-width: 70px; }
+  .bl-name { font-size: 12.5px; }
+}
