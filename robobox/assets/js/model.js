@@ -89,9 +89,14 @@ RB.model = (function () {
 
     opportunityKind: ['Existing (Additional / Upgrade)', 'New (Additional Opportunity)'],
 
-    lossReason: ['Budget', 'Price', 'Competitor', 'No Requirement', 'Management Rejected',
-                 'Decision Delayed', 'Existing Vendor', 'Timing', 'Unable to Reach',
-                 'School Closed / Changed Plans', 'Other'],
+    /* Why a deal stops — the same list whether it is lost or parked. */
+    lossReason: ['Budget Constraints',
+                 'Not willing to switch from existing vendor',
+                 'Better Deal from Competition Brands',
+                 'Infrastructure Not Available',
+                 'Lack of Trust in Robobox',
+                 'Incorrect timing',
+                 'Other'],
 
     competitor2: ['Aerobay', 'Eduvate', 'STEMROBO', 'RCOM', 'OLL', 'NEXT', 'iRobo', 'Other']
   };
@@ -468,7 +473,7 @@ RB.model = (function () {
     board:      { label: 'Board',       get: function (v) { return v.school && v.school.board || '—'; } },
     stage:      { label: 'Stage',       get: function (v) { return v.stage; } },
     blocker:    { label: 'Blocker',     get: function (v) { return v.blocker || 'None'; } },
-    lossReason: { label: 'Loss reason', get: function (v) { return v.opp.lossReason || '—'; } },
+    lossReason: { label: 'Reason', get: function (v) { return v.opp.lossReason || v.opp.holdReason || '—'; } },
     leadSource: { label: 'Lead source', get: function (v) { return v.school && v.school.leadSource || 'Not recorded'; } },
     competitor: { label: 'Competitor',  get: function (v) { return v.school && v.school.competitor || 'None'; } },
     interest:   { label: 'Interest',    get: function (v) { return v.interest || '—'; } },

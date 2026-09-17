@@ -367,7 +367,7 @@ RB.connectForm = (function () {
 
       '<div id="blocker-step" hidden></div>' +
 
-      '<div class="cx-step"><h3>Next action</h3>' +
+      '<div class="cx-step" id="next-step"><h3>Next action</h3>' +
       '<p class="field-hint" style="margin:-6px 0 12px">No connect is complete until action, owner and follow-up date are captured.</p>' +
       '<div class="field-row">' +
         UI.field('Action', UI.select('nextAction', V.nextAction, null, { placeholder: 'Select action', required: true })) +
@@ -378,7 +378,7 @@ RB.connectForm = (function () {
       '<div class="cx-step"><h3>Pipeline stage</h3>' +
       UI.choice('stage', V.stage, null, { tight: true }) + '</div>' +
 
-      '<div class="cx-step"><h3>Expected deal size &amp; closure</h3>' +
+      '<div class="cx-step" id="commercial"><h3>Expected deal size &amp; closure</h3>' +
       '<div class="field-row">' +
         UI.field('Expected deal size (₹)', '<input class="input" type="number" name="expectedValue" min="0" step="any" inputmode="decimal" value="' +
           (v && v.current != null ? v.current : (d.opportunity ? d.opportunity.initialPotential : '')) + '">') +
@@ -424,7 +424,7 @@ RB.connectForm = (function () {
           }
           if (name === 'stage') {
             d.stageTouched = true;
-            closeWrap.innerHTML = val === 'Lost' ? lossFields() : '';
+            showClose(M.CLOSED[val] && val !== 'Won' ? val : null);
           }
           if (name === 'blocker') {
             var detail = host.querySelector('#blocker-detail');
@@ -436,11 +436,41 @@ RB.connectForm = (function () {
         UI.bindChoices(host, onPick);
         showBlockers(false);
 
+        /* Lost or On Hold: the reason is the only question left. Hidden inputs
+         * keep their `required` flag, and a hidden required field the browser
+         * cannot focus blocks submit with no message at all — so the flag comes
+         * off with the block. */
+        function showClose(stage) {
+          var closing = !!stage;
+          [host.querySelector('#next-step'), host.querySelector('#commercial')].forEach(function (el) {
+            el.hidden = closing;
+            el.querySelectorAll('[required]').forEach(function (i) {
+              if (closing) { i.dataset.wasRequired = '1'; i.required = false; }
+            });
+            if (!closing) {
+              el.querySelectorAll('[data-was-required]').forEach(function (i) { i.required = true; });
+            }
+          });
+          closeWrap.innerHTML = closing ? closeFields(stage) : '';
+          if (!closing) return;
+          var pick = closeWrap.querySelector('[name=lossReason]');
+          var note = closeWrap.querySelector('#reason-note');
+          pick.addEventListener('change', function () {
+            var other = pick.value === 'Other';
+            note.hidden = !other;
+            note.innerHTML = other
+              ? UI.field('Tell us more', '<textarea class="input" name="lossReasonNote" ' +
+                  'placeholder="Why, in your words" required></textarea>')
+              : '';
+          });
+        }
+
         function setStage(stage) {
           stageGroup.querySelectorAll('button').forEach(function (b) {
             b.setAttribute('aria-pressed', b.getAttribute('data-value') === stage);
           });
           stageHidden.value = stage;
+          showClose(M.CLOSED[stage] && stage !== 'Won' ? stage : null);
         }
 
         var contactSel = host.querySelector('select[name="contactId"]');
@@ -461,17 +491,28 @@ RB.connectForm = (function () {
       });
   }
 
-  function lossFields() {
-    return '<div class="cx-step"><h3>Marking this lost</h3>' +
-      UI.field('Loss reason', UI.select('lossReason', V.lossReason, null, { placeholder: 'Select a reason' })) +
-      '</div>';
+  /* A deal that stops needs one thing: why. Everything else on the form is
+   * about a deal that is still moving, so it comes off the screen. */
+  function closeFields(stage) {
+    return '<div class="cx-step"><h3>' +
+      (stage === 'On Hold' ? 'Why is it on hold?' : 'Why was it lost?') + '</h3>' +
+      UI.field('Reason', UI.select('lossReason', V.lossReason, null,
+                                   { placeholder: 'Select a reason', required: true })) +
+      '<div id="reason-note" hidden></div></div>';
   }
 
   function submit(f) {
     if (!f.mode) return UI.toast('Pick the type of connect.');
     if (!f.response) return UI.toast('Record the response.');
     if (!f.stage) return UI.toast('Set the pipeline stage.');
-    if (!f.nextAction || !f.nextActionOwner || !f.nextDate) {
+
+    var stopped = M.CLOSED[f.stage] && f.stage !== 'Won';
+    if (stopped) {
+      if (!f.lossReason) return UI.toast('Pick a reason.');
+      if (f.lossReason === 'Other' && !String(f.lossReasonNote || '').trim()) {
+        return UI.toast('Tell us the reason.');
+      }
+    } else if (!f.nextAction || !f.nextActionOwner || !f.nextDate) {
       return UI.toast('Next action, owner and follow-up date are all required.');
     }
 
@@ -501,11 +542,13 @@ RB.connectForm = (function () {
       expectedValue: f.expectedValue ? Number(f.expectedValue) : null,
       probability: f.probability ? Number(f.probability) : null,
       expectedClosure: f.expectedClosure || null,
-      remarks: f.remarks || null,
-      nextAction: f.nextAction, nextActionOwner: f.nextActionOwner,
-      nextActionAt: f.nextDate + 'T11:00:00',
+      remarks: stopped ? (f.lossReasonNote || null) : (f.remarks || null),
+      nextAction: stopped ? 'No Further Action' : f.nextAction,
+      nextActionOwner: stopped ? null : f.nextActionOwner,
+      nextActionAt: stopped ? null : f.nextDate + 'T11:00:00',
       at: f.date + 'T' + new Date().toTimeString().slice(0, 8),
-      close: closed && closed !== 'On Hold'
+      // On Hold closes the deal too — it just closes it differently.
+      close: closed
         ? { status: closed, reason: f.lossReason || null,
             value: f.expectedValue ? Number(f.expectedValue) : null }
         : null

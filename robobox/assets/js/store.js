@@ -165,7 +165,7 @@ RB.store = (function () {
       initialPotential: null,
       currentNeed: null, decisionMaker: null,
       expectedClosure: null, probability: null, stage: null,
-      status: 'Open', closedValue: null, lossReason: null,
+      status: 'Open', closedValue: null, lossReason: null, holdReason: null,
       closedAt: null, origin: 'app', createdAt: U.iso(U.today())
     }, fields);
     state.opportunities.push(o);
@@ -194,6 +194,7 @@ RB.store = (function () {
       opp.status = fields.close.status;
       opp.closedAt = c.at.slice(0, 10);
       if (fields.close.status === 'Won') opp.closedValue = fields.close.value;
+      else if (fields.close.status === 'On Hold') opp.holdReason = fields.close.reason;
       else { opp.lossReason = fields.close.reason; opp.finalValue = fields.close.value; }
     } else if (opp && c.stage && !RB.model.CLOSED[c.stage]) {
       // Re-opened: a later connect moved it off Won / Lost / On Hold.
