@@ -211,7 +211,7 @@ textarea.input { min-height: 84px; resize: vertical; }
 .card + .card { margin-top: 16px; }
 /* ...but inside a grid the gap already spaces them, and the margin was
    pushing every second card 16px below its neighbour. */
-.grid > .card + .card, .stats > .stat + .stat { margin-top: 0; }
+.grid > .card + .card { margin-top: 0; }
 .card-head { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
 .card-head h3 { font-size: 15.5px; }
 .card-sub { font-size: 12.5px; color: var(--ink-muted); }
@@ -231,38 +231,6 @@ textarea.input { min-height: 84px; resize: vertical; }
 .tag-hot   { background: var(--red); color: #fff; }
 .tag-warm  { background: var(--brand); color: var(--brand-ink); }
 .tag-cold  { background: var(--surface-sunk); color: var(--ink-2); }
-
-/* ------------------------------------------------------------ KPI tiles */
-/* The reference's signature: pale tinted cards, label small, number large. */
-/* Three-up on desktop, like the reference — big tiles, tidy rows. */
-/* Flex, not grid: the last row grows to fill, so there is never a lone
-   narrow tile stranded at the end of a row. */
-.stats { display: flex; flex-wrap: wrap; gap: 16px; margin-bottom: 18px; }
-.stat { flex: 1 1 232px; min-width: 0; }
-.card .stats { margin-bottom: 0; }
-.card .stats + .section-title { margin-top: 18px; }
-.stat { background: var(--surface); border-radius: var(--r-lg); padding: 17px 19px;
-  border: 1px solid var(--line); box-shadow: none; position: relative; overflow: hidden;
-  transition: border-color .15s ease, box-shadow .15s ease, transform .15s ease; }
-/* A hairline of colour along the top edge is what separates the KPI row from
-   a wall of plain boxes - cheaper than an icon set, and it survives dark mode. */
-.stat::before { content: ""; position: absolute; inset: 0 0 auto; height: 3px;
-  background: var(--line-strong); }
-.stat-hero::before  { background: var(--charcoal); }
-.stat-brand::before { background: var(--brand); }
-.stat-red::before   { background: var(--red); }
-.stat.clickable { cursor: pointer; }
-.stat.clickable:hover { box-shadow: var(--shadow-1); border-color: var(--line-strong);
-  transform: translateY(-2px); }
-.stat-hero  { background: var(--tint-ink); box-shadow: none; border: 1px solid var(--tint-ink-line); }
-.stat-brand { background: var(--tint-yellow); box-shadow: none; border: 1px solid var(--tint-yellow-line); }
-.stat-red   { background: var(--tint-red); box-shadow: none; border: 1px solid var(--tint-red-line); }
-.stat-label { font-size: 12px; color: var(--ink-2); font-weight: 550; }
-.stat-value { font-size: 29px; font-weight: 700; letter-spacing: -.035em; margin-top: 8px; line-height: 1.05; }
-.stat-value.sm { font-size: 22px; }
-.stat-foot { margin-top: 8px; font-size: 12px; color: var(--ink-muted); }
-.stat-foot.bad { color: var(--red); font-weight: 600; }
-.stat-spark { position: absolute; right: 16px; top: 16px; opacity: .85; }
 
 /* ------------------------------------------------------------------ tabs */
 .tabs { display: flex; gap: 26px; border-bottom: 1px solid var(--line); margin-bottom: 20px;
@@ -691,12 +659,9 @@ input[type="date"].input { cursor: pointer; }
 .page-head h1 { font-size: 30px; letter-spacing: -.035em; }
 
 /* Cards float on the canvas; no hairline competing with the shadow. */
-.card, .table-wrap, .stat { border: 0; box-shadow: var(--shadow-1); }
+.card, .table-wrap { border: 0; box-shadow: var(--shadow-1); }
 .card { padding: 24px 26px; }
 .card-head { border-bottom: 0; padding-bottom: 0; margin-bottom: 18px; }
-.stat::before { content: none; }
-.stat { border-radius: var(--r-lg); padding: 20px 22px; }
-.stat-hero, .stat-brand, .stat-red { border: 0; }
 
 /* Headline numbers: separate floating tiles, the first one filled. */
 .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(212px, 1fr));
@@ -710,13 +675,6 @@ button.kpi:hover { background: var(--surface); box-shadow: var(--shadow-2); tran
 .kpis > .kpi:first-child .kpi-foot { color: rgba(255,255,255,.55); }
 .kpis > button.kpi:first-child:hover { background: #2C3038; }
 /* Health bands stay plain — colour there means something. */
-.kpis-4 > .kpi:first-child { background: var(--surface); }
-.kpis-4 > .kpi:first-child .kpi-label { color: var(--ink-2); }
-.kpis-4 > .kpi:first-child .kpi-value { color: var(--ink); }
-.kpis-4 > .kpi:first-child .kpi-foot { color: var(--ink-muted); }
-.kpis-4 > button.kpi:first-child:hover { background: var(--surface); }
-.kpis-4 > .kpi.is-warn:first-child .kpi-value { color: #8A6A00; }
-.kpis-4 > .kpi.is-risk:first-child .kpi-value { color: var(--red); }
 
 .jstep { border: 0; box-shadow: var(--shadow-1); border-radius: var(--r-lg); padding: 20px 18px; }
 .jstep:hover { background: var(--surface); box-shadow: var(--shadow-2); }
@@ -743,3 +701,25 @@ table.data th, table.data td { padding: 15px 18px; }
   .bl-v { min-width: 70px; }
   .bl-name { font-size: 12.5px; }
 }
+
+/* --------------------------------------------------------- date range */
+/* Dates are picked off a calendar. Nobody types dd-mm-yyyy. */
+.filter-dates { position: relative; }
+.daterange > summary { list-style: none; cursor: pointer; display: inline-flex; align-items: center;
+  gap: 8px; padding: 0 12px; min-height: 44px; border-radius: 12px; background: var(--surface);
+  border: 1px solid var(--line-strong); color: var(--ink); font-weight: 600; font-size: 13.5px;
+  white-space: nowrap; }
+.daterange > summary::-webkit-details-marker { display: none; }
+.daterange > summary::after { content: "▦"; color: var(--ink-muted); font-size: 13px; }
+.daterange > summary:hover { border-color: var(--charcoal); }
+.daterange[open] > summary { border-color: var(--charcoal); }
+.dr-clear { border: 0; background: none; color: var(--ink-muted); font-size: 16px; line-height: 1;
+  cursor: pointer; padding: 0 2px; font-family: inherit; }
+.dr-clear:hover { color: var(--red); }
+.daterange-pop { position: absolute; z-index: 30; top: calc(100% + 8px); left: 0; width: 320px;
+  padding: 16px; background: var(--surface); border-radius: var(--r-lg);
+  box-shadow: var(--shadow-2); }
+.cal-cell.in-range { background: var(--brand-soft); border-color: var(--brand-soft); }
+:root:not([data-theme="light"]) .cal-cell.in-range,
+:root[data-theme="dark"] .cal-cell.in-range { background: rgba(242,190,20,.16); border-color: transparent; }
+@media (max-width: 560px) { .daterange-pop { width: min(320px, calc(100vw - 64px)); } }

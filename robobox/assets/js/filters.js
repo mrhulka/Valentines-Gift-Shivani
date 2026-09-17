@@ -77,11 +77,7 @@ RB.filters = (function () {
     var use = keys || KEYS;
     var on = active();
     return '<div class="filters filter-bar">' +
-      (opts.dates === false ? '' :
-        '<label class="filter-pick"><span>From</span>' +
-          '<input class="input" type="date" name="f_from" value="' + U.esc(from || '') + '"></label>' +
-        '<label class="filter-pick"><span>To</span>' +
-          '<input class="input" type="date" name="f_to" value="' + U.esc(to || '') + '"></label>') +
+      (opts.dates === false ? '' : dateField()) +
       use.map(function (k) {
         var o = options(k, views);
         if (o.length < 2 && !state[k]) return '';
@@ -94,6 +90,54 @@ RB.filters = (function () {
       '</div>';
   }
 
+  /* Dates are picked off a calendar, never typed. One control for the whole
+   * range: the first click sets the start, the second the end. */
+  var picking = false, pickMonth = null;
+
+  function rangeLabel() {
+    if (!from && !to) return 'Any date';
+    if (from && to) return U.fmtDate(from) + ' – ' + U.fmtDate(to);
+    return from ? 'From ' + U.fmtDate(from) : 'Until ' + U.fmtDate(to);
+  }
+
+  function dateField() {
+    var month = pickMonth || (from || to || U.iso(U.today())).slice(0, 7);
+    return '<div class="filter-pick filter-dates"><span>Dates</span>' +
+      '<details class="daterange"' + (picking ? ' open' : '') + '>' +
+        '<summary>' + U.esc(rangeLabel()) +
+          (from || to ? '<button type="button" class="dr-clear" id="f-dates-clear" aria-label="Clear dates">×</button>' : '') +
+        '</summary>' +
+        '<div class="daterange-pop">' +
+          RB.ui.monthGrid({ month: month, selected: from, legend: from && !to ? 'Now pick the end' : '',
+            get: function (iso) {
+              return { n: 0, title: '', cls: from && to && iso >= from && iso <= to ? 'in-range' : '' };
+            } }) +
+        '</div>' +
+      '</details></div>';
+  }
+
+  function bindDates(host, redraw) {
+    var box = host.querySelector('.daterange');
+    if (!box) return;
+    box.addEventListener('toggle', function () { picking = box.open; });
+    var clear = host.querySelector('#f-dates-clear');
+    if (clear) clear.addEventListener('click', function (e) {
+      e.preventDefault(); e.stopPropagation();
+      from = to = null; picking = false; pickMonth = null; redraw();
+    });
+    RB.ui.bindMonthGrid(host,
+      function (d) {
+        // First click starts a new range; the second closes it, in order.
+        if (!from || to) { from = d; to = null; }
+        else if (d < from) { to = from; from = d; }
+        else { to = d; }
+        pickMonth = d.slice(0, 7);
+        picking = !to;
+        redraw();
+      },
+      function (n) { pickMonth = U.shiftMonth(pickMonth || (from || U.iso(U.today())).slice(0, 7), n); redraw(); });
+  }
+
   function bind(host, redraw) {
     host.querySelectorAll('.filter-bar select').forEach(function (sel) {
       sel.addEventListener('change', function () {
@@ -101,19 +145,11 @@ RB.filters = (function () {
         redraw();
       });
     });
-    host.querySelectorAll('.filter-bar input[type=date]').forEach(function (i) {
-      // Clicking anywhere on the field opens the browser's own calendar,
-      // rather than making anyone type into the dd/mm/yyyy boxes.
-      i.addEventListener('click', function () {
-        try { i.showPicker(); } catch (e) {}
-      });
-      i.addEventListener('change', function () {
-        if (i.getAttribute('name') === 'f_from') from = i.value || null; else to = i.value || null;
-        redraw();
-      });
-    });
+    bindDates(host, redraw);
     var clear = host.querySelector('#f-clear');
-    if (clear) clear.addEventListener('click', function () { state = {}; from = to = null; redraw(); });
+    if (clear) clear.addEventListener('click', function () {
+      state = {}; from = to = null; picking = false; pickMonth = null; redraw();
+    });
   }
 
   /* A one-line description of what is filtered, for the Excel export header

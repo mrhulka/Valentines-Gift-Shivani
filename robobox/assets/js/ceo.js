@@ -140,7 +140,7 @@ RB.ceo = (function () {
       /* 1. How much business do we have? Four numbers, nothing else. */
       '<div class="kpis">' +
         kpi('Total Business', U.money(b.potential), U.count(b.potentialCount) + ' potential deals', 'pot',
-            'Every potential deal that is not lost and has a value on it.') +
+            'Every potential deal that is not lost and has a value on it.', 'kpi-dark') +
         kpi('Business in Play', U.money(b.activePipeline), U.count(b.open.length) + ' being pursued', 'play',
             'Value of potential deals still open.') +
         kpi('Expected Business', U.money(b.weighted),
@@ -353,7 +353,7 @@ RB.ceo = (function () {
         UI.card(U.fmtDate(date) + (date === U.iso(U.today()) ? ' · today' : ''),
           U.count(U.sum(day, function (r) { return r.done.length; })) + ' connects logged by the team',
           UI.stats([
-            UI.stat({ small: true, cls: 'stat-brand', label: 'Connects',
+            UI.stat({ small: true, cls: 'stat-hero', label: 'Connects',
                       value: U.count(U.sum(day, function (r) { return r.done.length; })) }),
             UI.stat({ small: true, label: 'Opps created',
                       value: U.count(U.sum(day, function (r) { return r.createdCount; })) }),
@@ -589,7 +589,7 @@ RB.ceo = (function () {
 
       '<div class="section-title">Reach</div>' +
       UI.stats([
-        UI.stat({ label: 'Schools on file', value: U.count(b.schoolsTapped), onClick: 'schools',
+        UI.stat({ cls: 'stat-hero', label: 'Schools on file', value: U.count(b.schoolsTapped), onClick: 'schools',
                   foot: U.count(b.noOpportunity.length) + ' with no potential deal yet' }),
         UI.stat({ label: 'Students represented', value: U.count(b.students), foot: 'counted once per school' }),
         UI.stat({ label: 'No STEM lab yet', value: U.count(b.untapped.length),

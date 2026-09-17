@@ -46,8 +46,7 @@ RB.views = (function () {
 
     host.innerHTML =
       UI.head('Hello, ' + me().name,
-              U.fmtDate(U.iso(U.today())) + ' · tell the system what you just did.',
-              '<button class="btn btn-primary top-log" id="log">+ Log Connect</button>') +
+              U.fmtDate(U.iso(U.today())) + ' · tell the system what you just did.') +
 
       UI.stats([
         UI.stat({ cls: 'stat-brand', label: 'Connects today', value: U.count(sc.totalConnects),
@@ -67,8 +66,6 @@ RB.views = (function () {
       '<div class="section-title">Today</div>' +
       (buckets.Today.length ? taskList(buckets.Today) : '<div class="empty">Nothing due today.</div>') +
       (buckets.Upcoming.length ? '<div class="section-title">Coming up</div>' + taskList(buckets.Upcoming.slice(0, 8)) : '');
-
-    host.querySelector('#log').addEventListener('click', function () { RB.connectForm.open(); });
     bindTasks(host);
     bindStats(host, { overdue: ['Overdue', buckets.Overdue], today: ['Due today', buckets.Today] }, true);
   }
@@ -81,7 +78,7 @@ RB.views = (function () {
                            U.money(t.value)].filter(Boolean).join(' · ')) + '</small></div>' +
         '<div class="task-right">' +
         '<button class="btn btn-sm" data-open-school="' + U.esc(t.schoolId) + '">School</button>' +
-        '<button class="btn btn-primary btn-sm" data-log-opp="' + U.esc(t.opportunityId) + '">Connect</button>' +
+        '<button class="btn btn-dark btn-sm" data-log-opp="' + U.esc(t.opportunityId) + '">Connect</button>' +
         '</div></div>';
     }).join('');
   }
@@ -119,8 +116,7 @@ RB.views = (function () {
       return v.owner === myKey() && v.status !== 'Open';
     });
 
-    host.innerHTML = UI.head('My tasks', 'Generated from your Connects. Finish one by logging the next Connect.',
-      '<button class="btn btn-primary top-log" id="log">+ Log Connect</button>') +
+    host.innerHTML = UI.head('My tasks', 'Generated from your Connects. Finish one by logging the next Connect.') +
       ['Overdue', 'Today', 'Upcoming'].map(function (k) {
         return '<div class="section-title">' + k + ' · ' + b[k].length + '</div>' +
           (b[k].length ? taskList(b[k]) : '<div class="empty">Nothing ' + k.toLowerCase() + '.</div>');
@@ -135,8 +131,6 @@ RB.views = (function () {
               '<div class="task-right">' + UI.stageTag(v) + '</div></div>';
           }).join('')
         : '<div class="empty">Nothing closed yet.</div>');
-
-    host.querySelector('#log').addEventListener('click', function () { RB.connectForm.open(); });
     bindTasks(host);
   }
 
@@ -157,8 +151,7 @@ RB.views = (function () {
     });
     var items = byDay[day] || [];
 
-    host.innerHTML = UI.head('My calendar', 'Built from the next step on every Connect. Nothing to add by hand.',
-      '<button class="btn btn-primary top-log" id="log">+ Log Connect</button>') +
+    host.innerHTML = UI.head('My calendar', 'Built from the next step on every Connect. Nothing to add by hand.') +
       '<div class="grid grid-2">' +
         UI.card('Month', 'The number on a day is how many next steps fall on it',
           UI.monthGrid({ month: month, selected: day,
@@ -170,8 +163,6 @@ RB.views = (function () {
           items.length + ' next step' + (items.length === 1 ? '' : 's'),
           items.length ? taskList(items) : '<div class="cal-empty">Nothing due on this day.</div>') +
       '</div>';
-
-    host.querySelector('#log').addEventListener('click', function () { RB.connectForm.open(); });
     UI.bindMonthGrid(host,
       function (d) { calDay = d; calMonth = d.slice(0, 7); myCalendar(host); },
       function (n) { calMonth = U.shiftMonth(month, n); myCalendar(host); });
@@ -191,13 +182,13 @@ RB.views = (function () {
     var noTarget = rows.every(function (r) { return !r.target; });
 
     host.innerHTML = UI.head('My Performance',
-      'What you did ' + scoreRange.toLowerCase() + ', against target.',
-      '<button class="btn btn-primary top-log" id="log">+ Log Connect</button>') +
+      'What you did ' + scoreRange.toLowerCase() + ', against target.') +
       rangeBar(scoreRange) +
 
       '<div class="kpis kpis-4">' + rows.map(function (r) {
         var val = r.money ? U.money(r.actual) : U.count(r.actual);
         var tone = r.pct == null ? '' : r.pct >= 100 ? '' : r.pct < 50 ? 'is-risk' : 'is-warn';
+        if (r.key === 'businessWon') tone += ' kpi-dark';
         return '<div class="kpi ' + tone + '">' +
           '<span class="kpi-label">' + U.esc(r.label) + '</span>' +
           '<span class="kpi-value">' + U.esc(val) + '</span>' +
@@ -215,8 +206,6 @@ RB.views = (function () {
 
       '<div class="section-title">My Actions<span class="st-sub">the 5 that matter most</span></div>' +
       (steps.length ? taskList(steps) : '<div class="empty">Nothing outstanding.</div>');
-
-    host.querySelector('#log').addEventListener('click', function () { RB.connectForm.open(); });
     bindRange(host, function (r) { scoreRange = r; myScorecard(host); });
     bindTasks(host);
   }
@@ -242,11 +231,8 @@ RB.views = (function () {
     var vs = F.apply(all);
 
     host.innerHTML = UI.head(key ? 'My schools' : 'All schools',
-      U.count(vs.length) + ' of ' + U.count(all.length) + ' opportunities. Click a row for the full history.',
-      '<button class="btn btn-primary top-log" id="log">+ Log Connect</button>') +
+      U.count(vs.length) + ' of ' + U.count(all.length) + ' opportunities. Click a row for the full history.') +
       toolbar(all, 'x1') + '<div id="t"></div>';
-
-    host.querySelector('#log').addEventListener('click', function () { RB.connectForm.open(); });
     bindToolbar(host, 'x1', function () { mySchools(host); },
       function () { return [RB.excel.opportunitySheet('Opportunities', vs)]; }, 'robobox-schools');
     UI.table(host.querySelector('#t'), {

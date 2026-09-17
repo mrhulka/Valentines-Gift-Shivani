@@ -35,16 +35,25 @@ RB.ui = (function () {
   }
   function closeModal() { document.getElementById('modal-root').hidden = true; }
 
+  /* ONE headline tile, used by every screen. The old `.stat` names are kept as
+   * the call signature so nothing else had to change:
+   *   cls 'stat-hero'  -> the dark anchor. One per strip, the primary number.
+   *   cls 'stat-red'   -> at risk. Colour means something; it is not decoration.
+   *   cls 'stat-brand' -> nothing. Yellow is reserved for "you are here" and
+   *                       "this is the goal", so a tile never claims it. */
+  var TONE = { 'stat-hero': ' kpi-dark', 'stat-red': ' is-risk' };
+
   function stat(o) {
-    return '<div class="stat' + (o.cls ? ' ' + o.cls : '') + (o.onClick ? ' clickable' : '') + '"' +
-      (o.onClick ? ' data-stat="' + U.esc(o.onClick) + '" role="button" tabindex="0"' : '') +
+    var tag = o.onClick ? 'button' : 'div';
+    return '<' + tag + ' class="kpi' + (TONE[o.cls] || '') + (o.small ? ' kpi-sm' : '') + '"' +
+      (o.onClick ? ' type="button" data-stat="' + U.esc(o.onClick) + '"' : '') +
       (o.title ? ' title="' + U.esc(o.title) + '"' : '') + '>' +
-      '<div class="stat-label">' + U.esc(o.label) + '</div>' +
-      '<div class="stat-value' + (o.small ? ' sm' : '') + '">' + U.esc(o.value) + '</div>' +
-      (o.foot ? '<div class="stat-foot' + (o.footBad ? ' bad' : '') + '">' + U.esc(o.foot) + '</div>' : '') +
-      '</div>';
+      '<span class="kpi-label">' + U.esc(o.label) + '</span>' +
+      '<span class="kpi-value">' + U.esc(o.value) + '</span>' +
+      (o.foot ? '<span class="kpi-foot' + (o.footBad ? ' is-bad' : '') + '">' + U.esc(o.foot) + '</span>' : '') +
+      '</' + tag + '>';
   }
-  function stats(items) { return '<div class="stats">' + items.join('') + '</div>'; }
+  function stats(items) { return '<div class="kpis">' + items.join('') + '</div>'; }
 
   function head(title, sub, actions) {
     return '<div class="page-head"><div><h1>' + U.esc(title) + '</h1>' +
@@ -150,7 +159,8 @@ RB.ui = (function () {
       var info = (o.get && o.get(iso)) || {};
       cells += '<button type="button" class="cal-cell' +
         (d.getMonth() !== m - 1 ? ' is-out' : '') +
-        (iso === todayISO ? ' is-today' : '') + '"' +
+        (iso === todayISO ? ' is-today' : '') +
+        (info.cls ? ' ' + info.cls : '') + '"' +
         ' data-day="' + iso + '"' +
         (iso === o.selected ? ' aria-pressed="true"' : '') +
         (o.max && iso > o.max ? ' disabled' : '') +
