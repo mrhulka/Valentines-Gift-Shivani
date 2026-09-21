@@ -24,7 +24,11 @@ RB.util = (function () {
     return rest + ',' + last3;
   }
 
+  /* Every rupee figure on every screen goes through here, so this one guard
+   * is the whole money permission. A role without `money` (the Head of Sales)
+   * sees the record and the activity, never the amount. */
   function money(n, opts) {
+    if (window.RB && RB.auth && RB.auth.user() && !RB.auth.can('money')) return '•••';
     if (n === null || n === undefined || isNaN(n)) return '—';
     opts = opts || {};
     var sign = n < 0 ? '-' : '';

@@ -11,6 +11,7 @@ window.ROBOBOX_SEED = {
    "name": "Parth",
    "role": "ceo",
    "ownerKey": "PARTH",
+   "designation": "CEO",
    "email": "parth@robobox.in",
    "pin": "parth"
   },
@@ -19,32 +20,54 @@ window.ROBOBOX_SEED = {
    "name": "Ayush",
    "role": "sales_head",
    "ownerKey": "AYUSH",
+   "designation": "Head of Sales",
    "email": "ayush@robobox.in",
    "pin": "ayush"
+  },
+  {
+   "id": "sajesh",
+   "name": "Sajesh",
+   "role": "outsight",
+   "ownerKey": "SAJESH",
+   "designation": "Outsight",
+   "email": "sajesh@robobox.in",
+   "pin": "sajesh"
+  },
+  {
+   "id": "yash",
+   "name": "Yash",
+   "role": "outsight",
+   "ownerKey": "YASH",
+   "designation": "Outsight",
+   "email": "yash@robobox.in",
+   "pin": "yash"
   },
   {
    "id": "sid",
    "name": "Sid",
    "role": "sales",
    "ownerKey": "SID",
+   "designation": "Sales",
    "email": "sid@robobox.in",
    "pin": "sid"
+  },
+  {
+   "id": "gaurav",
+   "name": "Gaurav",
+   "role": "sales",
+   "ownerKey": "GAURAV",
+   "designation": "Sales",
+   "email": "gaurav@robobox.in",
+   "pin": "gaurav"
   },
   {
    "id": "vikas",
    "name": "Vikas",
    "role": "sales",
    "ownerKey": "VIKAS",
+   "designation": "Sales",
    "email": "vikas@robobox.in",
    "pin": "vikas"
-  },
-  {
-   "id": "manish",
-   "name": "Manish",
-   "role": "sales",
-   "ownerKey": "MANISH",
-   "email": "manish@robobox.in",
-   "pin": "manish"
   }
  ],
  "schools": [

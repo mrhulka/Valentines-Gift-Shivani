@@ -52,8 +52,36 @@ RB.store = (function () {
     return Promise.resolve(adapter.read()).then(function (stored) {
       state = (stored && stored.schools && stored.version === 2) ? stored : seed();
       if (!stored || stored.version !== 2) persist();
+      else if (syncRoster()) persist();
       return state;
     });
+  }
+
+  /* The roster is configuration, not transactional data: a browser that
+   * already holds months of Connects must still pick up a new joiner or a
+   * changed role. People added inside the app (origin 'app') are left alone.
+   * Returns true when anything changed. */
+  function syncRoster() {
+    var seeded = window.ROBOBOX_SEED.users, byId = {}, changed = false;
+    seeded.forEach(function (u) { byId[u.id] = u; });
+    state.users = state.users.filter(function (u) {
+      var keep = u.origin === 'app' || byId[u.id];
+      if (!keep) changed = true;
+      return keep;
+    });
+    state.users.forEach(function (u) {
+      var s = byId[u.id];
+      if (!s || u.removed) return;
+      ['name', 'role', 'ownerKey', 'designation', 'email'].forEach(function (k) {
+        if (s[k] !== undefined && u[k] !== s[k]) { u[k] = s[k]; changed = true; }
+      });
+    });
+    var have = {};
+    state.users.forEach(function (u) { have[u.id] = true; });
+    seeded.forEach(function (u) {
+      if (!have[u.id]) { state.users.push(Object.assign({}, u)); changed = true; }
+    });
+    return changed;
   }
 
   function persist() { return adapter.write(state); }
@@ -75,7 +103,10 @@ RB.store = (function () {
   var contacts = function () { return state.contacts; };
   var opportunities = function () { return state.opportunities; };
   var connects = function () { return state.connects; };
-  var users = function () { return state.users; };
+  /* Removed people are kept as a tombstone so their name still resolves on
+   * the Connects they logged, and so the seed roster does not resurrect them
+   * on the next load. They are gone from every list and from sign-in. */
+  var users = function () { return state.users.filter(function (u) { return !u.removed; }); };
   var meta = function () { return state.meta; };
 
   function byId(list, id) {
@@ -85,7 +116,7 @@ RB.store = (function () {
   var schoolById = function (id) { return byId(state.schools, id); };
   var opportunityById = function (id) { return byId(state.opportunities, id); };
   var contactById = function (id) { return byId(state.contacts, id); };
-  var userById = function (id) { return byId(state.users, id); };
+  var userById = function (id) { return byId(state.users, id); };  // tombstones included, on purpose
 
   function contactsFor(schoolId) {
     return state.contacts.filter(function (c) { return c.schoolId === schoolId; });
@@ -134,6 +165,19 @@ RB.store = (function () {
     var u = userById(id);
     if (u) { Object.assign(u, patch); commit({ type: 'user', user: u }); }
     return u;
+  }
+
+  /* Remove a salesperson. Their records are never deleted - a school keeps the
+   * owner key it was worked under, so the history stays honest. What goes is
+   * the login. Returns why, if it refuses. */
+  function removeUser(id) {
+    var u = userById(id);
+    if (!u) return { ok: false, error: 'No such person.' };
+    if (u.role === 'ceo') return { ok: false, error: 'The CEO account cannot be removed.' };
+    var owned = state.schools.filter(function (sc) { return sc.ownerKey === u.ownerKey; }).length;
+    u.removed = true;
+    commit({ type: 'user-removed', user: u });
+    return { ok: true, user: u, owned: owned };
   }
 
   function addSchool(fields) {
@@ -236,7 +280,7 @@ RB.store = (function () {
     schoolById: schoolById, opportunityById: opportunityById, contactById: contactById,
     userById: userById, contactsFor: contactsFor, opportunitiesFor: opportunitiesFor,
     connectsForSchool: connectsForSchool, findSchool: findSchool,
-    addUser: addUser, updateUser: updateUser,
+    addUser: addUser, updateUser: updateUser, removeUser: removeUser,
     addSchool: addSchool, addContact: addContact, addOpportunity: addOpportunity,
     logConnect: logConnect, updateSchool: updateSchool, updateOpportunity: updateOpportunity,
     resetDemo: resetDemo, exportState: exportState,

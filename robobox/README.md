@@ -13,8 +13,20 @@ Loaded with the master workbook: 338 schools, 169 opportunities, 169 connects.
 cd robobox && python3 -m http.server 8000
 ```
 
-Access code is the first name, lowercase: `parth` (CEO), `ayush` (head of
-sales), `sid` / `vikas` / `manish` (sales).
+Access code is the first name, lowercase.
+
+| Sign-in | Role | Sees |
+|---|---|---|
+| `parth` | CEO | Everything, and the only Settings |
+| `sajesh`, `yash` | Outsight | Everything except Settings |
+| `ayush` | Head of Sales | Every salesperson's day and performance, no money |
+| `sid`, `gaurav`, `vikas` | Sales | Their own schools |
+
+Permissions live in one map in `assets/js/auth.js`. Two of them are enforced at
+a single choke point each, so they cannot be worked around screen by screen:
+`money` in `U.money()` and in the export's column filter, and route access in
+`allowed()`. Everyone can export the same workbook; scope and the money rule
+decide what is in it.
 
 ## The model
 
@@ -114,11 +126,34 @@ predicates are the same getters used to group by a dimension, so adding a filter
 is one line in `DIMENSIONS`. Options are built from the data, so a filter never
 offers an empty result.
 
-**Export Excel** on every screen writes a real `.xlsx` — multiple sheets, sized
-columns, autofilter on the header row, numbers numeric and dates as dates with
-`#,##0` and `dd mmm yyyy` formats. The export always reflects exactly what is on
-screen, and the filter set is written into the sheet header so the file explains
-itself later.
+**Export Excel** on every screen writes a real `.xlsx` — sized columns,
+autofilter on the header row, numbers numeric and dates as dates with `#,##0`
+and `dd mmm yyyy` formats. The filter set, date range included, is written into
+every sheet header so the file explains itself later.
+
+Every export produces the same eight-sheet workbook (`RB.excel.workbook`), after
+whatever sheets the screen itself adds:
+
+| Sheet | What it answers |
+|---|---|
+| Potential deals | every opportunity, one row each |
+| Team performance | schools approached → progressing / converted / lost / gone stale, per person and for all |
+| Deal quality | how likely and how big each deal is: likelihood band, ticket band |
+| Salesperson × region | who, where, and the rollup for that pair |
+| Region / Offering / Stage rollup | the same rollup down three dimensions |
+| Connects | every Connect behind those deals |
+
+Unlike the screen, the workbook honours the date range: an opportunity is in the
+file if it was created, closed or worked inside the range, and a Connect if it
+was logged in it. On screen the pipeline stays a snapshot of now, because hiding
+live deals for being old would misread it.
+
+**Likelihood** is the probability a salesperson recorded; where none is recorded
+the fit score stands in and the sheet's "Likelihood from" column says which.
+**Ticket** is measured against the selection being exported — big is the top
+quarter by value of what is in the file, small the bottom quarter — so the band
+means something for the period being looked at rather than against a fixed
+number nobody set.
 
 Every number drills to the opportunities behind it, and every opportunity opens
 its school's full Connect timeline.

@@ -765,19 +765,44 @@ RB.model = (function () {
   /* Every priceable line: the four labs plus one row per bagless activity,
    * plus anything already in the data that the catalogue does not name, so no
    * live opportunity is left unpriceable. */
+  /* The bagless list is the CEO's to write. The catalogue's six are only the
+   * starting list; once Settings saves one, `cfg.activities` is the list. */
+  function activities() {
+    if (cfg.activities) return cfg.activities.slice();
+    var c = CATALOGUE.filter(function (x) { return x.activities; })[0];
+    return c ? c.activities.slice() : [];
+  }
+  function setActivities(list) {
+    setConfig({ activities: U.uniq(list.map(function (a) { return String(a).trim(); })
+                                      .filter(Boolean)) });
+  }
+  var BAGLESS = 'Bagless';
+
   function priceLines() {
     var lines = [];
     CATALOGUE.forEach(function (c) {
       if (!c.activities) return lines.push({ id: c.key, offering: c.key, label: c.label });
-      c.activities.forEach(function (a) {
-        lines.push({ id: c.key + ' · ' + a, offering: c.key, activity: a, label: a, group: c.label });
+      activities().forEach(function (a) {
+        lines.push({ id: c.key + ' · ' + a, offering: c.key, activity: a, label: a,
+                     group: c.label, removable: true });
       });
     });
-    var named = {};
+    var named = {}, listed = {};
     CATALOGUE.forEach(function (c) { named[c.key] = true; });
+    lines.forEach(function (l) { listed[l.id] = true; });
     U.uniq(RB.store.opportunities().map(function (o) { return o.offering; }))
-      .filter(function (o) { return !named[o]; })
+      .filter(function (o) { return o && !named[o]; })
       .forEach(function (o) { lines.push({ id: o, offering: o, label: o, legacy: true }); });
+    // A bagless activity the CEO has taken off the list but live opportunities
+    // still use stays priceable, flagged, rather than silently losing its rate.
+    U.uniq(RB.store.opportunities()
+             .filter(function (o) { return o.offering === BAGLESS && o.variant; })
+             .map(function (o) { return o.variant; }))
+      .forEach(function (a) {
+        var id = BAGLESS + ' · ' + a;
+        if (!listed[id]) lines.push({ id: id, offering: BAGLESS, activity: a, label: a,
+                                      group: 'Bagless Skills', legacy: true });
+      });
     return lines;
   }
 
@@ -1334,7 +1359,7 @@ RB.model = (function () {
     attention: attention, inRange: inRange, dayActivity: dayActivity, ownerOf: ownerOf,
     QUAL: QUAL, FIT: FIT, config: config, setConfig: setConfig, percentile: percentile,
     avgLabValue: avgLabValue, highValue: highValue, qualificationGap: qualificationGap,
-    CATALOGUE: CATALOGUE, priceLines: priceLines, prices: prices, setPrice: setPrice,
+    CATALOGUE: CATALOGUE, priceLines: priceLines, activities: activities, setActivities: setActivities, prices: prices, setPrice: setPrice,
     priceFor: priceFor, listValue: listValue,
     business: business, stageBoard: stageBoard, performance: performance, advancedIn: advancedIn,
     journey: journey, health: health, stageOf: stageOf, STAGE_ALIAS: STAGE_ALIAS,

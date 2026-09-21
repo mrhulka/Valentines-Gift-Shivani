@@ -25,6 +25,7 @@ RB.excel = (function () {
     // download. Say so plainly and show what the file holds, rather than
     // letting the button appear broken.
     if (window.RB && RB.PREVIEW) {
+      sheets = sheets.map(stripMoney).filter(function (s) { return s.columns.length; });
       return RB.ui.modal('Export — ' + filename + '.xlsx',
         '<p class="sec" style="margin-top:0">This shared preview cannot download files. ' +
         'On the hosted app this button saves the workbook below straight to your machine.</p>' +
@@ -40,14 +41,26 @@ RB.excel = (function () {
         '<div class="modal-actions"><button class="btn btn-primary" data-close="1">Got it</button></div>',
         { wide: true });
     }
+    // Strip first: the CSV fallback must respect the money permission too.
+    sheets = sheets.map(stripMoney).filter(function (s) { return s.columns.length; });
     if (!window.XLSX) return fallbackCSV(filename, sheets);
 
-    var wb = XLSX.utils.book_new();
+    var wb = XLSX.utils.book_new(), taken = {};
     sheets.forEach(function (s) {
-      XLSX.utils.book_append_sheet(wb, writeSheet(s, meta), safeName(s.name));
+      XLSX.utils.book_append_sheet(wb, writeSheet(s, meta), uniqueName(s.name, taken));
     });
     XLSX.writeFile(wb, filename.replace(/\.csv$/, '') + '.xlsx');
     RB.ui.toast('Downloaded ' + filename.replace(/\.csv$/, '') + '.xlsx');
+  }
+
+  /* The money permission follows the data out of the app: a role that cannot
+   * see a rupee figure on screen does not get one in the workbook either.
+   * One filter here covers every sheet, present and future. */
+  function stripMoney(s) {
+    if (!window.RB || !RB.auth || !RB.auth.user() || RB.auth.can('money')) return s;
+    return Object.assign({}, s, {
+      columns: s.columns.filter(function (c) { return c.type !== 'money'; })
+    });
   }
 
   function writeSheet(s, meta) {
@@ -111,14 +124,27 @@ RB.excel = (function () {
     return String(n).replace(/[\\\/\?\*\[\]:]/g, ' ').slice(0, 31);
   }
 
+  /* A tab's own sheets and the shared workbook can land on the same name, and
+   * SheetJS throws rather than renaming - which showed up as an export that
+   * silently produced nothing. Numbering the repeat keeps both sheets. */
+  function uniqueName(n, taken) {
+    var base = safeName(n), name = base, i = 2;
+    while (taken[name.toLowerCase()]) name = safeName(base.slice(0, 28)) + ' ' + i++;
+    taken[name.toLowerCase()] = true;
+    return name;
+  }
+
   /* No SheetJS (offline, or a sandbox that blocked the CDN): still hand over
-   * the data rather than failing. */
+   * the data rather than failing. One CSV, every sheet in it, each under its
+   * own heading - losing seven of eight sheets would be worse than the format. */
   function fallbackCSV(filename, sheets) {
-    var s = sheets[0];
-    U.download(filename.replace(/\.xlsx$/, '') + '.csv',
-      U.toCSV(s.rows, s.columns.map(function (c) {
-        return { label: c.label, get: c.get };
-      })));
+    var out = sheets.map(function (s) {
+      return '# ' + s.name + '\n' +
+        U.toCSV(s.rows, s.columns.map(function (c) {
+          return { label: c.label, get: c.get };
+        }));
+    }).join('\n\n');
+    U.download(filename.replace(/\.xlsx$/, '') + '.csv', out);
   }
 
   /* ------------------------------------------------- standard sheet shapes */
@@ -217,6 +243,218 @@ RB.excel = (function () {
     };
   }
 
-  return { download: download, opportunitySheet: opportunitySheet,
-           connectSheet: connectSheet, groupSheet: groupSheet };
+  /* --------------------------------------------------- salesperson x region */
+  /* One sheet, two columns of identity: who, and where. Filtering the sheet on
+   * Salesperson gives the person's whole book; filtering on Region gives the
+   * region across everyone. That is why the two are not separate sheets. */
+  function ownerRegionSheet(name, vs) {
+    var M = RB.model;
+    var map = new Map();
+    vs.forEach(function (v) {
+      var owner = v.owner || 'Unassigned';
+      var region = (v.school && v.school.region) || '—';
+      var k = owner + ' | ' + region;
+      if (!map.has(k)) map.set(k, { owner: owner, region: region, rows: [] });
+      map.get(k).rows.push(v);
+    });
+    var rows = [];
+    map.forEach(function (g) {
+      rows.push(Object.assign(M.rollup(g.owner, g.rows), { owner: g.owner, region: g.region }));
+    });
+    rows = RB.util.sortBy(rows, function (g) { return g.pipeline + g.closed; }, 'desc');
+    var base = groupSheet(name, 'Salesperson', rows).columns.slice(1);
+    return {
+      name: name, rows: rows,
+      columns: [
+        { label: 'Salesperson', get: function (g) { return g.owner; } },
+        { label: 'Region', get: function (g) { return g.region; } }
+      ].concat(base)
+    };
+  }
+
+  /* ------------------------------------------------------ team performance */
+  /* Schools approached, and what became of them. Counted in schools, not
+   * opportunities, because "approached vs converted" is a question about
+   * schools - two opportunities at one school is still one school approached. */
+  function teamSheet(name, vs) {
+    var M = RB.model, U2 = RB.util;
+    var stale = M.config().staleDays;
+
+    function schoolsOf(list) {
+      return U2.uniq(list.map(function (v) { return v.opp.schoolId; })).length;
+    }
+    function mainRegion(list) {
+      var tally = {}, best = null;
+      list.forEach(function (v) {
+        var r = v.school && v.school.region;
+        if (!r) return;
+        tally[r] = (tally[r] || 0) + 1;
+        if (!best || tally[r] > tally[best]) best = r;
+      });
+      if (!best) return null;
+      var spread = Object.keys(tally).length;
+      return spread > 1 ? best + ' +' + (spread - 1) : best;
+    }
+    var by = new Map();
+    vs.forEach(function (v) {
+      var k = v.owner || 'Unassigned';
+      if (!by.has(k)) by.set(k, []);
+      by.get(k).push(v);
+    });
+
+    var rows = [];
+    by.forEach(function (list, owner) { rows.push(row(owner, list)); });
+    rows = U2.sortBy(rows, function (r) { return r.approached; }, 'desc');
+    if (rows.length > 1) rows.push(row('ALL', vs));
+
+    function row(owner, list) {
+      var approached = schoolsOf(list);
+      var won = list.filter(function (v) { return v.status === 'Won'; });
+      var lost = list.filter(function (v) { return v.status === 'Lost'; });
+      var open = list.filter(function (v) { return v.status === 'Open'; });
+      // Progressing: live, past the first touch, and worked inside the stale window.
+      var progressing = open.filter(function (v) {
+        return v.stageRank > 0 && !v.stalled;
+      });
+      var gone = open.filter(function (v) {
+        return v.stalled || v.daysSinceConnect === null || v.daysSinceConnect > stale;
+      });
+      var converted = schoolsOf(won);
+      var u = RB.store.users().filter(function (x) { return x.ownerKey === owner; })[0];
+      return {
+        owner: owner,
+        name: u ? u.name : owner,
+        // Where they actually work, not a field nobody filled in: the region
+        // holding most of their schools. Falls back to a set home region.
+        region: owner === 'ALL' ? 'All regions' : (mainRegion(list) || (u && u.region) || '—'),
+        approached: approached,
+        connects: RB.util.sum(list, function (v) { return v.connects.length; }),
+        progressing: schoolsOf(progressing),
+        converted: converted,
+        lost: schoolsOf(lost),
+        stale: schoolsOf(gone),
+        convRate: approached ? (converted / approached) * 100 : null,
+        progRate: approached ? (schoolsOf(progressing) / approached) * 100 : null,
+        staleRate: approached ? (schoolsOf(gone) / approached) * 100 : null,
+        pipeline: RB.util.sum(open, function (v) { return v.current || 0; }),
+        wonValue: RB.util.sum(won, function (v) { return v.closed || 0; }),
+        avgDays: RB.util.mean(won.map(function (v) { return v.daysToClose; }).filter(function (n) { return n != null; }))
+      };
+    }
+
+    return {
+      name: name, rows: rows,
+      columns: [
+        { label: 'Salesperson', get: function (r) { return r.name; } },
+        { label: 'Main region', get: function (r) { return r.region; } },
+        { label: 'Schools approached', type: 'number', get: function (r) { return r.approached; } },
+        { label: 'Connects logged', type: 'number', get: function (r) { return r.connects; } },
+        { label: 'Progressing', type: 'number', get: function (r) { return r.progressing; } },
+        { label: 'Approached → progressing %', type: 'percent', get: function (r) { return r.progRate; } },
+        { label: 'Converted', type: 'number', get: function (r) { return r.converted; } },
+        { label: 'Approached → converted %', type: 'percent', get: function (r) { return r.convRate; } },
+        { label: 'Lost', type: 'number', get: function (r) { return r.lost; } },
+        { label: 'Gone stale', type: 'number', get: function (r) { return r.stale; } },
+        { label: 'Approached → stale %', type: 'percent', get: function (r) { return r.staleRate; } },
+        { label: 'Business in Play', type: 'money', get: function (r) { return r.pipeline; } },
+        { label: 'Business Won', type: 'money', get: function (r) { return r.wonValue; } },
+        { label: 'Avg. days to close', type: 'number', get: function (r) { return r.avgDays; } }
+      ]
+    };
+  }
+
+  /* ----------------------------------------------------------- deal quality */
+  /* Which deals are worth the week: how likely, and how big. Likelihood is the
+   * probability a salesperson recorded; where none is recorded the fit score
+   * (the same one the Win tab uses) stands in, and the sheet says which. Ticket
+   * size is measured against this very selection, so "big" means big for the
+   * period being looked at, not against some fixed number. */
+  function qualitySheet(name, vs) {
+    var M = RB.model, U2 = RB.util;
+    var fit = M.fitModel(vs);
+    var live = vs.map(function (v) { return v.current; })
+                 .filter(function (n) { return typeof n === 'number' && n > 0; })
+                 .sort(function (a, b) { return a - b; });
+    var big = live.length ? live[Math.floor((live.length - 1) * 0.75)] : 0;
+    var small = live.length ? live[Math.floor((live.length - 1) * 0.25)] : 0;
+
+    var rows = vs.map(function (v) {
+      var f = fit.score(v.school);
+      var p = v.probability;
+      return {
+        v: v,
+        prob: p,
+        score: p != null ? p : (f ? f.score : null),
+        basis: p != null ? 'recorded' : 'fit score',
+        fit: f ? f.score : null
+      };
+    });
+    rows = U2.sortBy(rows, function (r) { return (r.score || 0) * 1e9 + (r.v.current || 0); }, 'desc');
+
+    function band(n) {
+      if (n == null) return 'Not known';
+      return n >= 60 ? 'High' : n >= 30 ? 'Medium' : 'Low';
+    }
+    function ticket(n) {
+      if (!n) return 'Not sized';
+      return n >= big ? 'Big ticket' : n <= small ? 'Small ticket' : 'Mid';
+    }
+
+    return {
+      name: name, rows: rows,
+      note: 'Big ticket = top quarter by value in this selection; small = bottom quarter.',
+      columns: [
+        { label: 'School', get: function (r) { return r.v.school && r.v.school.name; } },
+        { label: 'Region', get: function (r) { return r.v.school && r.v.school.region; } },
+        { label: 'Salesperson', get: function (r) { return r.v.owner; } },
+        { label: 'Offering', get: function (r) { return r.v.opp.offering; } },
+        { label: 'Stage', get: function (r) { return r.v.stage; } },
+        { label: 'Status', get: function (r) { return r.v.status; } },
+        { label: 'Likelihood', get: function (r) { return band(r.score); } },
+        { label: 'Likelihood score', type: 'number', get: function (r) { return r.score; } },
+        { label: 'Likelihood from', get: function (r) { return r.basis; } },
+        { label: 'Value', type: 'money', get: function (r) { return r.v.current; } },
+        { label: 'Ticket', get: function (r) { return ticket(r.v.current); } },
+        { label: 'Students', type: 'number', get: function (r) { return r.v.school && r.v.school.students; } },
+        { label: 'Days since contact', type: 'number', get: function (r) { return r.v.daysSinceConnect; } },
+        { label: 'Stalled', get: function (r) { return r.v.stalled ? 'Yes' : 'No'; } },
+        { label: 'Blocker', get: function (r) { return r.v.blocker; } },
+        { label: 'Next Step', get: function (r) { return r.v.nextAction; } },
+        { label: 'Next action due', type: 'date',
+          get: function (r) { return r.v.nextActionAt ? r.v.nextActionAt.slice(0, 10) : null; } }
+      ]
+    };
+  }
+
+  /* ------------------------------------------------------------- workbook */
+  /* The one workbook every Export button produces, so a rep, the Head of Sales
+   * and the CEO all hand each other the same file with the same column names -
+   * only the rows and the money columns differ, exactly as the screen does.
+   * Every sheet is built from the views passed in, which are already filtered,
+   * date range included. */
+  function workbook(vs, opts) {
+    opts = opts || {};
+    var F = RB.filters, M = RB.model;
+    var dated = vs.filter(F.inRange);
+    var ids = {};
+    dated.forEach(function (v) { ids[v.opp.id] = true; });
+    var connects = RB.store.connects().filter(function (c) {
+      return ids[c.opportunityId] && F.connectInRange(c);
+    });
+
+    return (opts.first || []).concat([
+      opportunitySheet('Potential deals', dated),
+      teamSheet('Team performance', dated),
+      qualitySheet('Deal quality', dated),
+      ownerRegionSheet('Salesperson x region', dated),
+      groupSheet('Region rollup', 'Region', M.groupBy(dated, 'region')),
+      groupSheet('Offering rollup', 'Offering', M.groupBy(dated, 'offering')),
+      groupSheet('Stage rollup', 'Stage', M.groupBy(dated, 'stage')),
+      connectSheet('Connects', connects)
+    ]).concat(opts.last || []);
+  }
+
+  return { download: download, workbook: workbook, opportunitySheet: opportunitySheet,
+           connectSheet: connectSheet, groupSheet: groupSheet,
+           ownerRegionSheet: ownerRegionSheet, teamSheet: teamSheet, qualitySheet: qualitySheet };
 })();

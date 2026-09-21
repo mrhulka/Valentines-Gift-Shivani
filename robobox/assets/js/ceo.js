@@ -27,9 +27,18 @@ RB.ceo = (function () {
   /* ------------------------------------------------------------- chrome --- */
   /* Every tab gets the same head, the same global filter bar and the same
    * export button, so a filter set on one tab means the same thing on all. */
+  /* A tab the signed-in role cannot open is not shown. The Head of Sales has
+   * the team board and nothing that carries a rupee figure. */
+  function myTabs() {
+    return TABS.filter(function (t) {
+      var r = RB.app.ROUTES[t.key];
+      return !r.need || RB.auth.can(r.need);
+    });
+  }
+
   function frame(key, title, sub) {
     return UI.head(title, sub) +
-      '<div class="tabs">' + TABS.map(function (t) {
+      '<div class="tabs">' + myTabs().map(function (t) {
         return '<button type="button" data-tab="' + t.key + '" aria-pressed="' + (t.key === key) + '">' +
           U.esc(t.label) + '</button>';
       }).join('') + '</div>' +
@@ -200,9 +209,8 @@ RB.ceo = (function () {
           { label: 'Expected Business', type: 'money', get: function (g) { return g.expected; } },
           { label: 'Business Won', type: 'money', get: function (g) { return g.closed; } }
         ] },
-        attentionSheet(M.needsAttention(vs, fit)),
-        RB.excel.opportunitySheet('Potential deals', vs)
-      ];
+        attentionSheet(M.needsAttention(vs, fit))
+      ].concat(RB.excel.workbook(vs));
     }, 'robobox-business');
 
     UI.table(host.querySelector('#act'), {
@@ -375,9 +383,8 @@ RB.ceo = (function () {
         perfSheet(dims[perfDim], M.DIMENSIONS[perfDim].label, groups),
         daySheet(date, day),
         RB.excel.connectSheet('Connects ' + date, day.reduce(function (a, r) { return a.concat(r.done); }, [])),
-        perfSheet('Offering', 'Offering', offer),
-        RB.excel.opportunitySheet('Opportunities', vs)
-      ];
+        perfSheet('Offering', 'Offering', offer)
+      ].concat(RB.excel.workbook(vs));
     }, 'robobox-sales');
 
     host.querySelectorAll('[data-dim]').forEach(function (b) {
@@ -684,9 +691,8 @@ RB.ceo = (function () {
           { label: 'Lead to win %', type: 'percent', get: function (g) { return g.toWin; } },
           { label: 'In Play per lead', type: 'money', get: function (g) { return g.pipelinePerLead; } },
           { label: 'Revenue per lead', type: 'money', get: function (g) { return g.revenuePerLead; } }
-        ] },
-        RB.excel.opportunitySheet('Opportunities', vs)
-      ];
+        ] }
+      ].concat(RB.excel.workbook(vs));
     }, 'robobox-market');
 
     host.querySelectorAll('[data-mx]').forEach(function (el) {
@@ -960,9 +966,8 @@ RB.ceo = (function () {
           { label: 'Next Step', get: function (r) { return r.action; } },
           { label: 'Owner', get: function (r) { return r.school.ownerKey; } }
         ] },
-        attentionSheet(att),
-        RB.excel.opportunitySheet('Opportunities', vs)
-      ];
+        attentionSheet(att)
+      ].concat(RB.excel.workbook(vs));
     }, 'robobox-win');
 
     host.querySelectorAll('[data-cyc]').forEach(function (b) {

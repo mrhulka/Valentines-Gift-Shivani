@@ -6,7 +6,16 @@
  * headline formula the CEO dashboard prints. If a formula drifts, this fails.
  */
 'use strict';
-const assert = require('assert');
+// Count what actually ran: several checks are inside loops, so a literal in the
+// final line would drift the moment a role or a sheet is added.
+let checks = 0;
+const raw = require('assert');
+const assert = new Proxy(raw, {
+  get(t, k) {
+    const v = t[k];
+    return typeof v === 'function' ? (...a) => { checks++; return v.apply(t, a); } : v;
+  }
+});
 const fs = require('fs');
 const path = require('path');
 const vm = require('vm');
@@ -16,7 +25,7 @@ const ctx = { console, localStorage: { getItem: () => null, setItem: () => {} } 
 ctx.window = ctx;
 ctx.globalThis = ctx;
 vm.createContext(ctx);
-['util.js', 'model.js'].forEach(f => {
+['util.js', 'model.js', 'auth.js', 'filters.js', 'excel.js'].forEach(f => {
   vm.runInContext(fs.readFileSync(path.join(__dirname, '..', 'assets', 'js', f), 'utf8'), ctx, f);
 });
 const RB = ctx.window.RB, M = RB.model, U = RB.util;
@@ -42,7 +51,7 @@ const D = {
     { id: 'O1', schoolId: 'S1', offering: 'STEM Lab', ownerKey: 'A', initialPotential: 1000000,
       status: 'Won', closedValue: 1200000, closedAt: ago(40), createdAt: ago(100) },
     // lost: value at loss 800000, "current" would otherwise be 900000
-    { id: 'O2', schoolId: 'S2', offering: 'Bagless', ownerKey: 'B', initialPotential: 900000,
+    { id: 'O2', schoolId: 'S2', offering: 'Bagless', variant: 'Pottery', ownerKey: 'B', initialPotential: 900000,
       status: 'Lost', finalValue: 800000, closedAt: ago(10), createdAt: ago(60) },
     // open + fully qualified, 50% of 20L, closing in 15 days
     { id: 'O3', schoolId: 'S1', offering: 'STEM Lab', ownerKey: 'A', initialPotential: 2000000,
@@ -297,4 +306,111 @@ assert.ok(M.RANK['Closing / Negotiations'] > M.RANK.Proposal, 'closing sits afte
 assert.ok(M.V.blocker.indexOf('None') === 0,
   'None heads the list, and the form drops it when it asks why a deal was lost');
 
-console.log('model: all ' + 84 + ' assertions passed');
+/* ==================================================================== *
+ * Roles, the money rule, and the workbook every Export button produces.
+ * ==================================================================== */
+const AUTH = RB.auth, FIL = RB.filters, X = RB.excel;
+
+/* --- who may see what ---------------------------------------------------- */
+const CAN = {
+  ceo:        { ceoDashboard: 1, teamBoard: 1, money: 1, manageSettings: 1 },
+  outsight:   { ceoDashboard: 1, teamBoard: 1, money: 1, manageSettings: 0 },
+  sales_head: { ceoDashboard: 0, teamBoard: 1, money: 0, manageSettings: 0 },
+  sales:      { ceoDashboard: 0, teamBoard: 0, money: 1, manageSettings: 0 }
+};
+Object.keys(CAN).forEach(role => {
+  Object.keys(CAN[role]).forEach(what => {
+    assert.strictEqual(AUTH.PERMISSIONS[role][what], !!CAN[role][what],
+      role + ' ' + (CAN[role][what] ? 'has' : 'does not have') + ' ' + what);
+  });
+});
+assert.strictEqual(AUTH.PERMISSIONS.sales_head.money, false,
+  'the Head of Sales sees the team, never the money');
+assert.strictEqual(AUTH.PERMISSIONS.outsight.manageSettings, false,
+  'only the CEO changes settings');
+
+/* --- the money rule has exactly one enforcement point -------------------- */
+D.users.push({ id: 'h', name: 'H', ownerKey: 'A', role: 'sales_head' });
+assert.strictEqual(U.money(1200000), '₹12 L', 'nobody signed in: money reads plainly');
+AUTH.setUser(byId(D.users, 'a'));
+assert.strictEqual(U.money(1200000), '₹12 L', 'a rep sees their own figures');
+AUTH.setUser(byId(D.users, 'h'));
+assert.strictEqual(U.money(1200000), '•••', 'the Head of Sales sees no figure');
+assert.strictEqual(U.money(0), '•••', 'not even a zero leaks the shape of the book');
+assert.strictEqual(U.count(169), '169', 'counts are not money and stay visible');
+// and the same guard travels into the export
+const strip = s => X.workbook(vs).map(sh => sh.columns.filter(c => c.type === 'money').length)
+                    .reduce((a, b) => a + b, 0);
+assert.ok(strip() > 0, 'the workbook is built with its money columns');
+AUTH.setUser(null);
+
+/* --- the date range is the workbook's, not the screen's ------------------ */
+assert.strictEqual(FIL.apply(vs).length, vs.length, 'no filter set: apply() is a pass-through');
+assert.ok(vs.every(FIL.inRange), 'no range set: every deal is in range');
+
+/* --- the workbook shape -------------------------------------------------- */
+const wb = X.workbook(vs);
+const names = wb.map(s => s.name);
+assert.strictEqual(names.length, new Set(names).size, 'no two sheets share a name');
+['Potential deals', 'Team performance', 'Deal quality', 'Salesperson x region',
+ 'Region rollup', 'Connects'].forEach(n =>
+  assert.ok(names.indexOf(n) !== -1, 'the workbook carries "' + n + '"'));
+wb.forEach(s => {
+  assert.ok(s.columns.length, s.name + ' has columns');
+  s.rows.forEach(r => s.columns.forEach(c => c.get(r)));   // no getter throws
+});
+
+/* --- team performance: approached vs converted vs stale ------------------ */
+const team = wb.filter(s => s.name === 'Team performance')[0];
+const cell = (row, label) => team.columns.filter(c => c.label === label)[0].get(row);
+const rowFor = who => team.rows.filter(r => r.owner === who)[0];
+// A owns S1 (O1 won, O3 open) and S3 (O4 open) -> 2 schools approached, 1 converted.
+assert.strictEqual(cell(rowFor('A'), 'Schools approached'), 2, 'A approached two schools');
+assert.strictEqual(cell(rowFor('A'), 'Converted'), 1, 'A converted one');
+assert.strictEqual(Math.round(cell(rowFor('A'), 'Approached → converted %')), 50);
+// O4's last contact was 200 days ago, so S3 is stale.
+assert.strictEqual(cell(rowFor('A'), 'Gone stale'), 1, 'the school untouched for 200 days is stale');
+const allRow = team.rows[team.rows.length - 1];
+assert.strictEqual(allRow.name, 'ALL', 'the sheet totals itself on the last row');
+assert.strictEqual(cell(allRow, 'Schools approached'), 3, 'three schools across the team');
+team.rows.forEach(r => assert.ok(
+  cell(r, 'Converted') + cell(r, 'Progressing') <= cell(r, 'Schools approached'),
+  'no outcome can exceed what was approached'));
+
+/* --- deal quality: likelihood and ticket bands --------------------------- */
+const dq = wb.filter(s => s.name === 'Deal quality')[0];
+const dqCell = (row, label) => dq.columns.filter(c => c.label === label)[0].get(row);
+const o3 = dq.rows.filter(r => r.v.opp.id === 'O3')[0];
+assert.strictEqual(dqCell(o3, 'Likelihood'), 'Medium', 'a recorded 50% is Medium');
+assert.strictEqual(dqCell(o3, 'Likelihood from'), 'recorded');
+const o4 = dq.rows.filter(r => r.v.opp.id === 'O4')[0];
+assert.strictEqual(dqCell(o4, 'Likelihood from'), 'fit score',
+  'no probability recorded: the fit score stands in, and the sheet says so');
+// Ticket bands are relative to this selection: O3 at 20L is the biggest live deal.
+assert.strictEqual(dqCell(o3, 'Ticket'), 'Big ticket');
+assert.ok(dq.rows.every(r => ['Big ticket', 'Small ticket', 'Mid', 'Not sized']
+  .indexOf(dqCell(r, 'Ticket')) !== -1), 'every deal lands in a ticket band');
+
+/* --- salesperson x region keeps both identities -------------------------- */
+const sxr = wb.filter(s => s.name === 'Salesperson x region')[0];
+assert.strictEqual(sxr.columns[0].label, 'Salesperson');
+assert.strictEqual(sxr.columns[1].label, 'Region');
+const aPune = sxr.rows.filter(r => r.owner === 'A' && r.region === 'Pune')[0];
+assert.ok(aPune, 'A shows up under Pune');
+assert.strictEqual(aPune.wonCount, 1, "A's Pune row carries the won deal");
+
+/* --- the bagless list is the CEO's, and nothing in use is orphaned ------- */
+const before = M.activities();
+assert.ok(before.indexOf('Hydroponics') !== -1, 'the catalogue seeds the list');
+M.setActivities(['Pottery', 'Robotics Club']);
+assert.deepStrictEqual(M.activities().join('|'), 'Pottery|Robotics Club', 'the list is replaced');
+assert.ok(M.priceLines().some(l => l.label === 'Robotics Club' && l.removable),
+  'a CEO-added activity is priceable and removable');
+M.setActivities(['Robotics Club']);
+assert.ok(M.priceLines().some(l => l.label === 'Pottery' && l.legacy),
+  'Pottery is off the list but O2 still sells it, so it stays priceable, flagged');
+assert.ok(!M.priceLines().some(l => l.label === 'Hydroponics'),
+  'an unused activity taken off the list is simply gone');
+M.setActivities(before);
+
+console.log('model: all ' + checks + ' assertions passed');

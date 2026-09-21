@@ -14,15 +14,24 @@ RB.auth = (function () {
   var current = null;
 
   /* Roles
-   *  sales      - own pipeline only. Can export their own data.
-   *  sales_head - Ayush. Own pipeline + the whole team's records and a team
-   *               roll-up, but not the CEO's company-wide analytics.
-   *  ceo        - Parth. Everything, including the analytics dashboard.
+   *  sales      - own pipeline only. Sees their own numbers, money included.
+   *  sales_head - Ayush. The whole team's records, their day and their
+   *               performance, but no financial figures: `money` is off, so
+   *               U.money() masks every amount and the Excel export drops its
+   *               money columns. The money-led tabs are off with it.
+   *  outsight   - Sajesh, Yash. Everything the CEO sees, minus Settings.
+   *  ceo        - Parth. Everything, and the only role that can change
+   *               settings (people, rate card, targets).
+   *
+   * Every role exports Excel; what the workbook contains follows the same
+   * scope and money rules as the screen.
    */
   var PERMISSIONS = {
     sales: {
       scope: 'own',
       ceoDashboard: false,
+      teamBoard: false,
+      money: true,
       teamRollup: false,
       exportOwn: true,
       exportAll: false,
@@ -32,6 +41,19 @@ RB.auth = (function () {
     sales_head: {
       scope: 'team',
       ceoDashboard: false,
+      teamBoard: true,
+      money: false,
+      teamRollup: true,
+      exportOwn: true,
+      exportAll: true,
+      editAny: true,
+      manageSettings: false
+    },
+    outsight: {
+      scope: 'all',
+      ceoDashboard: true,
+      teamBoard: true,
+      money: true,
       teamRollup: true,
       exportOwn: true,
       exportAll: true,
@@ -41,6 +63,8 @@ RB.auth = (function () {
     ceo: {
       scope: 'all',
       ceoDashboard: true,
+      teamBoard: true,
+      money: true,
       teamRollup: true,
       exportOwn: true,
       exportAll: true,
@@ -49,7 +73,7 @@ RB.auth = (function () {
     }
   };
 
-  var ROLE_LABEL = { sales: 'Sales', sales_head: 'Head of Sales', ceo: 'CEO' };
+  var ROLE_LABEL = { sales: 'Sales', sales_head: 'Head of Sales', outsight: 'Outsight', ceo: 'CEO' };
 
   function signIn(userId, pin) {
     var u = RB.store.userById(userId);

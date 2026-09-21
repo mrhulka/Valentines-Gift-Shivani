@@ -183,7 +183,8 @@ RB.views = (function () {
 
     host.innerHTML = UI.head('My Performance',
       'What you did ' + scoreRange.toLowerCase() + ', against target.') +
-      rangeBar(scoreRange) +
+      '<div class="toolbar">' + rangeBar(scoreRange) +
+        '<button class="btn btn-sm" id="x-me">↓ Export Excel</button></div>' +
 
       '<div class="kpis kpis-4">' + rows.map(function (r) {
         var val = r.money ? U.money(r.actual) : U.count(r.actual);
@@ -207,6 +208,12 @@ RB.views = (function () {
       '<div class="section-title">My Actions<span class="st-sub">the 5 that matter most</span></div>' +
       (steps.length ? taskList(steps) : '<div class="empty">Nothing outstanding.</div>');
     bindRange(host, function (r) { scoreRange = r; myScorecard(host); });
+    // Everyone can take their own book away as a workbook, not just the CEO.
+    host.querySelector('#x-me').addEventListener('click', function () {
+      var mine = M.views().filter(function (v) { return v.owner === key; });
+      RB.excel.download('robobox-' + me().name.toLowerCase(), RB.excel.workbook(mine),
+                        { title: me().name, filters: F.describe() });
+    });
     bindTasks(host);
   }
 
@@ -234,7 +241,7 @@ RB.views = (function () {
       U.count(vs.length) + ' of ' + U.count(all.length) + ' opportunities. Click a row for the full history.') +
       toolbar(all, 'x1') + '<div id="t"></div>';
     bindToolbar(host, 'x1', function () { mySchools(host); },
-      function () { return [RB.excel.opportunitySheet('Opportunities', vs)]; }, 'robobox-schools');
+      function () { return RB.excel.workbook(vs); }, 'robobox-schools');
     UI.table(host.querySelector('#t'), {
       rows: vs, rowId: function (v) { return v.opp.schoolId; }, sortKey: 'value', pageSize: 25,
       columns: UI.oppColumns(key ? { hide: ['owner'] } : {}),

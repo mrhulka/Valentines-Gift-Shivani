@@ -14,18 +14,22 @@ RB.app = (function () {
     'schools':   { label: 'My schools',    icon: '◫', group: 'Sell',       render: RB.views.mySchools },
     'scorecard': { label: 'My performance', icon: '◑', group: 'Sell',      render: RB.views.myScorecard },
 
-    /* The command centre: four tabs, one filter bar, one set of formulas. */
-    'business':  { label: 'Business',      icon: '◆', group: 'Command centre', need: 'ceo', render: RB.ceo.business },
-    'sales':     { label: 'Sales',         icon: '⚇', group: 'Command centre', need: 'ceo', render: RB.ceo.sales },
-    'market':    { label: 'Market',        icon: '◈', group: 'Command centre', need: 'ceo', render: RB.ceo.market },
-    'win':       { label: 'Win',           icon: '★', group: 'Command centre', need: 'ceo', render: RB.ceo.win },
+    /* The command centre: four tabs, one filter bar, one set of formulas.
+     * `need` is the permission that opens the route. Sales is the team board -
+     * who did what, and how they are tracking - so the Head of Sales has it
+     * while the three money-led tabs stay with the CEO and Outsight. */
+    'business':  { label: 'Business',      icon: '◆', group: 'Command centre', need: 'ceoDashboard', render: RB.ceo.business },
+    'sales':     { label: 'Sales',         icon: '⚇', group: 'Command centre', need: 'teamBoard',    render: RB.ceo.sales },
+    'market':    { label: 'Market',        icon: '◈', group: 'Command centre', need: 'ceoDashboard', render: RB.ceo.market },
+    'win':       { label: 'Win',           icon: '★', group: 'Command centre', need: 'ceoDashboard', render: RB.ceo.win },
 
-    'settings':  { label: 'Settings',      icon: '⚙', group: 'Account',    render: settings }
+    /* Settings is the CEO's alone: the people, the rate card, the targets. */
+    'settings':  { label: 'Settings',      icon: '⚙', group: 'Account', need: 'manageSettings', render: settings }
   };
 
   function allowed(r) {
     var route = ROUTES[r];
-    return !!route && (!route.need || RB.auth.can('ceoDashboard'));
+    return !!route && (!route.need || RB.auth.can(route.need));
   }
   function defaultRoute() { return RB.auth.can('ceoDashboard') ? 'business' : 'day'; }
 
@@ -47,7 +51,8 @@ RB.app = (function () {
     var u = RB.auth.user();
     var host = document.getElementById('sidebar');
     host.innerHTML =
-      '<div class="rail-brand"><span class="logo">R</span><span>Robobox<small>Connect</small></span></div>' +
+      '<div class="rail-brand"><img class="logo" src="assets/img/robobox-mark.webp" alt="" width="160" height="160">' +
+      '<span>Robobox<small>Connect</small></span></div>' +
       Object.keys(groups).map(function (g) {
       return '<div class="nav-group"><h4>' + U.esc(g) + '</h4>' + groups[g].map(function (k) {
         var r = ROUTES[k], b = badges[k];
@@ -100,16 +105,18 @@ RB.app = (function () {
   }
 
   /* -------------------------------------------------------------- settings */
+  /* CEO only, gated on the route. Everything the company runs on that is not
+   * derived from the data lives here: the people, the rate card, the bagless
+   * activity list and the monthly targets. */
   function settings(host) {
     var u = RB.auth.user(), meta = RB.store.meta();
-    host.innerHTML = UI.head('Settings', 'Your account and where the data comes from.') +
+    host.innerHTML = UI.head('Settings', 'The people, the prices and the targets. Only you can change these.') +
       '<div class="grid grid-2">' +
       UI.card('You', '', '<dl class="kv">' +
         '<dt>Name</dt><dd>' + U.esc(u.name) + '</dd>' +
         '<dt>Role</dt><dd>' + U.esc(RB.auth.roleLabel(u.role)) + '</dd>' +
         '<dt>Email</dt><dd>' + U.esc(u.email) + '</dd>' +
-        '<dt>Sees</dt><dd>' + (RB.auth.can('ceoDashboard') ? 'The whole organisation'
-          : u.role === 'sales_head' ? "The team's schools" : 'Their own schools') + '</dd></dl>') +
+        '<dt>Sees</dt><dd>The whole organisation</dd></dl>') +
       UI.card('Data', '', '<dl class="kv">' +
         '<dt>Imported from</dt><dd>' + U.esc(meta.source || '—') + '</dd>' +
         '<dt>Schools</dt><dd>' + U.count(RB.store.schools().length) + '</dd>' +
@@ -119,34 +126,30 @@ RB.app = (function () {
         '<dt>Stored in</dt><dd>This browser. See DEPLOYMENT.md for the shared database.</dd></dl>' +
         '<div class="row wrap" style="margin-top:16px">' +
         '<button class="btn" id="backup">Download backup</button>' +
-        (RB.auth.can('ceoDashboard') ? '<button class="btn btn-danger" id="reset">Reset to imported data</button>' : '') +
+        '<button class="btn btn-danger" id="reset">Reset to imported data</button>' +
         '</div>') +
       '</div>' +
-      (RB.auth.can('ceoDashboard')
-        ? '<div class="section-title">Price list</div>' + pricingCard() +
-          '<div class="section-title">Sales team</div>' + teamCard() +
-          '<div class="section-title">Monthly targets</div>' + targetsCard()
-        : '');
+      '<div class="section-title">Sales team</div>' + teamCard() +
+      '<div class="section-title">Price list</div>' + pricingCard() +
+      '<div class="section-title">Monthly targets</div>' + targetsCard();
 
-    if (RB.auth.can('ceoDashboard')) {
-      bindPricing(host);
-      bindTeam(host);
-      host.querySelector('#assume').addEventListener('submit', function (e) {
-        e.preventDefault();
-        var v = UI.values(this);
-        M.setConfig({ targets: M.PERFORMANCE.reduce(function (a, m) {
-          a[m.key] = v['t_' + m.key] ? Number(v['t_' + m.key]) : null;
-          return a;
-        }, {}) });
-        UI.toast('Targets saved.');
-        refresh();
-      });
-    }
+    bindPricing(host);
+    bindTeam(host);
+    host.querySelector('#assume').addEventListener('submit', function (e) {
+      e.preventDefault();
+      var v = UI.values(this);
+      M.setConfig({ targets: M.PERFORMANCE.reduce(function (a, m) {
+        a[m.key] = v['t_' + m.key] ? Number(v['t_' + m.key]) : null;
+        return a;
+      }, {}) });
+      UI.toast('Targets saved.');
+      refresh();
+    });
+
     host.querySelector('#backup').addEventListener('click', function () {
       U.download('robobox-backup-' + U.iso(U.today()) + '.json', RB.store.exportState(), 'application/json');
     });
-    var reset = host.querySelector('#reset');
-    if (reset) reset.addEventListener('click', function () {
+    host.querySelector('#reset').addEventListener('click', function () {
       UI.modal('Reset everything?',
         '<p class="sec" style="margin-top:0">Throws away every Connect logged in this browser and reloads the imported workbook.</p>' +
         '<div class="modal-actions"><button class="btn" data-close="1">Cancel</button>' +
@@ -175,7 +178,10 @@ RB.app = (function () {
       var v = p[l.id] || {};
       rows += '<div class="price-row" data-price="' + U.esc(l.id) + '">' +
         '<span class="price-name">' + U.esc(l.label) +
-          (l.legacy ? '<small>already used by live opportunities</small>' : '') + '</span>' +
+          (l.legacy ? '<small>already used by live opportunities</small>' : '') +
+          (l.removable ? '<button type="button" class="price-drop" data-drop-activity="' +
+            U.esc(l.activity) + '" title="Remove ' + U.esc(l.activity) + '" ' +
+            'aria-label="Remove ' + U.esc(l.activity) + '">&times;</button>' : '') + '</span>' +
         '<input class="input" type="number" min="0" step="any" inputmode="decimal" data-f="price" ' +
           'placeholder="Price ₹" value="' + U.esc(v.price != null ? v.price : '') + '">' +
         '<input class="input" type="number" min="1" step="1" inputmode="numeric" data-f="base" ' +
@@ -188,8 +194,14 @@ RB.app = (function () {
       'Price × (school students ÷ base students). Leave a row blank and it simply will not auto-calculate.',
       '<div class="price-head"><span>Offering</span><span>Price (₹)</span>' +
       '<span>Base students</span><span></span></div>' + rows +
+      '<form id="add-activity" class="row wrap" style="margin-top:16px;gap:10px">' +
+        '<input class="input" name="activity" placeholder="Add a bagless activity" ' +
+          'style="flex:1 1 220px;width:auto" required>' +
+        '<button class="btn" type="submit">Add activity</button>' +
+      '</form>' +
       '<p class="field-hint" style="margin-top:14px">Saved as you type. A priced slab pre-fills the ' +
-      'opportunity size on a new connect, so potential revenue is tracked before any negotiation.</p>');
+      'opportunity size on a new connect, so potential revenue is tracked before any negotiation. ' +
+      'The bagless list is yours to write — add or remove activities above.</p>');
   }
 
   function priceNote(v) {
@@ -199,6 +211,22 @@ RB.app = (function () {
   }
 
   function bindPricing(host) {
+    host.querySelector('#add-activity').addEventListener('submit', function (e) {
+      e.preventDefault();
+      var name = UI.values(this).activity;
+      if (!name) return;
+      M.setActivities(M.activities().concat([name]));
+      UI.toast(name + ' added. Set its price below.');
+      refresh();
+    });
+    host.querySelectorAll('[data-drop-activity]').forEach(function (b) {
+      b.addEventListener('click', function () {
+        var a = b.getAttribute('data-drop-activity');
+        M.setActivities(M.activities().filter(function (x) { return x !== a; }));
+        UI.toast(a + ' removed from the bagless list.');
+        refresh();
+      });
+    });
     host.querySelectorAll('.price-row').forEach(function (row) {
       row.querySelectorAll('input').forEach(function (i) {
         i.addEventListener('change', function () {
@@ -216,26 +244,41 @@ RB.app = (function () {
   }
 
   /* ---------------------------------------------------------- sales team */
+  /* Add or remove a login. Removing one never touches their records: the
+   * schools keep the owner key they were worked under, so last quarter's
+   * numbers do not move when somebody leaves. */
+  var ROLE_CHOICES = [
+    { id: 'sales',      label: 'Sales' },
+    { id: 'sales_head', label: 'Head of Sales' },
+    { id: 'outsight',   label: 'Outsight' }
+  ];
+
   function teamCard() {
     var users = RB.store.users();
-    return UI.card('People', users.length + ' on the team',
+    return UI.card('People', users.length + ' with a login',
       users.map(function (u) {
         return '<div class="person"><span class="avatar">' + U.esc(U.initials(u.name)) + '</span>' +
           '<span class="person-meta"><strong>' + U.esc(u.name) + '</strong><small>' +
           U.esc([u.designation || RB.auth.roleLabel(u.role), u.region, u.ownerKey]
                   .filter(Boolean).join(' · ')) + '</small></span>' +
           '<span class="spacer"></span>' +
-          '<span class="tag">' + U.esc(RB.auth.roleLabel(u.role)) + '</span></div>';
+          '<span class="tag">' + U.esc(RB.auth.roleLabel(u.role)) + '</span>' +
+          (u.role === 'ceo' ? ''
+            : '<button class="icon-btn btn-sm" data-drop-user="' + U.esc(u.id) + '" ' +
+              'title="Remove ' + U.esc(u.name) + '" aria-label="Remove ' + U.esc(u.name) + '">&times;</button>') +
+          '</div>';
       }).join('') +
       '<form id="add-person" style="margin-top:16px">' +
       '<div class="field-row">' +
         UI.field('Name', '<input class="input" name="name" required placeholder="Full name">') +
         UI.field('Designation', '<input class="input" name="designation" placeholder="e.g. Sales Executive">') +
         UI.field('Region', UI.select('region', M.V.region, null, { placeholder: 'Select' })) +
+        UI.field('Role', UI.select('role', ROLE_CHOICES.map(function (r) { return r.label; }), 'Sales')) +
       '</div>' +
-      '<div class="row wrap"><button class="btn btn-primary" type="submit">Add salesperson</button>' +
-      '<span class="field-hint">They sign in with their first name in lower case as the access code, ' +
-      'and see only their own schools.</span></div></form>');
+      '<div class="row wrap"><button class="btn btn-primary" type="submit">Add person</button>' +
+      '<span class="field-hint">They sign in with their first name in lower case as the access code. ' +
+      'Sales sees their own schools; Head of Sales sees the team without the money; ' +
+      'Outsight sees everything except this page.</span></div></form>');
   }
 
   function bindTeam(host) {
@@ -243,9 +286,34 @@ RB.app = (function () {
       e.preventDefault();
       var v = UI.values(this);
       if (!v.name) return UI.toast('Name is required.');
-      var u = RB.store.addUser({ name: v.name, designation: v.designation, region: v.region });
+      var role = (ROLE_CHOICES.filter(function (r) { return r.label === v.role; })[0] || ROLE_CHOICES[0]).id;
+      var u = RB.store.addUser({ name: v.name, designation: v.designation, region: v.region, role: role });
       UI.toast(u.name + ' added — access code "' + u.pin + '".');
       refresh();
+    });
+
+    host.querySelectorAll('[data-drop-user]').forEach(function (b) {
+      b.addEventListener('click', function () {
+        var u = RB.store.userById(b.getAttribute('data-drop-user'));
+        if (!u) return;
+        var owned = RB.store.schools().filter(function (s) { return s.ownerKey === u.ownerKey; }).length;
+        UI.modal('Remove ' + u.name + '?',
+          '<p class="sec" style="margin-top:0">' + U.esc(u.name) + ' loses their sign-in. ' +
+          (owned ? 'Their ' + U.count(owned) + ' school' + (owned === 1 ? '' : 's') +
+                   ' stay exactly where they are, still recorded against ' + U.esc(u.ownerKey) +
+                   ', so no past number changes. Reassign them from the school page.'
+                 : 'They have no schools on the books.') + '</p>' +
+          '<div class="modal-actions"><button class="btn" data-close="1">Cancel</button>' +
+          '<button class="btn btn-danger" id="drop-yes">Remove</button></div>',
+          { onMount: function (h) {
+              h.querySelector('#drop-yes').addEventListener('click', function () {
+                var res = RB.store.removeUser(u.id);
+                UI.closeModal();
+                UI.toast(res.ok ? u.name + ' removed.' : res.error);
+                refresh();
+              });
+            } });
+      });
     });
   }
 
@@ -349,7 +417,10 @@ RB.app = (function () {
 
     document.getElementById('logout').addEventListener('click', signOut);
     document.getElementById('nav-toggle').addEventListener('click', function () {
-      document.getElementById('shell').classList.toggle('nav-open');
+      // One hamburger, two behaviours: on a phone the rail slides in over the
+      // page, on a desktop it folds out of the grid.
+      document.getElementById('shell').classList.toggle(
+        matchMedia('(min-width: 981px)').matches ? 'nav-shut' : 'nav-open');
     });
     document.getElementById('modal-root').addEventListener('click', function (e) {
       if (e.target.closest('[data-close]')) UI.closeModal();

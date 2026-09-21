@@ -17,6 +17,17 @@ def read(*parts):
 
 html = read('index.html')
 
+def inline_images(text):
+    """The bundle is one file, so every assets/img reference becomes a data URI."""
+    import base64
+    def sub(m):
+        path = m.group(1)
+        with open(os.path.join(ROOT, path), 'rb') as f:
+            return 'data:image/webp;base64,' + base64.b64encode(f.read()).decode()
+    return re.sub(r'(?:\.\./|)(assets/img/[\w.-]+\.webp)', sub, text)
+
+html = inline_images(html)
+
 # The markup between <body> and </body>, minus the <script src> tags we inline below.
 body = re.search(r'<body[^>]*>(.*)</body>', html, re.S).group(1)
 body = re.sub(r'<script src="[^"]+"></script>\s*', '', body).strip()
@@ -33,12 +44,12 @@ parts = [
     # single-file build loads SheetJS from the CDN instead of inlining it.
     # index.html keeps the local copy, which works offline.
     '<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>',
-    '<style>\n' + read('assets', 'css', 'app.css') + '\n</style>',
+    '<style>\n' + inline_images(read('assets', 'css', 'app.css')) + '\n</style>',
     body,
     '<script>window.RB = { PREVIEW: true };</script>',
 ]
 for name in SCRIPTS:
-    parts.append('<script>\n/* ' + name + ' */\n' + read('assets', 'js', name) + '\n</script>')
+    parts.append('<script>\n/* ' + name + ' */\n' + inline_images(read('assets', 'js', name)) + '\n</script>')
 
 os.makedirs(os.path.dirname(OUT), exist_ok=True)
 with open(OUT, 'w', encoding='utf-8') as f:

@@ -34,6 +34,26 @@ RB.filters = (function () {
   }
   function rangeSet() { return !!(from || to); }
 
+  /* Whether one opportunity belongs to the chosen dates. Deliberately not part
+   * of apply(): on screen the pipeline is a snapshot of now, and hiding live
+   * deals because they were created last quarter would misread it. The Excel
+   * export is the opposite - there the date range is the point - so the
+   * workbook filters on this. "In the period" means anything happened in it:
+   * it was created, it closed, or somebody worked it. */
+  function inRange(v) {
+    if (!rangeSet()) return true;
+    var r = range();
+    var hit = function (iso) { return iso && iso.slice(0, 10) >= r.from && iso.slice(0, 10) <= r.to; };
+    return hit(v.opp.createdAt) || hit(v.opp.closedAt) ||
+           v.connects.some(function (c) { return hit(c.at); });
+  }
+
+  function connectInRange(c) {
+    if (!rangeSet()) return true;
+    var r = range();
+    return !!c.at && c.at.slice(0, 10) >= r.from && c.at.slice(0, 10) <= r.to;
+  }
+
   function apply(views) {
     var on = active();
     if (!on.length) return views;
@@ -164,5 +184,6 @@ RB.filters = (function () {
 
   return { KEYS: KEYS, CEO_KEYS: CEO_KEYS, apply: apply, applySchools: applySchools, bar: bar, bind: bind,
            describe: describe, active: active, count: count, range: range, rangeSet: rangeSet,
+           inRange: inRange, connectInRange: connectInRange,
            get state() { return state; } };
 })();
