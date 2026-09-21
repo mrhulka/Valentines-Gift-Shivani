@@ -11,9 +11,11 @@
     X-Content-Type-Options = "nosniff"
     Referrer-Policy = "same-origin"
 
-# The app and its data are one build; never serve a stale seed against new code.
+# The app and its data are one build; never serve a stale seed against new
+# code. Asset URLs carry a build hash (see tools/make_site.py), so this only
+# has to catch a browser that ignored the hash.
 [[headers]]
-  for = "/assets/js/*"
+  for = "/assets/*"
   [headers.values]
     Cache-Control = "public, max-age=0, must-revalidate"
 

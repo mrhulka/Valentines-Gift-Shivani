@@ -422,6 +422,11 @@ RB.app = (function () {
       document.getElementById('shell').classList.toggle(
         matchMedia('(min-width: 981px)').matches ? 'nav-shut' : 'nav-open');
     });
+    // The scrim behind the open drawer is a ::after on the shell, so a tap on
+    // it lands on the shell itself. Anything inside the rail is not a dismiss.
+    document.getElementById('shell').addEventListener('click', function (e) {
+      if (e.target === this) this.classList.remove('nav-open');
+    });
     document.getElementById('modal-root').addEventListener('click', function (e) {
       if (e.target.closest('[data-close]')) UI.closeModal();
     });
