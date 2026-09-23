@@ -29,6 +29,8 @@ async function run() {
   assert.equal(bad.error, "Room not found", "invalid room rejected");
 
   host.emit("setPrefs", { genres: ["Pop", "Rock"] });
+  // everyone (host included) readies -> server auto-starts after START_DELAY
+  host.emit("setReady", { ready: true });
   p2.emit("setReady", { ready: true });
   p3.emit("setReady", { ready: true });
   await wait(100);
@@ -59,7 +61,7 @@ async function run() {
   });
   const over = new Promise((res) => host.once("gameOver", res));
 
-  host.emit("startGame");
+  // no manual start — the ready countdown (START_DELAY) fires it
   sawGameOver = await over;
 
   assert.equal(leaked, false, "answer never leaked to client pre-reveal");

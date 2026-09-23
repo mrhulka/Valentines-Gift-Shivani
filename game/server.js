@@ -44,10 +44,23 @@ function roomState(room) {
     code: room.code, mode: room.mode, answerMode: room.answerMode,
     questionCount: room.questionCount, status: room.status, hostId: room.hostId,
     players, phase: room.phase, questionNumber: room.current + 1,
+    startAt: room.startAt || null, // set => auto-start countdown running
   };
 }
 
 const broadcast = (room) => io.to(room.code).emit("roomState", roomState(room));
+
+// Auto-start 5s after every connected player is ready; cancel if that changes.
+const START_DELAY = Number(process.env.START_DELAY) || 5000;
+function evaluateStart(room) {
+  clearTimeout(room.startTimer); room.startTimer = null; room.startAt = null;
+  if (room.status !== "lobby") return;
+  const conn = [...room.players.values()].filter((p) => p.connected);
+  if (conn.length >= 1 && conn.every((p) => p.ready)) {
+    room.startAt = Date.now() + START_DELAY;
+    room.startTimer = setTimeout(() => { room.startAt = null; startGame(room); }, START_DELAY);
+  }
+}
 
 // ---- HTTP: quick validity check for the join screen ----
 app.get("/api/room/:code", (req, res) => {
@@ -200,6 +213,7 @@ io.on("connection", (socket) => {
     }
     join(room, player);
     cb?.({ ok: true, code: room.code, playerId: player.id, you: sanitizePlayer(player) });
+    evaluateStart(room); // a new unready player cancels any pending countdown
     broadcast(room);
   });
 
@@ -215,12 +229,8 @@ io.on("connection", (socket) => {
 
   socket.on("setReady", (d) => withPlayer(socket, (room, p) => {
     p.ready = !!d?.ready;
+    evaluateStart(room); // all ready -> 5s countdown; un-ready -> cancel
     broadcast(room);
-  }));
-
-  socket.on("startGame", () => withPlayer(socket, (room, p) => {
-    if (p.id !== room.hostId || room.status !== "lobby") return;
-    startGame(room);
   }));
 
   socket.on("submitAnswer", (d, cb) => withPlayer(socket, (room, p) => {
@@ -242,6 +252,7 @@ io.on("connection", (socket) => {
     if (p.id !== room.hostId) return;
     room.status = "lobby"; room.phase = "lobby"; room.current = -1; room.questions = [];
     for (const pl of room.players.values()) { pl.ready = false; pl.score = 0; pl.streak = 0; }
+    evaluateStart(room);
     broadcast(room);
   }));
 
@@ -260,7 +271,8 @@ io.on("connection", (socket) => {
     }
     // drop disconnected players from an idle lobby; keep them mid-game for reconnect
     if (room.status === "lobby") room.players.delete(p.id);
-    if (room.players.size === 0) { clearTimeout(room.timer); rooms.delete(room.code); return; }
+    if (room.players.size === 0) { clearTimeout(room.timer); clearTimeout(room.startTimer); rooms.delete(room.code); return; }
+    evaluateStart(room); // a leaver may complete (or break) readiness
     broadcast(room);
   });
 });

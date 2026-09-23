@@ -129,7 +129,7 @@ const esc=(s)=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;
 
 // ---- state ----
 let socket, playerId=localStorage.getItem("pid")||null;
-let me=null, room=null, curQ=null, clockOffset=0, ytPlayer=null, ytReady=false, audioUnlocked=false, rafId=0;
+let me=null, room=null, curQ=null, clockOffset=0, ytPlayer=null, ytReady=false, audioUnlocked=false, ytUnlocked=false, rafId=0, cdTimer=0;
 const prefs={genres:[],eras:[],languages:[]};
 
 // ---- sound fx (WebAudio, no asset files) ----
@@ -158,13 +158,14 @@ document.body.appendChild(ytHost);
 window.onYouTubeIframeAPIReady=()=>{
   ytPlayer=new YT.Player("yt",{height:"100%",width:"100%",videoId:"",
     playerVars:{controls:0,disablekb:1,modestbranding:1,rel:0,playsinline:1,fs:0,iv_load_policy:3},
-    events:{onReady:()=>ytReady=true,onError:onYtError}});
+    events:{onReady:()=>{ytReady=true;if(pendingClip){const p=pendingClip;pendingClip=null;playClip(p.v,p.s,p.m);}},onError:onYtError}});
 };
-function onYtError(){ // unavailable/region-locked video: don't hang the round
+function onYtError(){ // video blocks embedding / unavailable: don't hang the round
   showToast("Having trouble playing this track…");
 }
+let pendingClip=null;
 function playClip(videoId,startSec,ms){
-  if(!ytReady||!ytPlayer)return;
+  if(!ytReady||!ytPlayer){pendingClip={v:videoId,s:startSec,m:ms};return;} // queue until API ready
   try{
     ytPlayer.loadVideoById({videoId,startSeconds:startSec});
     ytPlayer.playVideo();
@@ -273,7 +274,8 @@ function joinScreen(pref=""){
 
 function renderLobby(){
   const isHost=room.hostId===playerId;
-  const allReady=room.players.length>0 && room.players.every(p=>p.ready||p.id===room.hostId);
+  clearInterval(cdTimer);
+  const counting=!!room.startAt;
   const link=`${location.origin}/?room=${room.code}`;
   const n=$(`<div class="screen">
     <div class="center"><div class="label">Room code — share it</div>
@@ -287,11 +289,9 @@ function renderLobby(){
       </div></div>
     <div><div class="label" style="margin-bottom:8px">Squad (${room.players.length}/10)</div>
       <div class="players" id="pl"></div></div>
-    ${allReady?'<div class="center" style="color:var(--good);font-weight:800">✨ Everyone\'s ready!</div>':''}
-    ${isHost
-      ? `<button class="btn hot" id="start" ${room.players.length<1?'disabled':''}>▶ Start Game</button>`
-      : `<button class="btn" id="ready">${me&&isReady()?'✓ Ready — waiting for host':'I\'m ready'}</button>`}
-    <div class="foot">${isHost?'You\'re the host. Start when the squad\'s in.':'Waiting for the host to start…'}</div>
+    <div class="center" id="cd" style="font-weight:800;min-height:24px;${counting?'color:var(--gold)':'color:var(--dim)'}"></div>
+    <button class="btn ${counting?'hot':''}" id="ready">${isReady()?'✓ Ready — tap to cancel':"I'm ready"}</button>
+    <div class="foot">Everyone taps ready — the game auto-starts 5 seconds later.</div>
   </div>`);
   fillChips(n.querySelector("#g"),GENRES,prefs.genres,"genres");
   fillChips(n.querySelector("#e"),ERAS,prefs.eras,"eras");
@@ -300,11 +300,17 @@ function renderLobby(){
   room.players.forEach(p=>{
     pl.appendChild($(`<div class="plr"><span class="av">${p.avatar}</span>
       <span class="nm">${esc(p.name)}${p.id===playerId?' (you)':''} ${p.isHost?'<span class="crown">👑</span>':''}</span>
-      ${p.isHost?'<span class="wait">host</span>':(p.ready?'<span class="tick">✓ ready</span>':'<span class="wait">…</span>')}</div>`));
+      ${p.ready?'<span class="tick">✓ ready</span>':'<span class="wait">…</span>'}</div>`));
   });
   n.querySelector("#copy").onclick=()=>{navigator.clipboard?.writeText(link);showToast("Invite link copied!");};
-  const s=n.querySelector("#start");if(s)s.onclick=()=>{unlockAudio();socket.emit("startGame");};
-  const r=n.querySelector("#ready");if(r)r.onclick=()=>{unlockAudio();socket.emit("setReady",{ready:!isReady()});};
+  n.querySelector("#ready").onclick=()=>{unlockAudio();socket.emit("setReady",{ready:!isReady()});};
+  const cd=n.querySelector("#cd");
+  const tickCd=()=>{
+    if(!room.startAt){cd.textContent=room.players.every(p=>p.ready)?"":"Waiting for everyone to be ready…";return;}
+    const s=Math.max(0,Math.ceil((room.startAt-Date.now())/1000));
+    cd.textContent=`🚀 Starting in ${s}…`;
+  };
+  tickCd(); if(counting) cdTimer=setInterval(tickCd,250);
   setScreen(n);
 }
 const isReady=()=>room?.players.find(p=>p.id===playerId)?.ready;
@@ -316,6 +322,7 @@ function fillChips(box,items,sel,key){
 
 // ================= question =================
 function onQuestion(q){
+  clearInterval(cdTimer);
   curQ=q;clockOffset=q.serverNow-Date.now();
   const n=$(`<div class="screen">
     <div class="row" style="justify-content:space-between">
@@ -350,15 +357,17 @@ function onQuestion(q){
   }
   setScreen(n);
   fx.start();
-  // unlock/play: needs a user gesture on mobile the first time
-  if(audioUnlocked)playClip(q.youtubeVideoId,q.clipStart,q.clipMs);
+  // YouTube audio needs a gesture that DIRECTLY calls play the first time
+  // (mobile blocks cross-origin autoplay). Gate the first clip on a real tap;
+  // after that, in-session autoplay is allowed.
+  if(ytUnlocked)playClip(q.youtubeVideoId,q.clipStart,q.clipMs);
   else showTapToPlay(stage,q);
   startCountdown(q.deadline);
 }
 function showTapToPlay(stage,q){
   const g=$(`<div class="cover" style="z-index:5;cursor:pointer"><div class="mt">🔊 Tap to play</div>
     <div class="wait">enables sound on your device</div></div>`);
-  g.onclick=()=>{unlockAudio();g.remove();playClip(q.youtubeVideoId,q.clipStart,q.clipMs);};
+  g.onclick=()=>{ytUnlocked=true;unlockAudio();g.remove();playClip(q.youtubeVideoId,q.clipStart,q.clipMs);};
   stage.appendChild(g);
 }
 function unlockAudio(){audioUnlocked=true;try{actx=actx||new (window.AudioContext||window.webkitAudioContext)();actx.resume();}catch(e){}}
