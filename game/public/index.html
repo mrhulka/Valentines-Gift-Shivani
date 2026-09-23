@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
+<title>Guess the Track</title>
+<style>
+:root{
+  --bg:#0a0a0f; --bg2:#12121c; --card:#181824; --line:#262636;
+  --text:#f4f4f8; --dim:#9a9ab0; --accent:#7c5cff; --accent2:#00e0a4;
+  --hot:#ff4d6d; --gold:#ffd23f; --good:#00e0a4; --bad:#ff4d6d;
+  --r:18px;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{
+  background:radial-gradient(1200px 800px at 50% -10%,#1a1030 0%,var(--bg) 55%);
+  color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;
+  -webkit-font-smoothing:antialiased;overflow-x:hidden;
+}
+.app{max-width:560px;margin:0 auto;min-height:100dvh;display:flex;flex-direction:column;
+  padding:max(env(safe-area-inset-top),16px) 16px max(env(safe-area-inset-bottom),16px);}
+.screen{flex:1;display:flex;flex-direction:column;justify-content:center;gap:18px;animation:fade .35s ease}
+@keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+h1{font-size:clamp(34px,9vw,52px);line-height:1.02;margin:0;font-weight:800;letter-spacing:-1px}
+h2{font-size:26px;margin:0;font-weight:800;letter-spacing:-.5px}
+.grad{background:linear-gradient(100deg,var(--accent) 0%,var(--hot) 55%,var(--gold) 100%);
+  -webkit-background-clip:text;background-clip:text;color:transparent}
+p.sub{color:var(--dim);font-size:16px;margin:0;line-height:1.5}
+button{font:inherit;cursor:pointer;border:none;border-radius:var(--r);color:#fff}
+.btn{padding:18px 20px;font-size:18px;font-weight:700;background:var(--accent);
+  transition:transform .08s,filter .2s;min-height:58px;width:100%;box-shadow:0 8px 24px -8px var(--accent)}
+.btn:active{transform:scale(.97)}
+.btn.hot{background:linear-gradient(100deg,var(--hot),#ff7a3d);box-shadow:0 8px 24px -8px var(--hot)}
+.btn.ghost{background:var(--card);border:1px solid var(--line);box-shadow:none}
+.btn:disabled{filter:grayscale(.7) brightness(.6);cursor:default}
+input{width:100%;padding:16px;font-size:18px;border-radius:14px;background:var(--bg2);
+  border:1px solid var(--line);color:var(--text);outline:none}
+input:focus{border-color:var(--accent)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:18px}
+.row{display:flex;gap:10px;align-items:center}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{padding:9px 14px;border-radius:999px;background:var(--bg2);border:1px solid var(--line);
+  color:var(--dim);font-size:14px;font-weight:600;transition:.15s}
+.chip.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.label{font-size:12px;letter-spacing:2px;text-transform:uppercase;color:var(--dim);font-weight:700}
+.pill{display:inline-flex;gap:8px;align-items:center;background:var(--bg2);border:1px solid var(--line);
+  border-radius:999px;padding:8px 14px;font-weight:700}
+.code{font-size:40px;font-weight:900;letter-spacing:8px;color:var(--gold)}
+.players{display:flex;flex-direction:column;gap:8px}
+.plr{display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--bg2);
+  border:1px solid var(--line);border-radius:14px;animation:fade .3s}
+.plr .av{font-size:24px}.plr .nm{font-weight:700;flex:1}
+.tick{color:var(--good);font-weight:800}.wait{color:var(--dim);font-size:13px}
+.crown{color:var(--gold)}
+.center{text-align:center}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+/* mystery player */
+.stage{position:relative;border-radius:24px;overflow:hidden;background:#000;aspect-ratio:1/1;
+  max-height:46vh;margin:0 auto;width:100%;box-shadow:0 20px 60px -20px #000}
+#yt{position:absolute;inset:0;width:100%;height:100%;border:0}
+.cover{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:18px;background:radial-gradient(circle at 50% 40%,#241844,#0a0a0f);z-index:2}
+.cover .q{font-size:14px;letter-spacing:4px;color:var(--dim);font-weight:800}
+.cover .mt{font-size:30px;font-weight:900;letter-spacing:-.5px}
+.eq{display:flex;gap:6px;height:56px;align-items:flex-end}
+.eq i{width:8px;background:linear-gradient(var(--accent),var(--hot));border-radius:6px;animation:bounce 1s infinite ease-in-out}
+.eq i:nth-child(2){animation-delay:.15s}.eq i:nth-child(3){animation-delay:.3s}
+.eq i:nth-child(4){animation-delay:.45s}.eq i:nth-child(5){animation-delay:.2s}
+@keyframes bounce{0%,100%{height:14px}50%{height:52px}}
+.paused .eq i{animation-play-state:paused}
+.timer{font-size:56px;font-weight:900;font-variant-numeric:tabular-nums;text-align:center;line-height:1}
+.timer.warn{color:var(--hot);animation:pulse .5s infinite}
+@keyframes pulse{50%{opacity:.4}}
+.bar{height:8px;background:var(--bg2);border-radius:99px;overflow:hidden}
+.bar>i{display:block;height:100%;background:linear-gradient(90deg,var(--good),var(--gold),var(--hot));
+  width:100%;transition:width .1s linear}
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.opt{padding:18px 14px;border-radius:16px;background:var(--card);border:2px solid var(--line);
+  font-size:16px;font-weight:700;text-align:left;min-height:74px;transition:.12s;color:var(--text)}
+.opt:active{transform:scale(.97)}
+.opt.pick{border-color:var(--accent);background:#221a44}
+.opt.correct{border-color:var(--good);background:#0c2b22}
+.opt.wrong{border-color:var(--bad);background:#2b0c14}
+.opt .ltr{color:var(--dim);font-weight:900;margin-right:8px}
+.big{font-size:clamp(30px,8vw,46px);font-weight:900;letter-spacing:-1px;line-height:1.05}
+.locked{text-align:center;padding:28px}
+.reveal-title{animation:pop .5s cubic-bezier(.2,1.4,.4,1)}
+@keyframes pop{from{transform:scale(.7);opacity:0}to{transform:scale(1);opacity:1}}
+.res{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:12px;background:var(--bg2);border:1px solid var(--line)}
+.res .d{margin-left:auto;font-weight:900}
+.delta-up{color:var(--good)}.delta-zero{color:var(--dim)}
+.lb{display:flex;flex-direction:column;gap:6px}
+.lb .r{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:12px;background:var(--bg2);border:1px solid var(--line);transition:.3s}
+.lb .r .pos{font-weight:900;color:var(--dim);width:26px}
+.lb .r .sc{margin-left:auto;font-weight:900;font-variant-numeric:tabular-nums}
+.lb .r.me{border-color:var(--accent)}
+.streak{position:fixed;left:0;right:0;top:14px;text-align:center;z-index:20;pointer-events:none}
+.streak span{background:linear-gradient(100deg,var(--hot),var(--gold));padding:8px 18px;border-radius:999px;
+  font-weight:900;letter-spacing:1px;box-shadow:0 8px 20px -8px var(--hot);display:inline-block;animation:pop .4s}
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--card);
+  border:1px solid var(--line);padding:12px 18px;border-radius:12px;z-index:30;font-weight:600}
+.mute{position:fixed;top:12px;right:12px;z-index:40;width:44px;height:44px;border-radius:50%;
+  background:var(--card);border:1px solid var(--line);font-size:18px;display:flex;align-items:center;justify-content:center}
+.foot{color:var(--dim);font-size:12px;text-align:center;margin-top:8px;line-height:1.5}
+a{color:var(--accent2)}
+.spin{width:44px;height:44px;border:4px solid var(--line);border-top-color:var(--accent);border-radius:50%;
+  animation:sp 1s linear infinite;margin:0 auto}@keyframes sp{to{transform:rotate(360deg)}}
+@media(prefers-reduced-motion:reduce){*{animation-duration:.01ms!important}}
+:focus-visible{outline:3px solid var(--accent2);outline-offset:2px}
+</style>
+</head>
+<body>
+<button class="mute" id="mute" aria-label="Toggle sound effects">🔊</button>
+<div class="streak" id="streak"></div>
+<div class="app"><div class="screen" id="screen"></div></div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script src="https://www.youtube.com/iframe_api" async></script>
+<script>
+const GENRES=["Pop","Rock","Hip-Hop","R&B","EDM","Bollywood","Indie","Country","Jazz"];
+const ERAS=["70s","80s","90s","2000s","2010s","2020s"];
+const LANGS=["English","Hindi","Spanish","Tamil","Punjabi"];
+
+const $=(h)=>{const t=document.createElement("template");t.innerHTML=h.trim();return t.content.firstChild};
+const el=document.getElementById("screen");
+const setScreen=(node)=>{el.innerHTML="";el.appendChild(node)};
+const esc=(s)=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+// ---- state ----
+let socket, playerId=localStorage.getItem("pid")||null;
+let me=null, room=null, curQ=null, clockOffset=0, ytPlayer=null, ytReady=false, audioUnlocked=false, rafId=0;
+const prefs={genres:[],eras:[],languages:[]};
+
+// ---- sound fx (WebAudio, no asset files) ----
+let actx, muted=localStorage.getItem("mute")==="1";
+document.getElementById("mute").textContent=muted?"🔇":"🔊";
+document.getElementById("mute").onclick=()=>{muted=!muted;localStorage.setItem("mute",muted?"1":"0");
+  document.getElementById("mute").textContent=muted?"🔇":"🔊"};
+function beep(freq,dur=0.12,type="sine",vol=0.15){
+  if(muted)return; try{actx=actx||new (window.AudioContext||window.webkitAudioContext)();
+  const o=actx.createOscillator(),g=actx.createGain();o.type=type;o.frequency.value=freq;
+  o.connect(g);g.connect(actx.destination);g.gain.setValueAtTime(vol,actx.currentTime);
+  g.gain.exponentialRampToValueAtTime(0.001,actx.currentTime+dur);o.start();o.stop(actx.currentTime+dur);}catch(e){}
+}
+const fx={start:()=>beep(660,.15,"triangle"),warn:()=>beep(440,.1,"square",.2),
+  lock:()=>beep(520,.08,"sine"),correct:()=>{beep(660,.1);setTimeout(()=>beep(880,.18),90)},
+  wrong:()=>beep(160,.25,"sawtooth",.12),win:()=>{[523,659,784,1046].forEach((f,i)=>setTimeout(()=>beep(f,.2,"triangle"),i*140))}};
+
+// ---- YouTube IFrame (the compliant playback layer) ----
+// One persistent player node. It initialises offscreen, then gets moved into
+// each question's stage full-size, with an opaque cover on top: a legitimate,
+// full-size player whose identifying visuals (title/thumbnail) stay masked.
+const ytHost=document.createElement("div");
+ytHost.id="ytwrap";ytHost.style.cssText="position:absolute;inset:0;left:-9999px;width:100%;height:100%";
+ytHost.innerHTML='<div id="yt"></div>';
+document.body.appendChild(ytHost);
+window.onYouTubeIframeAPIReady=()=>{
+  ytPlayer=new YT.Player("yt",{height:"100%",width:"100%",videoId:"",
+    playerVars:{controls:0,disablekb:1,modestbranding:1,rel:0,playsinline:1,fs:0,iv_load_policy:3},
+    events:{onReady:()=>ytReady=true,onError:onYtError}});
+};
+function onYtError(){ // unavailable/region-locked video: don't hang the round
+  showToast("Having trouble playing this track…");
+}
+function playClip(videoId,startSec,ms){
+  if(!ytReady||!ytPlayer)return;
+  try{
+    ytPlayer.loadVideoById({videoId,startSeconds:startSec});
+    ytPlayer.playVideo();
+    setTimeout(()=>{try{ytPlayer.pauseVideo();}catch(e){}
+      const eq=document.querySelector(".stage");eq&&eq.classList.add("paused");},ms);
+  }catch(e){}
+}
+const now=()=>Date.now()+clockOffset; // server-aligned clock
+
+// ================= socket setup =================
+function connect(){
+  socket=io();
+  socket.on("connect",()=>{});
+  socket.on("roomState",(s)=>{room=s;render();});
+  socket.on("question",(q)=>onQuestion(q));
+  socket.on("answerLocked",({playerId:pid})=>{if(room){/* live count via render */}});
+  socket.on("reveal",(r)=>onReveal(r));
+  socket.on("gameOver",(g)=>onGameOver(g));
+}
+connect();
+
+// ================= screens =================
+function render(){
+  if(!room){return;}
+  if(room.status==="lobby")return renderLobby();
+  // playing/finished screens are driven by question/reveal/gameOver events; keep current DOM
+}
+
+function landing(){
+  const n=$(`<div class="screen">
+    <div style="text-align:center">
+      <div class="label">the music party game</div>
+      <h1>Do you know<br><span class="grad">your friends'<br>music?</span></h1>
+    </div>
+    <p class="sub center">5-second mystery clips. 10 seconds to guess. Winner takes the aux.</p>
+    <button class="btn hot" id="c">🎉 Create Game</button>
+    <button class="btn ghost" id="j">Join with a code</button>
+    <div class="foot">Up to 10 players · plays on every phone</div>
+  </div>`);
+  n.querySelector("#c").onclick=()=>createScreen();
+  n.querySelector("#j").onclick=()=>joinScreen();
+  setScreen(n);
+}
+
+function createScreen(){
+  let mode="genre",qc=10,am="easy";
+  const n=$(`<div class="screen">
+    <button class="btn ghost" style="width:auto;align-self:flex-start;padding:10px 16px;min-height:0" id="bk">← Back</button>
+    <h2>New Game</h2>
+    <input id="nm" placeholder="Your name" maxlength="20" autocomplete="off"/>
+    <div><div class="label" style="margin-bottom:8px">Game mode</div>
+      <div class="grid2">
+        <button class="opt pick" data-m="genre" style="min-height:0">🎛️ Genre Battle<br><span class="wait">Pick genres, eras, langs</span></button>
+        <button class="opt" data-m="friendmix" style="min-height:0">👯 Friend Mix<br><span class="wait">Whose song is it?</span></button>
+      </div></div>
+    <div><div class="label" style="margin-bottom:8px">Questions</div>
+      <div class="chips" id="qc">${[10,20,30].map(v=>`<button class="chip${v===10?' on':''}" data-qc="${v}">${v}</button>`).join("")}</div></div>
+    <div><div class="label" style="margin-bottom:8px">Answering</div>
+      <div class="chips" id="am">
+        <button class="chip on" data-am="easy">Easy · 4 options</button>
+        <button class="chip" data-am="hard">Hard · type it</button>
+        <button class="chip" data-am="mixed">Mixed</button></div></div>
+    <button class="btn" id="go">Create room →</button>
+  </div>`);
+  n.querySelector("#bk").onclick=landing;
+  n.querySelectorAll("[data-m]").forEach(b=>b.onclick=()=>{mode=b.dataset.m;
+    n.querySelectorAll("[data-m]").forEach(x=>x.classList.toggle("pick",x===b));});
+  n.querySelector("#qc").onclick=(e)=>{const b=e.target.closest("[data-qc]");if(!b)return;qc=+b.dataset.qc;
+    n.querySelectorAll("#qc .chip").forEach(x=>x.classList.toggle("on",x===b));};
+  n.querySelector("#am").onclick=(e)=>{const b=e.target.closest("[data-am]");if(!b)return;am=b.dataset.am;
+    n.querySelectorAll("#am .chip").forEach(x=>x.classList.toggle("on",x===b));};
+  n.querySelector("#go").onclick=()=>{
+    const name=n.querySelector("#nm").value.trim();if(!name)return n.querySelector("#nm").focus();
+    unlockAudio();
+    socket.emit("createRoom",{name,mode,questionCount:qc,answerMode:am},(res)=>{
+      if(res?.error)return showToast(res.error);
+      me=res.you;playerId=res.playerId;localStorage.setItem("pid",playerId);
+    });
+  };
+  setScreen(n);
+}
+
+function joinScreen(pref=""){
+  const n=$(`<div class="screen">
+    <button class="btn ghost" style="width:auto;align-self:flex-start;padding:10px 16px;min-height:0" id="bk">← Back</button>
+    <h2>Join Game</h2>
+    <input id="cd" placeholder="ROOM CODE" maxlength="5" autocapitalize="characters"
+      style="text-transform:uppercase;letter-spacing:6px;font-weight:800;text-align:center" value="${esc(pref)}"/>
+    <input id="nm" placeholder="Your name" maxlength="20" autocomplete="off"/>
+    <button class="btn hot" id="go">Join →</button>
+  </div>`);
+  n.querySelector("#bk").onclick=landing;
+  n.querySelector("#go").onclick=()=>{
+    const code=n.querySelector("#cd").value.trim().toUpperCase();
+    const name=n.querySelector("#nm").value.trim();
+    if(code.length<5)return showToast("Enter the 5-letter code");
+    if(!name)return n.querySelector("#nm").focus();
+    unlockAudio();
+    socket.emit("joinRoom",{code,name,playerId},(res)=>{
+      if(res?.error)return showToast(res.error);
+      me=res.you;playerId=res.playerId;localStorage.setItem("pid",playerId);
+    });
+  };
+  setScreen(n);
+}
+
+function renderLobby(){
+  const isHost=room.hostId===playerId;
+  const allReady=room.players.length>0 && room.players.every(p=>p.ready||p.id===room.hostId);
+  const link=`${location.origin}/?room=${room.code}`;
+  const n=$(`<div class="screen">
+    <div class="center"><div class="label">Room code — share it</div>
+      <div class="code">${room.code}</div>
+      <button class="btn ghost" id="copy" style="margin-top:10px">📋 Copy invite link</button></div>
+    <div><div class="label" style="margin-bottom:8px">Your vibe · pick up to 3 each</div>
+      <div class="card">
+        <div class="wait" style="margin-bottom:6px">Genres</div><div class="chips" id="g"></div>
+        <div class="wait" style="margin:12px 0 6px">Eras</div><div class="chips" id="e"></div>
+        <div class="wait" style="margin:12px 0 6px">Languages</div><div class="chips" id="l"></div>
+      </div></div>
+    <div><div class="label" style="margin-bottom:8px">Squad (${room.players.length}/10)</div>
+      <div class="players" id="pl"></div></div>
+    ${allReady?'<div class="center" style="color:var(--good);font-weight:800">✨ Everyone\'s ready!</div>':''}
+    ${isHost
+      ? `<button class="btn hot" id="start" ${room.players.length<1?'disabled':''}>▶ Start Game</button>`
+      : `<button class="btn" id="ready">${me&&isReady()?'✓ Ready — waiting for host':'I\'m ready'}</button>`}
+    <div class="foot">${isHost?'You\'re the host. Start when the squad\'s in.':'Waiting for the host to start…'}</div>
+  </div>`);
+  fillChips(n.querySelector("#g"),GENRES,prefs.genres,"genres");
+  fillChips(n.querySelector("#e"),ERAS,prefs.eras,"eras");
+  fillChips(n.querySelector("#l"),LANGS,prefs.languages,"languages");
+  const pl=n.querySelector("#pl");
+  room.players.forEach(p=>{
+    pl.appendChild($(`<div class="plr"><span class="av">${p.avatar}</span>
+      <span class="nm">${esc(p.name)}${p.id===playerId?' (you)':''} ${p.isHost?'<span class="crown">👑</span>':''}</span>
+      ${p.isHost?'<span class="wait">host</span>':(p.ready?'<span class="tick">✓ ready</span>':'<span class="wait">…</span>')}</div>`));
+  });
+  n.querySelector("#copy").onclick=()=>{navigator.clipboard?.writeText(link);showToast("Invite link copied!");};
+  const s=n.querySelector("#start");if(s)s.onclick=()=>{unlockAudio();socket.emit("startGame");};
+  const r=n.querySelector("#ready");if(r)r.onclick=()=>{unlockAudio();socket.emit("setReady",{ready:!isReady()});};
+  setScreen(n);
+}
+const isReady=()=>room?.players.find(p=>p.id===playerId)?.ready;
+function fillChips(box,items,sel,key){
+  items.forEach(v=>{const c=$(`<button class="chip${sel.includes(v)?' on':''}">${v}</button>`);
+    c.onclick=()=>{const i=sel.indexOf(v);if(i>=0)sel.splice(i,1);else if(sel.length<3)sel.push(v);
+      c.classList.toggle("on");socket.emit("setPrefs",prefs);};box.appendChild(c);});
+}
+
+// ================= question =================
+function onQuestion(q){
+  curQ=q;clockOffset=q.serverNow-Date.now();
+  const n=$(`<div class="screen">
+    <div class="row" style="justify-content:space-between">
+      <span class="pill">Q ${q.number}/${q.total}</span>
+      <span class="pill">${q.answerMode==="hard"?'⌨️ Hard':'🎯 Easy'}</span></div>
+    <div class="stage" id="stage">
+      <div class="cover"><div class="q">MYSTERY TRACK</div>
+        <div class="eq"><i></i><i></i><i></i><i></i><i></i></div>
+        <div class="mt">What song is this?</div></div>
+    </div>
+    <div class="timer" id="t">10.0</div>
+    <div class="bar"><i id="bar"></i></div>
+    <div id="answers"></div>
+  </div>`);
+  const stage=n.querySelector("#stage");
+  // move the persistent player into this stage (full-size, behind the cover)
+  ytHost.style.left="0";
+  stage.insertBefore(ytHost,stage.firstChild);
+  const ans=n.querySelector("#answers");
+  if(q.answerMode==="easy"){
+    const grid=$(`<div class="opts"></div>`);
+    q.options.forEach((o,i)=>{const b=$(`<button class="opt"><span class="ltr">${"ABCD"[i]}</span>${esc(o)}</button>`);
+      b.onclick=()=>submit(i,b);grid.appendChild(b);});
+    ans.appendChild(grid);
+  }else{
+    const w=$(`<div class="row"><input id="g" placeholder="Type the song title…" autocomplete="off"/>
+      <button class="btn" style="width:auto" id="sb">Go</button></div>`);
+    const send=()=>submit(w.querySelector("#g").value,w);
+    w.querySelector("#sb").onclick=send;
+    w.querySelector("#g").addEventListener("keydown",e=>{if(e.key==="Enter")send();});
+    ans.appendChild(w);
+  }
+  setScreen(n);
+  fx.start();
+  // unlock/play: needs a user gesture on mobile the first time
+  if(audioUnlocked)playClip(q.youtubeVideoId,q.clipStart,q.clipMs);
+  else showTapToPlay(stage,q);
+  startCountdown(q.deadline);
+}
+function showTapToPlay(stage,q){
+  const g=$(`<div class="cover" style="z-index:5;cursor:pointer"><div class="mt">🔊 Tap to play</div>
+    <div class="wait">enables sound on your device</div></div>`);
+  g.onclick=()=>{unlockAudio();g.remove();playClip(q.youtubeVideoId,q.clipStart,q.clipMs);};
+  stage.appendChild(g);
+}
+function unlockAudio(){audioUnlocked=true;try{actx=actx||new (window.AudioContext||window.webkitAudioContext)();actx.resume();}catch(e){}}
+
+let answered=false;
+function submit(answer,node){
+  if(answered)return;answered=true;fx.lock();
+  socket.emit("submitAnswer",{questionId:curQ.id,answer},(res)=>{
+    if(res?.error){answered=false;return showToast(res.error);}
+    lockUI(node);
+  });
+}
+function lockUI(node){
+  document.querySelectorAll(".opt").forEach(b=>{b.disabled=true;if(b===node)b.classList.add("pick");});
+  const inp=document.querySelector("#answers input");if(inp){inp.disabled=true;
+    document.querySelector("#answers .btn")?.setAttribute("disabled","");}
+  const ans=document.getElementById("answers");
+  ans&&ans.insertAdjacentHTML("afterbegin",'<div class="center" style="color:var(--gold);font-weight:800;margin-bottom:10px">🔒 Locked in.</div>');
+}
+function startCountdown(deadline){
+  cancelAnimationFrame(rafId);let warned=false;
+  const t=document.getElementById("t"),bar=document.getElementById("bar");
+  const tick=()=>{
+    const rem=Math.max(0,deadline-now());const s=rem/1000;
+    if(t)t.textContent=s.toFixed(1);
+    if(bar)bar.style.width=(rem/10000*100)+"%";
+    if(s<=3&&!warned){warned=true;fx.warn();t?.classList.add("warn");}
+    if(rem>0)rafId=requestAnimationFrame(tick);
+  };tick();
+}
+
+// ================= reveal =================
+function onReveal(r){
+  cancelAnimationFrame(rafId);answered=false;
+  try{ytPlayer&&ytPlayer.pauseVideo();}catch(e){}
+  const mine=r.results.find(x=>x.playerId===playerId);
+  if(mine){mine.correct?fx.correct():fx.wrong();if(mine.streakLabel)showStreak(mine.streakLabel);}
+  // mark easy options if still on screen
+  document.querySelectorAll(".opt").forEach((b,i)=>{
+    if(i===r.correctIndex)b.classList.add("correct");
+    else if(b.classList.contains("pick"))b.classList.add("wrong");});
+  const n=$(`<div class="screen">
+    <div class="center"><div class="label">the answer was</div>
+      <div class="big grad reveal-title">${esc(r.title)}</div>
+      <div class="sub" style="font-size:20px;margin-top:4px">${esc(r.artist)}</div>
+      ${r.sourceName?`<div class="pill" style="margin-top:14px">👤 From ${esc(r.sourceName)}'s music</div>`:''}
+      <div style="font-weight:900;font-size:28px;margin-top:14px;${mine?.correct?'color:var(--good)':'color:var(--dim)'}">
+        ${mine?(mine.correct?`Nailed it · +${mine.scoreDelta}`:(mine.scoreDelta===0&&mine.correct===false?'Ouch · +0':'+0')):'—'}</div></div>
+    <div><div class="label" style="margin-bottom:8px">This round</div><div class="players" id="res"></div></div>
+    <div><div class="label" style="margin-bottom:8px">Leaderboard</div><div class="lb" id="lb"></div></div>
+    <div class="foot">Next track loading…</div>
+  </div>`);
+  const res=n.querySelector("#res");
+  r.results.forEach(x=>res.appendChild($(`<div class="res"><span class="av">${x.avatar}</span>
+    <span class="nm">${esc(x.name)}</span>
+    <span class="d ${x.scoreDelta>0?'delta-up':'delta-zero'}">${x.correct?'+'+x.scoreDelta:(x.correct===false?'✗':'+0')}</span></div>`)));
+  const lb=n.querySelector("#lb");
+  r.leaderboard.forEach((p,i)=>lb.appendChild($(`<div class="r ${p.playerId===playerId?'me':''}">
+    <span class="pos">${i+1}</span><span class="av">${p.avatar}</span><span class="nm">${esc(p.name)}</span>
+    <span class="sc">${p.score}</span></div>`)));
+  setScreen(n);
+}
+
+function onGameOver(g){
+  cancelAnimationFrame(rafId);fx.win();
+  const w=g.winner;const myStats=g.stats.find(s=>s.playerId===playerId);
+  const isHost=room?.hostId===playerId;
+  const n=$(`<div class="screen">
+    <div class="center"><div class="label">we have a winner</div>
+      <div style="font-size:64px" class="reveal-title">${w?w.avatar:'🏆'}</div>
+      <h1 class="grad">${w?esc(w.name):'—'}</h1>
+      <div style="font-size:24px;font-weight:900;color:var(--gold)">${w?w.score.toLocaleString():0} pts</div></div>
+    <div><div class="label" style="margin-bottom:8px">Final standings</div><div class="lb" id="lb"></div></div>
+    ${myStats?`<div class="card center"><div class="label">your game</div>
+      <div class="grid2" style="margin-top:10px;text-align:center">
+        <div><div class="big" style="font-size:26px">${myStats.correct}/${myStats.total}</div><div class="wait">correct</div></div>
+        <div><div class="big" style="font-size:26px">${myStats.avgRt?(myStats.avgRt/1000).toFixed(1)+'s':'—'}</div><div class="wait">avg speed</div></div>
+        <div><div class="big" style="font-size:26px">🔥 ${myStats.bestStreak}</div><div class="wait">best streak</div></div>
+        <div><div class="big" style="font-size:26px">${Math.round(myStats.correct/(myStats.total||1)*100)}%</div><div class="wait">hit rate</div></div>
+      </div>${room?.mode==='friendmix'?`<div class="pill" style="margin-top:12px">You know ${Math.round(myStats.correct/(myStats.total||1)*100)}% of your friends' music</div>`:''}</div>`:''}
+    ${isHost?'<button class="btn hot" id="again">🔁 Play again</button>':'<div class="foot">Host can start another round.</div>'}
+    <button class="btn ghost" id="home">Leave</button>
+  </div>`);
+  const lb=n.querySelector("#lb");
+  g.leaderboard.forEach((p,i)=>lb.appendChild($(`<div class="r ${p.playerId===playerId?'me':''}">
+    <span class="pos">${i===0?'👑':i+1}</span><span class="av">${p.avatar}</span><span class="nm">${esc(p.name)}</span>
+    <span class="sc">${p.score}</span></div>`)));
+  const a=n.querySelector("#again");if(a)a.onclick=()=>socket.emit("playAgain");
+  n.querySelector("#home").onclick=()=>{localStorage.removeItem("pid");location.href="/";};
+  setScreen(n);
+}
+
+// ---- helpers ----
+function showToast(m){const t=$(`<div class="toast">${esc(m)}</div>`);document.body.appendChild(t);
+  setTimeout(()=>t.remove(),2600);}
+function showStreak(label){const s=document.getElementById("streak");
+  s.innerHTML=`<span>🔥 ${esc(label)}</span>`;setTimeout(()=>s.innerHTML="",1800);}
+
+// ---- boot: deep-link ?room=CODE straight to join ----
+const rp=new URLSearchParams(location.search).get("room");
+if(rp)joinScreen(rp);else landing();
+</script>
+</body>
+</html>

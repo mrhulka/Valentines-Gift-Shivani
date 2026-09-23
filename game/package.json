@@ -1,0 +1,15 @@
+{
+  "name": "friends-music-party",
+  "version": "1.0.0",
+  "description": "Multiplayer music guessing party game. Server-authoritative, real-time, YouTube playback.",
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node test.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "socket.io": "^4.7.5"
+  }
+}
