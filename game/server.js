@@ -233,6 +233,11 @@ io.on("connection", (socket) => {
     broadcast(room);
   }));
 
+  socket.on("setSpotify", (d) => withPlayer(socket, (room, p) => {
+    p.spotifyConnected = !!d?.connected;
+    broadcast(room);
+  }));
+
   socket.on("submitAnswer", (d, cb) => withPlayer(socket, (room, p) => {
     const q = room.questions[room.current];
     if (!q || room.phase !== "question" || q.id !== d?.questionId) return cb?.({ error: "Not accepting answers" });
