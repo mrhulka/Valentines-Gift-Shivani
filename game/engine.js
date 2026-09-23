@@ -2,7 +2,7 @@
 
 const num = (v, d) => (v ? Number(v) : d);
 export const ANSWER_MS = num(process.env.ANSWER_MS, 10000);   // answering window
-export const CLIP_MS = num(process.env.CLIP_MS, 7000);        // how long the mystery clip plays
+export const CLIP_MS = num(process.env.CLIP_MS, 10000);       // how long the mystery clip plays
 export const REVEAL_MS = num(process.env.REVEAL_MS, 6000);    // reveal dwell before next question
 export const MAX_PLAYERS = 10;
 

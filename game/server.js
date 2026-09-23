@@ -93,12 +93,16 @@ function nextQuestion(room) {
   const startedAt = Date.now();
   q.startedAt = startedAt;
   q.deadline = startedAt + ANSWER_MS;
+  // random part of the song each time it's played (server picks, so it's the
+  // same for everyone). ponytail: no per-song duration data, so clamp to a
+  // window that's safe for full-length tracks; add durations to songs.json to widen.
+  const clipStart = 20 + Math.floor(Math.random() * 50); // 20–69s in
 
   // Never leak the answer: options/title/artist/source are NOT in this payload.
   io.to(room.code).emit("question", {
     questionId: q.id, number: q.number, total: room.questions.length,
     answerMode: q.answerMode, youtubeVideoId: q.song.youtubeVideoId,
-    clipStart: q.song.start || 30, clipMs: CLIP_MS,
+    clipStart, clipMs: CLIP_MS,
     options: q.answerMode === "easy" ? q.options : null,
     startedAt, deadline: q.deadline, serverNow: Date.now(),
   });
