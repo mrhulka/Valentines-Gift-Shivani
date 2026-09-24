@@ -69,26 +69,30 @@ app.get("/api/room/:code", (req, res) => {
   res.json({ code: room.code, status: room.status, players: room.players.size, max: MAX_PLAYERS });
 });
 
-// ---- audio: resolve a playable 30s preview clip from the free iTunes Search API.
-// Keyless, CORS-free (we fetch server-side), no embed restrictions. Cached.
-const previewCache = new Map(); // "title|artist" -> previewUrl | null
-async function resolvePreview(title, artist) {
-  const key = `${title}|${artist}`.toLowerCase();
-  if (previewCache.has(key)) return previewCache.get(key);
-  let url = null;
-  try {
-    const ac = new AbortController();
-    const t = setTimeout(() => ac.abort(), 4000);
-    const r = await fetch(
-      `https://itunes.apple.com/search?term=${encodeURIComponent(title + " " + artist)}&media=music&entity=song&limit=1`,
-      { signal: ac.signal }
-    );
-    clearTimeout(t);
-    const j = await r.json();
-    url = j.results?.[0]?.previewUrl || null;
-  } catch { /* offline / miss -> null; round still runs, just no audio */ }
-  previewCache.set(key, url);
-  return url;
+// ---- playback: find a PLAYABLE YouTube video for each song.
+// videoEmbeddable=true means the API only returns videos that are allowed to
+// play in an embed — the exact filter that avoids the "embedding disabled"
+// failures. Needs YOUTUBE_API_KEY. Cached. Curated songs already carry an id.
+const YT_KEY = process.env.YOUTUBE_API_KEY;
+const ytCache = new Map(); // "title|artist" -> videoId | null
+async function resolveYouTube(song) {
+  if (song.youtubeVideoId) return song.youtubeVideoId; // curated fallback has one
+  const key = `${song.title}|${song.artist}`.toLowerCase();
+  if (ytCache.has(key)) return ytCache.get(key);
+  let id = null;
+  if (YT_KEY) {
+    try {
+      const ac = new AbortController();
+      const t = setTimeout(() => ac.abort(), 4000);
+      const u = `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&videoEmbeddable=true&maxResults=1&q=${encodeURIComponent(song.title + " " + song.artist + " official audio")}&key=${YT_KEY}`;
+      const r = await fetch(u, { signal: ac.signal });
+      clearTimeout(t);
+      const j = await r.json();
+      id = j.items?.[0]?.id?.videoId || null;
+    } catch { /* miss -> null; round still runs, just no audio */ }
+  }
+  ytCache.set(key, id);
+  return id;
 }
 
 // ================= game loop (server-authoritative) =================
@@ -112,7 +116,7 @@ async function startGame(room) {
   // pick the questions first, then resolve previews only for those (fewer iTunes calls).
   // distractors are just labels, so they can come from the whole pool without a preview.
   const songs = shuffle(pool.slice()).slice(0, room.questionCount);
-  await Promise.all(songs.map(async (s) => { s.previewUrl = await resolvePreview(s.title, s.artist); }));
+  await Promise.all(songs.map(async (s) => { s.youtubeVideoId = await resolveYouTube(s); }));
   room.questions = songs.map((song, i) => {
     let sourceId = null;
     if (room.mode === "friendmix") {
@@ -142,13 +146,13 @@ function nextQuestion(room) {
   const startedAt = Date.now();
   q.startedAt = startedAt;
   q.deadline = startedAt + ANSWER_MS;
-  // random part of the ~30s preview each time (server picks, same for everyone)
-  const clipStart = Math.floor(Math.random() * 20); // 0–19s into the 30s preview
+  // random part of the song each time (server picks, same for everyone)
+  const clipStart = 20 + Math.floor(Math.random() * 50); // 20–69s in
 
   // Never leak the answer: options/title/artist/source are NOT in this payload.
   io.to(room.code).emit("question", {
     questionId: q.id, number: q.number, total: room.questions.length,
-    answerMode: q.answerMode, previewUrl: q.song.previewUrl || null,
+    answerMode: q.answerMode, youtubeVideoId: q.song.youtubeVideoId || null,
     clipStart, clipMs: CLIP_MS,
     options: q.answerMode === "easy" ? q.options : null,
     startedAt, deadline: q.deadline, serverNow: Date.now(),

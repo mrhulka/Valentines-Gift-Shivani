@@ -48,7 +48,7 @@ async function run() {
     // security: the question payload must NOT contain the answer/title/artist
     if ("correctIndex" in q || "title" in q || "artist" in q || "sourceName" in q) leaked = true;
     assert.ok(q.options?.length === 4, "easy question has 4 options");
-    assert.ok("previewUrl" in q, "question carries a previewUrl field");
+    assert.ok("youtubeVideoId" in q, "question carries a youtubeVideoId field");
     // host answers option 0 fast; p2 answers option 1; p3 doesn't answer (tests "no answer = 0")
     const r1 = await emit(host, "submitAnswer", { questionId: q.questionId, answer: 0 });
     assert.ok(r1.ok, "host locked");
