@@ -62,6 +62,18 @@ function evaluateStart(room) {
   }
 }
 
+// ---- HTTP: verify the YouTube key end-to-end (open in a browser) ----
+app.get("/api/youtube/check", async (_req, res) => {
+  if (!YT_KEY) return res.json({ ok: false, error: "no_key", detail: "YOUTUBE_API_KEY is not set on the server" });
+  try {
+    const u = `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&videoEmbeddable=true&maxResults=1&q=${encodeURIComponent("blinding lights the weeknd")}&key=${YT_KEY}`;
+    const r = await fetch(u);
+    const j = await r.json();
+    if (j.error) return res.json({ ok: false, error: "api_error", status: r.status, reason: j.error?.errors?.[0]?.reason, detail: j.error?.message });
+    return res.json({ ok: true, videoId: j.items?.[0]?.id?.videoId || null });
+  } catch (e) { return res.json({ ok: false, error: "fetch_failed", detail: String(e) }); }
+});
+
 // ---- HTTP: quick validity check for the join screen ----
 app.get("/api/room/:code", (req, res) => {
   const room = rooms.get(req.params.code.toUpperCase());
