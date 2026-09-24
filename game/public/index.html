@@ -126,7 +126,6 @@ a{color:var(--accent2)}
 <div class="app"><div class="screen" id="screen"></div></div>
 
 <script src="/socket.io/socket.io.js"></script>
-<script src="https://www.youtube.com/iframe_api" async></script>
 <script>
 const GENRES=["Pop","Rock","Hip-Hop","R&B","EDM","Bollywood","Indie","Country","Jazz"];
 const ERAS=["70s","80s","90s","2000s","2010s","2020s"];
@@ -149,7 +148,7 @@ const esc=(s)=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;
 
 // ---- state ----
 let socket, playerId=localStorage.getItem("pid")||null;
-let me=null, room=null, curQ=null, clockOffset=0, ytPlayer=null, ytReady=false, audioUnlocked=false, ytUnlocked=false, rafId=0, cdTimer=0;
+let me=null, room=null, curQ=null, clockOffset=0, audioUnlocked=false, ytUnlocked=false, rafId=0, cdTimer=0;
 const prefs={genres:[],eras:[],languages:[]};
 
 // ---- sound fx (WebAudio, no asset files) ----
@@ -167,32 +166,25 @@ const fx={start:()=>beep(660,.15,"triangle"),warn:()=>beep(440,.1,"square",.2),
   lock:()=>beep(520,.08,"sine"),correct:()=>{beep(660,.1);setTimeout(()=>beep(880,.18),90)},
   wrong:()=>beep(160,.25,"sawtooth",.12),win:()=>{[523,659,784,1046].forEach((f,i)=>setTimeout(()=>beep(f,.2,"triangle"),i*140))}};
 
-// ---- YouTube IFrame (the compliant playback layer) ----
-// One persistent player node. It initialises offscreen, then gets moved into
-// each question's stage full-size, with an opaque cover on top: a legitimate,
-// full-size player whose identifying visuals (title/thumbnail) stay masked.
-const ytHost=document.createElement("div");
-ytHost.id="ytwrap";ytHost.style.cssText="position:absolute;inset:0;left:-9999px;width:100%;height:100%";
-ytHost.innerHTML='<div id="yt"></div>';
-document.body.appendChild(ytHost);
-window.onYouTubeIframeAPIReady=()=>{
-  ytPlayer=new YT.Player("yt",{height:"100%",width:"100%",videoId:"",
-    playerVars:{controls:0,disablekb:1,modestbranding:1,rel:0,playsinline:1,fs:0,iv_load_policy:3},
-    events:{onReady:()=>{ytReady=true;if(pendingClip){const p=pendingClip;pendingClip=null;playClip(p.v,p.s,p.m);}},onError:onYtError}});
-};
-function onYtError(){ // video blocks embedding / unavailable: don't hang the round
-  showToast("Having trouble playing this track…");
+// ---- playback: iTunes 30s preview via a plain <audio> element ----
+// No video, no embed restrictions, nothing to leak — the mystery cover is the
+// only visual. Just an audio URL the server resolved.
+const au=new Audio(); au.preload="auto"; au.crossOrigin="anonymous";
+let clipTimer=0;
+function playClip(url,startSec,ms){
+  clearTimeout(clipTimer);
+  if(!url){showToast("Couldn't load this track — hang tight");return;}
+  au.src=url;
+  const go=()=>{
+    try{au.currentTime=startSec||0;}catch(e){}
+    au.play().catch(()=>{});                       // may need a gesture (tap gate handles first)
+    clipTimer=setTimeout(()=>{try{au.pause();}catch(e){}
+      document.querySelector(".stage")?.classList.add("paused");},ms);
+  };
+  if(au.readyState>=1) go(); else au.addEventListener("loadedmetadata",go,{once:true});
+  au.load();
 }
-let pendingClip=null;
-function playClip(videoId,startSec,ms){
-  if(!ytReady||!ytPlayer){pendingClip={v:videoId,s:startSec,m:ms};return;} // queue until API ready
-  try{
-    ytPlayer.loadVideoById({videoId,startSeconds:startSec});
-    ytPlayer.playVideo();
-    setTimeout(()=>{try{ytPlayer.pauseVideo();}catch(e){}
-      const eq=document.querySelector(".stage");eq&&eq.classList.add("paused");},ms);
-  }catch(e){}
-}
+function stopClip(){clearTimeout(clipTimer);try{au.pause();}catch(e){}}
 const now=()=>Date.now()+clockOffset; // server-aligned clock
 
 // ================= socket setup =================
@@ -308,13 +300,15 @@ function renderLobby(){showExit(true);
         <div class="wait" style="margin:12px 0 6px">Eras</div><div class="chips" id="e"></div>
         <div class="wait" style="margin:12px 0 6px">Languages</div><div class="chips" id="l"></div>
       </div>
-      <button class="btn ghost" id="sp" style="margin-top:10px;${spConn?'color:var(--good)':''}">${spConn?'🎧 Spotify connected':'🎧 Connect Spotify (optional)'}</button>
+      <button class="btn ${spConn?'ghost':'hot'}" id="sp" style="margin-top:10px;${spConn?'color:var(--good)':''}">${spConn?'🎧 Spotify connected':'🎧 Connect Spotify to play'}</button>
       </div>
     <div><div class="label" style="margin-bottom:8px">Squad (${room.players.length}/10)</div>
       <div class="players" id="pl"></div></div>
     <div class="center" id="cd" style="font-weight:800;min-height:24px;${counting?'color:var(--gold)':'color:var(--dim)'}"></div>
-    <button class="btn ${counting?'hot':''}" id="ready">${isReady()?'✓ Ready — tap to cancel':"I'm ready"}</button>
-    <div class="foot">Everyone taps ready — the game auto-starts 5 seconds later.</div>
+    ${spConn
+      ? `<button class="btn ${counting?'hot':''}" id="ready">${isReady()?'✓ Ready — tap to cancel':"I'm ready"}</button>`
+      : `<button class="btn" id="ready" disabled>🎧 Connect Spotify first</button>`}
+    <div class="foot">Connect Spotify, then everyone taps ready — the game auto-starts 5 seconds later. Songs come from your libraries.</div>
   </div>`);
   fillChips(n.querySelector("#g"),GENRES,prefs.genres,"genres");
   fillChips(n.querySelector("#e"),ERAS,prefs.eras,"eras");
@@ -326,7 +320,8 @@ function renderLobby(){showExit(true);
       ${p.ready?'<span class="tick">✓ ready</span>':'<span class="wait">…</span>'}</div>`));
   });
   n.querySelector("#copy").onclick=()=>{navigator.clipboard?.writeText(link);showToast("Invite link copied!");};
-  n.querySelector("#ready").onclick=()=>{unlockAudio();socket.emit("setReady",{ready:!isReady()});};
+  const rb=n.querySelector("#ready");
+  if(rb&&spConn) rb.onclick=()=>{unlockAudio();socket.emit("setReady",{ready:!isReady()});};
   n.querySelector("#sp").onclick=connectSpotify;
   const cd=n.querySelector("#cd");
   const tickCd=()=>{
@@ -339,8 +334,8 @@ function renderLobby(){showExit(true);
 }
 const isReady=()=>room?.players.find(p=>p.id===playerId)?.ready;
 
-// Spotify: optional metadata layer. Reads your top genres and biases the song
-// pool toward your taste. Needs SPOTIFY_CLIENT_ID/SECRET set on the server.
+// Spotify: your top tracks become the song pool (attributed to you). Needs
+// SPOTIFY_CLIENT_ID/SECRET set on the server.
 function connectSpotify(){
   fetch("/api/spotify/enabled").then(r=>r.json()).then(({enabled})=>{
     if(!enabled) return showToast("Spotify isn't set up on the server yet");
@@ -352,17 +347,12 @@ function connectSpotify(){
       fetch("/api/spotify/profile?state="+encodeURIComponent(e.data.state))
         .then(r=>r.json())
         .then(prof=>{
-          if(Array.isArray(prof.genres)) mergeSpotifyGenres(prof.genres);
-          socket.emit("setSpotify",{connected:true});
-          showToast("🎧 Spotify connected — pool tuned to your taste");
+          const tracks=(prof.topTracks||[]).filter(t=>t&&t.title&&t.artist);
+          socket.emit("setSpotify",{connected:true,tracks});
+          showToast(tracks.length?`🎧 Connected — ${tracks.length} of your songs added`:"🎧 Connected");
         }).catch(()=>showToast("Couldn't read Spotify profile"));
     });
   }).catch(()=>showToast("Spotify unavailable"));
-}
-function mergeSpotifyGenres(sp){
-  const low=sp.map(g=>String(g).toLowerCase());
-  const picked=GENRES.filter(g=>low.some(s=>s.includes(g.toLowerCase().split("-")[0])));
-  if(picked.length){ prefs.genres=picked.slice(0,3); socket.emit("setPrefs",prefs); }
 }
 function fillChips(box,items,sel,key){
   items.forEach(v=>{const c=$(`<button class="chip${sel.includes(v)?' on':''}">${v}</button>`);
@@ -388,9 +378,6 @@ function onQuestion(q){
     <div id="answers"></div>
   </div>`);
   const stage=n.querySelector("#stage");
-  // move the persistent player into this stage (full-size, behind the cover)
-  ytHost.style.left="0";
-  stage.insertBefore(ytHost,stage.firstChild);
   const ans=n.querySelector("#answers");
   if(q.answerMode==="easy"){
     const grid=$(`<div class="opts"></div>`);
@@ -410,14 +397,14 @@ function onQuestion(q){
   // YouTube audio needs a gesture that DIRECTLY calls play the first time
   // (mobile blocks cross-origin autoplay). Gate the first clip on a real tap;
   // after that, in-session autoplay is allowed.
-  if(ytUnlocked)playClip(q.youtubeVideoId,q.clipStart,q.clipMs);
+  if(ytUnlocked)playClip(q.previewUrl,q.clipStart,q.clipMs);
   else showTapToPlay(stage,q);
   startCountdown(q.deadline);
 }
 function showTapToPlay(stage,q){
   const g=$(`<div class="cover" style="z-index:5;cursor:pointer"><div class="mt">🔊 Tap to play</div>
     <div class="wait">enables sound on your device</div></div>`);
-  g.onclick=()=>{ytUnlocked=true;unlockAudio();g.remove();playClip(q.youtubeVideoId,q.clipStart,q.clipMs);};
+  g.onclick=()=>{ytUnlocked=true;unlockAudio();g.remove();playClip(q.previewUrl,q.clipStart,q.clipMs);};
   stage.appendChild(g);
 }
 function unlockAudio(){audioUnlocked=true;try{actx=actx||new (window.AudioContext||window.webkitAudioContext)();actx.resume();}catch(e){}}
@@ -452,7 +439,7 @@ function startCountdown(deadline){
 // ================= reveal =================
 function onReveal(r){showExit(true);
   cancelAnimationFrame(rafId);answered=false;
-  try{ytPlayer&&ytPlayer.pauseVideo();}catch(e){}
+  stopClip();
   const mine=r.results.find(x=>x.playerId===playerId);
   if(mine){mine.correct?fx.correct():fx.wrong();if(mine.streakLabel)showStreak(mine.streakLabel);}
   // mark easy options if still on screen

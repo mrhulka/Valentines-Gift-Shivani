@@ -28,8 +28,13 @@ async function run() {
   const bad = await emit(p2, "joinRoom", { code: "ZZZZZ", name: "x" });
   assert.equal(bad.error, "Room not found", "invalid room rejected");
 
-  host.emit("setPrefs", { genres: ["Pop", "Rock"] });
-  // everyone (host included) readies -> server auto-starts after START_DELAY
+  // Spotify is required to play; each player contributes some tracks to the pool
+  const mk = (names) => names.map((n, i) => ({ title: n, artist: "Artist" + i }));
+  host.emit("setSpotify", { connected: true, tracks: mk(["Alpha","Bravo","Charlie","Hotel"]) });
+  p2.emit("setSpotify", { connected: true, tracks: mk(["Delta","Echo","India","Juliet"]) });
+  p3.emit("setSpotify", { connected: true, tracks: mk(["Foxtrot","Golf","Kilo","Lima"]) });
+  await wait(100);
+  // ready gate must reject an un-connected player: (covered implicitly — all connected here)
   host.emit("setReady", { ready: true });
   p2.emit("setReady", { ready: true });
   p3.emit("setReady", { ready: true });
@@ -42,7 +47,8 @@ async function run() {
   const answerAll = async (q) => {
     // security: the question payload must NOT contain the answer/title/artist
     if ("correctIndex" in q || "title" in q || "artist" in q || "sourceName" in q) leaked = true;
-    assert.ok(q.youtubeVideoId && q.options?.length === 4, "playable easy question");
+    assert.ok(q.options?.length === 4, "easy question has 4 options");
+    assert.ok("previewUrl" in q, "question carries a previewUrl field");
     // host answers option 0 fast; p2 answers option 1; p3 doesn't answer (tests "no answer = 0")
     const r1 = await emit(host, "submitAnswer", { questionId: q.questionId, answer: 0 });
     assert.ok(r1.ok, "host locked");

@@ -58,7 +58,7 @@ function evaluateStart(room) {
   const conn = [...room.players.values()].filter((p) => p.connected);
   if (conn.length >= 1 && conn.every((p) => p.ready)) {
     room.startAt = Date.now() + START_DELAY;
-    room.startTimer = setTimeout(() => { room.startAt = null; startGame(room); }, START_DELAY);
+    room.startTimer = setTimeout(() => { room.startAt = null; startGame(room).catch(() => {}); }, START_DELAY);
   }
 }
 
@@ -69,22 +69,58 @@ app.get("/api/room/:code", (req, res) => {
   res.json({ code: room.code, status: room.status, players: room.players.size, max: MAX_PLAYERS });
 });
 
-// ================= game loop (server-authoritative) =================
-function startGame(room) {
-  const prefsList = [...room.players.values()].map((p) => p.prefs);
-  const pool = buildPool(SONGS, prefsList);
-  const songs = pickQuestionSongs(pool, room.questionCount);
+// ---- audio: resolve a playable 30s preview clip from the free iTunes Search API.
+// Keyless, CORS-free (we fetch server-side), no embed restrictions. Cached.
+const previewCache = new Map(); // "title|artist" -> previewUrl | null
+async function resolvePreview(title, artist) {
+  const key = `${title}|${artist}`.toLowerCase();
+  if (previewCache.has(key)) return previewCache.get(key);
+  let url = null;
+  try {
+    const ac = new AbortController();
+    const t = setTimeout(() => ac.abort(), 4000);
+    const r = await fetch(
+      `https://itunes.apple.com/search?term=${encodeURIComponent(title + " " + artist)}&media=music&entity=song&limit=1`,
+      { signal: ac.signal }
+    );
+    clearTimeout(t);
+    const j = await r.json();
+    url = j.results?.[0]?.previewUrl || null;
+  } catch { /* offline / miss -> null; round still runs, just no audio */ }
+  previewCache.set(key, url);
+  return url;
+}
 
-  // Friend Mix: attribute each song to a player whose taste matches (else random).
+// ================= game loop (server-authoritative) =================
+async function startGame(room) {
   const players = [...room.players.values()];
+
+  // Pool = the connected players' Spotify libraries, each song attributed to
+  // whoever it came from (Friend Mix). Falls back to the curated list so the
+  // game never breaks if Spotify returns nothing.
+  const contrib = new Map(); // key -> {id,title,artist,genre,era,sources:Set}
+  for (const p of players) {
+    for (const t of p.spotifyTracks || []) {
+      const key = `${t.title}|${t.artist}`.toLowerCase();
+      if (!contrib.has(key)) contrib.set(key, { id: key, title: t.title, artist: t.artist, genre: "", era: "", sources: new Set() });
+      contrib.get(key).sources.add(p.id);
+    }
+  }
+  let pool = [...contrib.values()];
+  if (pool.length < 4) pool = SONGS.map((s) => ({ ...s, sources: new Set() })); // fallback
+
+  // pick the questions first, then resolve previews only for those (fewer iTunes calls).
+  // distractors are just labels, so they can come from the whole pool without a preview.
+  const songs = shuffle(pool.slice()).slice(0, room.questionCount);
+  await Promise.all(songs.map(async (s) => { s.previewUrl = await resolvePreview(s.title, s.artist); }));
   room.questions = songs.map((song, i) => {
-    let source = null;
+    let sourceId = null;
     if (room.mode === "friendmix") {
-      const matches = players.filter((p) => (p.prefs.genres || []).includes(song.genre));
-      source = (matches.length ? matches : players)[Math.floor(Math.random() * (matches.length || players.length))];
+      const ids = [...(song.sources || [])];
+      sourceId = ids.length ? ids[Math.floor(Math.random() * ids.length)] : (players[Math.floor(Math.random() * players.length)]?.id || null);
     }
     const mode = room.answerMode === "mixed" ? (i % 2 ? "hard" : "easy") : room.answerMode;
-    const q = { id: randomUUID(), number: i + 1, song, answerMode: mode, sourceId: source?.id || null };
+    const q = { id: randomUUID(), number: i + 1, song, answerMode: mode, sourceId };
     if (mode === "easy") { const o = makeOptions(song, pool); q.options = o.options; q.correctIndex = o.correctIndex; }
     return q;
   });
@@ -106,15 +142,13 @@ function nextQuestion(room) {
   const startedAt = Date.now();
   q.startedAt = startedAt;
   q.deadline = startedAt + ANSWER_MS;
-  // random part of the song each time it's played (server picks, so it's the
-  // same for everyone). ponytail: no per-song duration data, so clamp to a
-  // window that's safe for full-length tracks; add durations to songs.json to widen.
-  const clipStart = 20 + Math.floor(Math.random() * 50); // 20–69s in
+  // random part of the ~30s preview each time (server picks, same for everyone)
+  const clipStart = Math.floor(Math.random() * 20); // 0–19s into the 30s preview
 
   // Never leak the answer: options/title/artist/source are NOT in this payload.
   io.to(room.code).emit("question", {
     questionId: q.id, number: q.number, total: room.questions.length,
-    answerMode: q.answerMode, youtubeVideoId: q.song.youtubeVideoId,
+    answerMode: q.answerMode, previewUrl: q.song.previewUrl || null,
     clipStart, clipMs: CLIP_MS,
     options: q.answerMode === "easy" ? q.options : null,
     startedAt, deadline: q.deadline, serverNow: Date.now(),
@@ -228,6 +262,7 @@ io.on("connection", (socket) => {
   }));
 
   socket.on("setReady", (d) => withPlayer(socket, (room, p) => {
+    if (d?.ready && !p.spotifyConnected) return; // must connect Spotify to play
     p.ready = !!d?.ready;
     evaluateStart(room); // all ready -> 5s countdown; un-ready -> cancel
     broadcast(room);
@@ -235,6 +270,13 @@ io.on("connection", (socket) => {
 
   socket.on("setSpotify", (d) => withPlayer(socket, (room, p) => {
     p.spotifyConnected = !!d?.connected;
+    if (Array.isArray(d?.tracks)) {
+      p.spotifyTracks = d.tracks
+        .map((t) => ({ title: String(t?.title || "").slice(0, 120), artist: String(t?.artist || "").slice(0, 120) }))
+        .filter((t) => t.title && t.artist)
+        .slice(0, 50);
+    }
+    if (!p.spotifyConnected) { p.spotifyTracks = []; p.ready = false; evaluateStart(room); }
     broadcast(room);
   }));
 
@@ -285,7 +327,7 @@ io.on("connection", (socket) => {
 function newPlayer(name) {
   return {
     id: randomUUID(), name, avatar: AVATARS[Math.floor(Math.random() * AVATARS.length)],
-    ready: false, connected: true, spotifyConnected: false,
+    ready: false, connected: true, spotifyConnected: false, spotifyTracks: [],
     prefs: { genres: [], eras: [], languages: [] },
     score: 0, streak: 0, bestStreak: 0, answers: [],
   };
