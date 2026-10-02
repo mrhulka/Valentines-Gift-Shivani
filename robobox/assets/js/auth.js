@@ -75,7 +75,7 @@ RB.auth = (function () {
 
   var ROLE_LABEL = { sales: 'Sales', sales_head: 'Head of Sales', outsight: 'Outsight', ceo: 'CEO' };
 
-  function signIn(userId, pin) {
+  var signIn = function (userId, pin) {
     var u = RB.store.userById(userId);
     if (!u) return { ok: false, error: 'Unknown user.' };
     if (String(pin || '').trim().toLowerCase() !== String(u.pin).toLowerCase()) {
@@ -84,24 +84,47 @@ RB.auth = (function () {
     current = u;
     try { sessionStorage.setItem(SESSION_KEY, u.id); } catch (e) {}
     return { ok: true, user: u };
-  }
+  };
 
-  function restore() {
+  var restore = function () {
     var id = null;
     try { id = sessionStorage.getItem(SESSION_KEY); } catch (e) {}
     if (!id) return null;
     current = RB.store.userById(id);
     return current;
-  }
+  };
 
-  function signOut() {
+  var signOut = function () {
     current = null;
     try { sessionStorage.removeItem(SESSION_KEY); } catch (e) {}
-  }
+  };
 
   /* Lets a replacement auth module (store-supabase.js, or the host site's own
    * session) hand the app a signed-in user without going through signIn. */
   function setUser(u) { current = u || null; return current; }
+
+  /* Hand sign-in to a real backend. The demo compares an access code in the
+   * browser, which is fine for a walkthrough and not for a system of record;
+   * with a backend the server decides, and the permission map below is the
+   * only part that carries over. The roster for the sign-in dropdown still
+   * comes from the bundled seed, because listing people is itself behind the
+   * login. */
+  var backend = null;
+  function useBackend(b) {
+    backend = b;
+    signIn = function (userId, code) {
+      var seeded = (window.ROBOBOX_SEED.users || []).filter(function (u) { return u.id === userId; })[0];
+      if (!seeded) return Promise.resolve({ ok: false, error: 'Unknown user.' });
+      return b.signIn(seeded.email, code).then(function (res) {
+        if (res.ok) current = res.user;
+        return res;
+      });
+    };
+    restore = function () {
+      return Promise.resolve(b.restore()).then(function (u) { current = u || null; return current; });
+    };
+    signOut = function () { current = null; return b.signOut(); };
+  }
 
   function user() { return current; }
   function role() { return current ? current.role : null; }
@@ -137,7 +160,11 @@ RB.auth = (function () {
   }
 
   return {
-    signIn: signIn, restore: restore, signOut: signOut, user: user, setUser: setUser, role: role,
+    signIn: function (a, b2) { return signIn(a, b2); },
+    restore: function () { return restore(); },
+    signOut: function () { return signOut(); },
+    useBackend: useBackend,
+    user: user, setUser: setUser, role: role,
     roleLabel: roleLabel, can: can, scope: scope, visibleSchools: visibleSchools, mySchools: mySchools,
     ownsRow: ownsRow, PERMISSIONS: PERMISSIONS
   };

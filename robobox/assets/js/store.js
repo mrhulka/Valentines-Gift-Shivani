@@ -28,7 +28,12 @@ RB.store = (function () {
     },
     write: function (data) {
       try { window.localStorage.setItem(KEY, JSON.stringify(data)); return true; }
-      catch (e) { return false; }
+      catch (e) {
+        // Out of quota, or storage blocked (private window, "block cookies").
+        // Silence here reads to the user as "the app lost my work".
+        if (RB.ui) RB.ui.toast('Could not save on this device: ' + (e.message || 'storage is full or blocked'));
+        return false;
+      }
     },
     clear: function () { try { window.localStorage.removeItem(KEY); } catch (e) {} }
   };
@@ -50,8 +55,13 @@ RB.store = (function () {
 
   function load() {
     return Promise.resolve(adapter.read()).then(function (stored) {
-      state = (stored && stored.schools && stored.version === 2) ? stored : seed();
-      if (!stored || stored.version !== 2) persist();
+      var real = stored && stored.schools && stored.version === 2;
+      state = real ? stored : seed();
+      // The seed is a starting point for a fresh browser, never something to
+      // push at a shared database - a backend read simply returns nothing
+      // until somebody signs in.
+      if (!adapter.write) return state;
+      if (!real) persist();
       else if (syncRoster()) persist();
       return state;
     });
@@ -84,7 +94,9 @@ RB.store = (function () {
     return changed;
   }
 
-  function persist() { return adapter.write(state); }
+  /* A backend adapter writes through save(); only the browser adapter has a
+   * whole-state write. Calling a missing one is how "nothing saves" starts. */
+  function persist() { return adapter.write ? adapter.write(state) : null; }
 
   function commit(change) {
     RB.model.invalidate();

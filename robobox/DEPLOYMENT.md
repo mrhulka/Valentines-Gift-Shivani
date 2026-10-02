@@ -13,38 +13,62 @@ allow-list).
 Each browser keeps its own copy, so Sid's Connects never reach Parth. Good for a
 demo on the real domain; not the system of record.
 
-## Production
+## Production — one shared database
 
-1. **Database.** Create a Supabase project and run `supabase/schema.sql`. Four
-   tables — school, contact, opportunity, connect — plus row-level security that
-   mirrors the app's permission map, a trigger that makes `initial_potential`
-   immutable, and one that makes connects append-only.
+Until this is done every person has their own private copy in their own
+browser. They can log Connects all day and nobody else will ever see one. That
+is not a bug in the form; it is what "stored in this browser" means.
 
-2. **Users.** Add each salesperson under Authentication → Users, then insert a
-   matching `app_user` row with their `role` and `owner_key` (the name used in
-   the workbook: `AYUSH`, `SID`…).
+Everything below is written. What is left is a Supabase project and twenty
+minutes.
 
-3. **Load the workbook.** Run `tools/import_master_workbook.py` to regenerate
-   `assets/js/seed-data.js`, then insert those five arrays into the matching
-   tables with the service-role key from a terminal. The key bypasses row-level
-   security, so it never goes near the page.
+1. **Create the project** at supabase.com (the free tier is well inside what
+   seven people and a few thousand Connects need). In the SQL editor, run
+   `supabase/schema.sql` whole. Four tables, plus row-level security that
+   mirrors the app's permission map, a trigger that freezes
+   `initial_potential`, and one that makes Connects append-only.
 
-4. **Point the app at it.** `assets/js/store.js` writes through one adapter
-   object. Replace `RB.store.adapter` with one that implements `read()`
-   (returns `{users, schools, contacts, opportunities, connects}`) and
-   `save(change)` (`change.type` is `connect`, `school` or `opportunity`).
-   Because a Connect is the only write a salesperson makes, `save` is a single
-   insert — there is no roll-up to keep consistent.
+2. **Add the people.** Authentication → Users → Add user, for each of the
+   seven, with their email and a password (that password becomes their access
+   code). Then insert the matching `app_user` row for each, with the same `id`
+   the auth user got, their `role` (`sales`, `sales_head`, `outsight`, `ceo`)
+   and their `owner_key` — the name the workbook uses: `PARTH`, `AYUSH`,
+   `SID`, `VIKAS`, `GAURAV`.
 
-5. **Login.** `assets/js/auth.js` checks the access code in the browser, which
-   is fine for a pilot and not for production. Point `signIn` / `restore` /
-   `setUser` at the host site's session or Supabase auth. The `PERMISSIONS` map,
-   `visibleSchools()` and `can()` carry over untouched.
+3. **Load the book.** From a terminal, never the page:
 
-6. **Host it.** Any static host — their server, WordPress uploads, Netlify,
-   Vercel, Cloudflare Pages, S3. Serve over HTTPS with
-   `Content-Type: text/html; charset=utf-8` (every host does this by default;
-   the ₹ signs depend on it).
+   ```bash
+   export SUPABASE_URL=https://xxxx.supabase.co
+   export SUPABASE_SERVICE_KEY=...        # Project Settings → API → service_role
+   python3 tools/load_supabase.py --dry-run     # prints what it would write
+   python3 tools/load_supabase.py
+   ```
+
+   The service-role key bypasses row-level security, which is exactly why it
+   stays in the shell and never reaches `config.js`. Seed ids map to
+   deterministic uuids, so a second run updates the same rows instead of
+   doubling the book.
+
+4. **Point the app at it.** Put the project URL and the **anon** key in
+   `assets/js/config.js`. Both are safe in the page: the anon key grants
+   nothing by itself, because every table is behind policies that read
+   `auth.uid()`. Redeploy. `store-supabase.js` sees the credentials and swaps
+   itself in; nothing else changes.
+
+5. **Sign-in becomes real.** With a backend configured, the access code is
+   checked by Supabase instead of by the browser, so the codes stop being
+   readable in the page source. The dropdown still lists names; the permission
+   map, `visibleSchools()` and `can()` carry over untouched.
+
+### What this does and does not fix
+
+Fixes: everyone reads and writes the same records; permissions are enforced by
+the server, not just drawn by the page; the data survives a cleared browser, a
+new phone, and iOS evicting local storage.
+
+Does not: there is no offline queue. A Connect logged with no signal fails with
+a message rather than saving quietly to be lost later — which is the honest
+behaviour, but it does mean the form needs a connection.
 
 ## Check before handover
 

@@ -194,8 +194,18 @@ RB.util = (function () {
 
   /* ------------------------------------------------------------------ id */
 
+  /* A real UUID, because these ids are the primary keys the shared database
+   * stores - a prefixed string is not insertable into a uuid column. Nothing
+   * reads the prefix, so losing it costs nothing. */
   function uid(prefix) {
-    return (prefix || 'id') + '-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 7);
+    if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
+    // Older Safari: same shape, from the same entropy source.
+    var b = new Uint8Array(16);
+    (window.crypto || {}).getRandomValues ? crypto.getRandomValues(b)
+      : b.forEach(function (_, i) { b[i] = Math.floor(Math.random() * 256); });
+    b[6] = (b[6] & 0x0f) | 0x40; b[8] = (b[8] & 0x3f) | 0x80;
+    var h = Array.prototype.map.call(b, function (x) { return ('0' + x.toString(16)).slice(-2); }).join('');
+    return [h.slice(0,8), h.slice(8,12), h.slice(12,16), h.slice(16,20), h.slice(20)].join('-');
   }
 
   function initials(name) {

@@ -411,7 +411,9 @@ RB.app = (function () {
         if (!res.ok) { err.textContent = res.error; err.hidden = false; return; }
         err.hidden = true;
         document.getElementById('login-pin').value = '';
-        showShell();
+        // With a shared database the records only become readable once the
+        // sign-in is done, so pull them before drawing anything.
+        Promise.resolve(RB.store.load()).then(showShell);
       });
     });
 
@@ -438,7 +440,10 @@ RB.app = (function () {
       if (RB.auth.user() && h && h !== current) go(h);
     });
 
-    Promise.resolve(RB.auth.restore()).then(function (u) { u ? showShell() : showLogin(); });
+    Promise.resolve(RB.auth.restore()).then(function (u) {
+      if (!u) return showLogin();
+      return Promise.resolve(RB.store.load()).then(showShell);
+    });
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);

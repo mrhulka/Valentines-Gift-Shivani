@@ -22,6 +22,11 @@ Access code is the first name, lowercase.
 | `ayush` | Head of Sales | Every salesperson's day and performance, no money |
 | `sid`, `gaurav`, `vikas` | Sales | Their own schools |
 
+**Storage.** Out of the box every browser keeps its own copy, so nothing one
+person logs reaches anyone else — a demo, not a system of record. Fill in
+`assets/js/config.js` and the app switches to the shared Supabase database
+instead; see DEPLOYMENT.md.
+
 Permissions live in one map in `assets/js/auth.js`. Two of them are enforced at
 a single choke point each, so they cannot be worked around screen by screen:
 `money` in `U.money()` and in the export's column filter, and route access in

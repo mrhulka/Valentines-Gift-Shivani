@@ -9,9 +9,9 @@
 
 create extension if not exists "pgcrypto";
 
-create type sales_role   as enum ('sales', 'sales_head', 'ceo');
+create type sales_role   as enum ('sales', 'sales_head', 'outsight', 'ceo');
 create type connect_kind as enum ('New', 'Reconnect');
-create type opp_status   as enum ('Open', 'Won', 'Lost');
+create type opp_status   as enum ('Open', 'Won', 'Lost', 'On Hold');
 
 -- Controlled vocabulary lives in the app (model.js V). Storing it as text keeps
 -- adding an offering or a loss reason a one-line change instead of a migration.
@@ -35,8 +35,13 @@ create table school (
   board         text,
   students      integer check (students is null or students >= 0),
   existing_lab  text,
+  -- Whether a STEM lab is already on site, whose, and the annual spend.
+  stem_lab      text,
+  lab_type      text,
+  lab_spend     numeric(14,2),
   competitor    text default 'None',
   lead_source   text,
+  referred_by   text,
   owner_key     text references app_user (owner_key),
   origin        text not null default 'app',
   created_at    timestamptz not null default now(),
@@ -61,6 +66,13 @@ create table opportunity (
   offering          text,
   variant           text,
   owner_key         text references app_user (owner_key),
+  co_owners         text[] not null default '{}',
+  current_need      text,
+  decision_maker    text,
+  -- The last stage and likelihood a connect recorded, carried here so a deal
+  -- that has never been connected still has one.
+  stage             text,
+  probability       numeric(5,2) check (probability is null or probability between 0 and 100),
   -- Written once, at creation. No update path exists; realisation is measured
   -- against it, so overwriting it would destroy the only baseline there is.
   initial_potential numeric(14,2),
@@ -69,6 +81,7 @@ create table opportunity (
   closed_value      numeric(14,2),
   final_value       numeric(14,2),
   loss_reason       text,
+  hold_reason       text,
   closed_at         date,
   origin            text not null default 'app',
   created_at        date not null default current_date
@@ -92,9 +105,19 @@ create table connect (
   changed         text,
   commercial      jsonb not null default '{}'::jsonb,  -- {quoted, negotiated}
   notes           text,
-  next_action     text,
-  next_action_at  timestamptz,
-  at              timestamptz not null default now()
+  remarks         text,
+  -- Set explicitly on the connect, never inferred. Stage is what the whole
+  -- pipeline is derived from, so dropping it would flatten every deal to the
+  -- first step.
+  stage             text,
+  expected_value    numeric(14,2),
+  probability       numeric(5,2) check (probability is null or probability between 0 and 100),
+  expected_closure  date,
+  next_action       text,
+  next_action_owner text,
+  next_action_at    timestamptz,
+  origin            text not null default 'app',
+  at                timestamptz not null default now()
 );
 create index connect_opp_idx    on connect (opportunity_id, at desc);
 create index connect_school_idx on connect (school_id, at desc);
